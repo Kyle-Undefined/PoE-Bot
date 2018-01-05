@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoE Bot", "PoE Bot\PoE Bot.csproj", "{147CFCF9-DBC1-4002-BFD5-04A0AC2A37AE}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "PoE.Bot", "PoE.Bot\PoE.Bot.xproj", "{784A671A-574E-45F3-BC12-714B74E0241D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9A0A2689-71BA-4025-B025-BBB8B5E820A8} = {9A0A2689-71BA-4025-B025-BBB8B5E820A8}
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "PoE.Bot.AssemblyResolver", "PoE.Bot.AssemblyResolver\PoE.Bot.AssemblyResolver.xproj", "{9A0A2689-71BA-4025-B025-BBB8B5E820A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +16,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{147CFCF9-DBC1-4002-BFD5-04A0AC2A37AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{147CFCF9-DBC1-4002-BFD5-04A0AC2A37AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{147CFCF9-DBC1-4002-BFD5-04A0AC2A37AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{147CFCF9-DBC1-4002-BFD5-04A0AC2A37AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{784A671A-574E-45F3-BC12-714B74E0241D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{784A671A-574E-45F3-BC12-714B74E0241D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{784A671A-574E-45F3-BC12-714B74E0241D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{784A671A-574E-45F3-BC12-714B74E0241D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

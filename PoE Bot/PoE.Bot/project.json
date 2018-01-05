@@ -1,0 +1,35 @@
+{
+  "title": "PoE Bot",
+  "copyright": "2018 Kyle Undefined",
+  "description": "A bot for the Path Of Exile Xbox Discord server. Integrates with PoE Wiki, Price API, Moderation, RSS and more!",
+  "language": "en-US",
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "emitEntryPoint": true
+  },
+
+  "dependencies": {
+    "Discord.Net.Commands": "1.0.2",
+    "Discord.Net.Core": "1.0.2",
+    "Discord.Net.Rest": "1.0.2",
+    "Discord.Net.WebSocket": "1.0.2",
+    "Microsoft.Extensions.PlatformAbstractions": "1.1.0",
+    "Newtonsoft.Json": "10.0.3",
+    "System.Runtime.Serialization.Primitives": "4.3.0"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50",
+      "dependencies": {
+        "System.Runtime.Loader": "4.3.0",
+        "MarkovCore": "1.2.1",
+        "PoE.Bot.AssemblyResolver": "1.0.0-*"
+      }
+    }
+  },
+
+  "runtimes": {
+    "win10-x64": {}
+  }
+}
