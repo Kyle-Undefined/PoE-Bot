@@ -66,6 +66,7 @@ namespace PoE.Bot.Config
                 gcf.DeleteCommands = gconf["delete_commands"] != null ? (bool?)gconf["delete_commands"] : null;
                 gcf.CommandPrefix = gconf["command_prefix"] != null ? (string)gconf["command_prefix"] : null;
                 gcf.MuteRole = gconf["mute_role"] != null ? (ulong?)gconf["mute_role"] : null;
+                gcf.PriceCheckerRole = gconf["price_role"] != null ? (ulong?)gconf["price_role"] : null;
                 var jma = gconf["mod_actions"] != null ? (JArray)gconf["mod_actions"] : new JArray();
                 foreach (var xjma in jma)
                 {
@@ -144,6 +145,8 @@ namespace PoE.Bot.Config
                     gconf.Add("command_prefix", kvp.Value.CommandPrefix);
                 if (kvp.Value.MuteRole != null)
                     gconf.Add("mute_role", kvp.Value.MuteRole.Value);
+                if (kvp.Value.PriceCheckerRole != null)
+                    gconf.Add("price_role", kvp.Value.PriceCheckerRole.Value);
                 var jma = new JArray();
                 foreach (var ma in kvp.Value.ModActions)
                 {

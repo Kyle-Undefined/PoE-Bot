@@ -120,7 +120,7 @@ namespace PoE.Bot.Commands
                     else if (!prm.IsRequired && ctx.RawArguments.Count < prm.Order + 1)
                         break;
 
-                    var arg = ctx.RawArguments[prm.Order];
+                    var arg = (ctx.Command.Name.ToLower() == "wiki") ? string.Join(" ", ctx.RawArguments) : ctx.RawArguments[prm.Order];
                     var val = PoE_Bot.CommandManager.ParameterParser.Parse(ctx, arg, prm.ParameterType);
                     args[prm.Order + 1] = val;
                 }

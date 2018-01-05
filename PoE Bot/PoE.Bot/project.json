@@ -13,6 +13,7 @@
     "Discord.Net.Core": "1.0.2",
     "Discord.Net.Rest": "1.0.2",
     "Discord.Net.WebSocket": "1.0.2",
+    "HtmlAgilityPack": "1.6.11",
     "Microsoft.Extensions.PlatformAbstractions": "1.1.0",
     "Newtonsoft.Json": "10.0.3",
     "System.Runtime.Serialization.Primitives": "4.3.0"

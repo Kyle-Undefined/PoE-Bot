@@ -26,7 +26,7 @@ namespace PoE.Bot.Core
         internal Client()
         {
             Log.W("Core Client", "Initializing Discord");
-            this.Game = "Try `help";
+            this.Game = "Use `help";
 
             var dsc = new DiscordSocketConfig()
             {

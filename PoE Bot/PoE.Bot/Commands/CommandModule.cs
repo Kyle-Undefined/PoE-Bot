@@ -948,89 +948,99 @@ namespace PoE.Bot.Commands
             var embed = (EmbedBuilder)null;
 
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gld.Id);
-            if (setting == "modlog")
+            var mod = (ITextChannel)null;
+
+            switch (setting)
             {
-                var mod = (ITextChannel)null;
-                if (msg.MentionedChannelIds.Count() > 0)
-                {
-                    mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
-                    var bot = PoE_Bot.Client.CurrentUser;
-                    var prm = mod.GetPermissionOverwrite(bot);
-                    if (prm != null && prm.Value.SendMessages == PermValue.Deny)
-                        throw new InvalidOperationException(" cannot write to specified channel.");
-                }
+                case "modlog":
+                    if (msg.MentionedChannelIds.Count() > 0)
+                    {
+                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        var bot = PoE_Bot.Client.CurrentUser;
+                        var prm = mod.GetPermissionOverwrite(bot);
+                        if (prm != null && prm.Value.SendMessages == PermValue.Deny)
+                            throw new InvalidOperationException(" cannot write to specified channel.");
+                    }
 
-                val = mod != null ? mod.Mention : "<null>";
-                cnf.ModLogChannel = mod != null ? (ulong?)mod.Id : null;
-                embed = this.PrepareEmbed("Success", string.Concat("Moderator log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
+                    val = mod != null ? mod.Mention : "<null>";
+                    cnf.ModLogChannel = mod != null ? (ulong?)mod.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Moderator log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
+                    break;
+                case "replog":
+                    if (msg.MentionedChannelIds.Count() > 0)
+                    {
+                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        var bot = PoE_Bot.Client.CurrentUser;
+                        var prm = mod.GetPermissionOverwrite(bot);
+                        if (prm != null && prm.Value.SendMessages == PermValue.Deny)
+                            throw new InvalidOperationException(" cannot write to specified channel.");
+                    }
+
+                    val = mod != null ? mod.Mention : "<null>";
+                    cnf.ReportUserChannel = mod != null ? (ulong?)mod.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Reported log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
+                    break;
+                case "muterole":
+                    var mute = (IRole)null;
+                    if (msg.MentionedRoleIds.Count > 0)
+                        mute = gld.GetRole(msg.MentionedRoleIds.First());
+                    else
+                        mute = gld.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
+
+                    if (mute != null &&
+                        (mute.Permissions.SendMessages ||
+                        mute.Permissions.SendTTSMessages ||
+                        mute.Permissions.AttachFiles ||
+                        mute.Permissions.EmbedLinks ||
+                        mute.Permissions.Speak ||
+                        mute.Permissions.UseVAD ||
+                        mute.Permissions.AddReactions ||
+                        mute.Permissions.UseExternalEmojis ||
+                        mute.Permissions.CreateInstantInvite))
+                        throw new InvalidOperationException("Specified role cannot have any of the following permissions: Send Messages, Send TTS Messages, Attach Files, Embed Links, Speak, Use Voice Activitiy, Add Reactions, Use External Emojis, or Create Instant Invite.");
+
+                    val = mute != null ? (mute.IsMentionable ? mute.Mention : mute.Name) : "<null>";
+                    cnf.MuteRole = mute != null ? (ulong?)mute.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Mute role was ", mute != null ? string.Concat("set to ", val) : "removed", "."), EmbedType.Success);
+                    break;
+                case "pricerole":
+                    var price = (IRole)null;
+                    if (msg.MentionedRoleIds.Count > 0)
+                        price = gld.GetRole(msg.MentionedRoleIds.First());
+                    else
+                        price = gld.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
+
+                    val = price != null ? (price.IsMentionable ? price.Mention : price.Name) : "<null>";
+                    cnf.PriceCheckerRole = price != null ? (ulong?)price.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Price Checker role was ", price != null ? string.Concat("set to ", val) : "removed", "."), EmbedType.Success);
+                    break;
+                case "prefix":
+                    var pfix = val;
+                    if (string.IsNullOrWhiteSpace(val))
+                        pfix = null;
+
+                    val = pfix ?? "<default>";
+                    cnf.CommandPrefix = pfix;
+                    embed = this.PrepareEmbed("Success", string.Concat("Command prefix was set to ", pfix != null ? string.Concat("**", pfix, "**") : "default", "."), EmbedType.Success);
+                    break;
+                case "deletecommands":
+                    var delcmd = false;
+                    if (val == "enable")
+                        delcmd = true;
+
+                    val = delcmd.ToString();
+                    cnf.DeleteCommands = delcmd;
+                    embed = this.PrepareEmbed("Success", string.Concat("Command message deletion is now **", delcmd ? "enabled" : "disabled", "**."), EmbedType.Success);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid setting specified.");
             }
-            else if(setting == "replog")
-            {
-                var mod = (ITextChannel)null;
-                if (msg.MentionedChannelIds.Count() > 0)
-                {
-                    mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
-                    var bot = PoE_Bot.Client.CurrentUser;
-                    var prm = mod.GetPermissionOverwrite(bot);
-                    if (prm != null && prm.Value.SendMessages == PermValue.Deny)
-                        throw new InvalidOperationException(" cannot write to specified channel.");
-                }
-
-                val = mod != null ? mod.Mention : "<null>";
-                cnf.ReportUserChannel = mod != null ? (ulong?)mod.Id : null;
-                embed = this.PrepareEmbed("Success", string.Concat("Reported log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
-            }
-            else if (setting == "muterole")
-            {
-                var mute = (IRole)null;
-                if (msg.MentionedRoleIds.Count > 0)
-                    mute = gld.GetRole(msg.MentionedRoleIds.First());
-                else
-                    mute = gld.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
-
-                if (mute != null &&
-                    (mute.Permissions.SendMessages ||
-                    mute.Permissions.SendTTSMessages ||
-                    mute.Permissions.AttachFiles ||
-                    mute.Permissions.EmbedLinks ||
-                    mute.Permissions.Speak ||
-                    mute.Permissions.UseVAD ||
-                    mute.Permissions.AddReactions ||
-                    mute.Permissions.UseExternalEmojis ||
-                    mute.Permissions.CreateInstantInvite))
-                    throw new InvalidOperationException("Specified role cannot have any of the following permissions: Send Messages, Send TTS Messages, Attach Files, Embed Links, Speak, Use Voice Activitiy, Add Reactions, Use External Emojis, or Create Instant Invite.");
-
-                val = mute != null ? (mute.IsMentionable ? mute.Mention : mute.Name) : "<null>";
-                cnf.MuteRole = mute != null ? (ulong?)mute.Id : null;
-                embed = this.PrepareEmbed("Success", string.Concat("Mute role was ", mute != null ? string.Concat("set to ", val) : "removed", "."), EmbedType.Success);
-            }
-            else if (setting == "prefix")
-            {
-                var pfix = val;
-                if (string.IsNullOrWhiteSpace(val))
-                    pfix = null;
-
-                val = pfix ?? "<default>";
-                cnf.CommandPrefix = pfix;
-                embed = this.PrepareEmbed("Success", string.Concat("Command prefix was set to ", pfix != null ? string.Concat("**", pfix, "**") : "default", "."), EmbedType.Success);
-            }
-            else if (setting == "deletecommands")
-            {
-                var delcmd = false;
-                if (val == "enable")
-                    delcmd = true;
-
-                val = delcmd.ToString();
-                cnf.DeleteCommands = delcmd;
-                embed = this.PrepareEmbed("Success", string.Concat("Command message deletion is now **", delcmd ? "enabled" : "disabled", "**."), EmbedType.Success);
-            }
-            else
-                throw new ArgumentException("Invalid setting specified.");
+                
             PoE_Bot.ConfigManager.SetGuildConfig(gld.Id, cnf);
 
             if (cnf.ModLogChannel != null)
             {
-                var mod = await gld.GetTextChannelAsync(cnf.ModLogChannel.Value);
+                mod = await gld.GetTextChannelAsync(cnf.ModLogChannel.Value);
                 var embedmod = this.PrepareEmbed("Config updated", string.Concat(usr.Mention, " has has updated guild setting **", setting, "** with value **", val, "**."), EmbedType.Info);
                 await mod.SendMessageAsync("", false, embedmod);
             }
@@ -1040,7 +1050,7 @@ namespace PoE.Bot.Commands
         #endregion
 
         #region Miscellaneous Commands
-        [Command("help", "Shows command list. Add command name to learn more.", Aliases = "help", CheckPermissions = false)]
+        [Command("help", "Shows command list. Add command name to learn more.", Aliases = "halp;h", CheckPermissions = false)]
         public async Task Help(CommandContext ctx,
             [ArgumentParameter("Command to display help for.", false)] string command)
         {
@@ -1060,12 +1070,15 @@ namespace PoE.Bot.Commands
                         .OrderBy(xcmd => xcmd.Name)
                         .Select(xcmd => string.Concat("**", xcmd.Name, "**"));
 
-                    embed.AddField(x =>
+                    if (xcmds.Any())
                     {
-                        x.IsInline = false;
-                        x.Name = string.Format("Commands registered by {0}", cmdg.Key.Name);
-                        x.Value = string.Join(", ", xcmds);
-                    });
+                        embed.AddField(x =>
+                        {
+                            x.IsInline = false;
+                            x.Name = string.Format("Commands registered by {0}", cmdg.Key.Name);
+                            x.Value = string.Join(", ", xcmds);
+                        });
+                    }
                 }
             }
             else
