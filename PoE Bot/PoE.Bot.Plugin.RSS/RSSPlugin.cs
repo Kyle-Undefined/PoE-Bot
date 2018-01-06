@@ -32,7 +32,7 @@ namespace PoE.Bot.Plugin.RSS
             Log.W("RSS", "Initializing RSS");
             Instance = this;
             this.conf = new RSSPluginConfig();
-            this.RSSTimer = new Timer(new TimerCallback(RSS_Tick), null, 5000, 300000);
+            this.RSSTimer = new Timer(new TimerCallback(RSS_Tick), null, 5000, 900000);
             Log.W("RSS", "Done");
         }
 
@@ -128,7 +128,6 @@ namespace PoE.Bot.Plugin.RSS
                             //#announcements
                             case 349951470189412363:
                             case 352983759840083988:
-                                //embed.Title = string.Concat("<@&352462624379895809> ", Format.Bold(itt));
                                 embed.Title = string.Concat(":wisdom: ", itt, " :wisdom:");
                                 embed.Description = des;
                                 var image = GetAnnouncementImage(itu.ToString());

@@ -16,14 +16,25 @@ namespace PoE.Bot.Plugin.Price
 
         [Command("priceadd", "Adds the price for the currency.", Aliases = "addprice;padd;addp", CheckerId = "CorePriceChecker", CheckPermissions = true)]
         public async Task PriceAdd(CommandContext ctx,
-            [ArgumentParameter("Name of the currency.", true)] string Name,
-            [ArgumentParameter("Alias of the currency.", true)] string Alias,
+            [ArgumentParameter("Name of the currency, spaces should be filled with \"_\". Ex: Orb_of_Alchemy, Gemcutter's_Prism", true)] string Name,
             [ArgumentParameter("Quanity of the currency, per Chaos.", true)] Double Quantity,
-            [ArgumentParameter("Price of the currency, in Chaos.", true)] Double Price)
-        {
-            var chn = ctx.Channel;
+            [ArgumentParameter("Price of the currency, in Chaos.", true)] Double Price,
+            [ArgumentParameter("Aliases of the currency, everything it can be known for.", true)] params string[] Alias)
 
-            PricePlugin.Instance.AddCurrency(Name, Alias, Quantity, Price, DateTime.Now);
+        {
+            if(string.IsNullOrWhiteSpace(Name))
+                throw new ArgumentException("You must enter a name.");
+            if(Double.IsNaN(Quantity))
+                throw new ArgumentException("You must add a quantity.");
+            if(Double.IsNaN(Price))
+                throw new ArgumentException("You must add a price.");
+            if (Alias.Count() == 0)
+                throw new ArgumentException("You must add aliases this currency is known as.");
+
+            var chn = ctx.Channel;
+            var alias = string.Join(", ", Alias);
+
+            PricePlugin.Instance.AddCurrency(Name, alias, Quantity, Price, DateTime.Now);
             var embed = this.PrepareEmbed("Success", "Currency was added successfully.", EmbedType.Success);
             var displayName = Name;
 
@@ -63,28 +74,40 @@ namespace PoE.Bot.Plugin.Price
 
         [Command("priceupdate", "Updates the price for the currency.", Aliases = "updateprice;pupdate;updatep", CheckerId = "CorePriceChecker", CheckPermissions = true)]
         public async Task PriceUpdate(CommandContext ctx,
-            [ArgumentParameter("Alias of the currency.", true)] string Alias,
+            [ArgumentParameter("Alias of the currency to update.", true)] string Alias,
             [ArgumentParameter("Quanity of the currency, per Chaos.", true)] Double Quantity,
-            [ArgumentParameter("Price of the currency, in Chaos.", true)] Double Price)
+            [ArgumentParameter("Price of the currency, in Chaos.", true)] Double Price,
+            [ArgumentParameter("Aliases of the currency, everything it can be known for.", true)] params string[] Aliases)
         {
+            if (string.IsNullOrWhiteSpace(Alias))
+                throw new ArgumentException("You must enter an alias.");
+            if (Double.IsNaN(Quantity))
+                throw new ArgumentException("You must add a quantity.");
+            if (Double.IsNaN(Price))
+                throw new ArgumentException("You must add a price.");
+            if (Aliases.Count() == 0)
+                throw new ArgumentException("You must add aliases this currency is known as.");
+
             var chn = ctx.Channel;
             var currName = PricePlugin.Instance.GetCurrencyName(Alias);
-            var displayName = currName;
-            PricePlugin.Instance.RemoveCurrency(currName, Alias, Quantity, Price);
-            PricePlugin.Instance.AddCurrency(currName, Alias, Quantity, Price, DateTime.Now);
+            var aliases = string.Join(", ", Aliases);
+
+            PricePlugin.Instance.RemoveCurrency(currName, Alias);
+            PricePlugin.Instance.AddCurrency(currName, aliases, Quantity, Price, DateTime.Now);
+
             var embed = this.PrepareEmbed("Success", "Currency was updated successfully.", EmbedType.Success);
 
             embed.AddField(x =>
             {
                 x.IsInline = false;
                 x.Name = "Name";
-                x.Value = displayName.Replace("_", " ");
+                x.Value = currName.Replace("_", " ");
             });
             embed.AddField(x =>
             {
                 x.IsInline = false;
                 x.Name = "Alias";
-                x.Value = Alias;
+                x.Value = aliases;
             });
             embed.AddField(x =>
             {
@@ -112,8 +135,12 @@ namespace PoE.Bot.Plugin.Price
         public async Task Price(CommandContext ctx,
             [ArgumentParameter("Currency to lookup, based on alias name, use pricelist to see all currency prices and aliases.", true)] string Alias)
         {
+            if (string.IsNullOrWhiteSpace(Alias))
+                throw new ArgumentException("You must enter an alias.");
+
             var chn = ctx.Channel;
-            var curr = PricePlugin.Instance.GetCurrency(Alias);
+            var alias = (Alias.Contains(":") ? Alias.Replace(":", "") : Alias);
+            var curr = PricePlugin.Instance.GetCurrency(alias);
             var embed = this.PrepareEmbed(curr.Name.Replace("_", " "), curr.Alias, EmbedType.Info);
 
             embed.AddField(x =>
@@ -143,9 +170,10 @@ namespace PoE.Bot.Plugin.Price
         {
             var chn = ctx.Channel;
             var currency = PricePlugin.Instance.GetCurrency();
-            var embed = this.PrepareEmbed("Current list of currencies and prices", "------------------------------------------", EmbedType.Info);
 
-            foreach (var curr in currency)
+            var embed = this.PrepareEmbed("Disclaimer", "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.", EmbedType.Info);
+
+            foreach (var curr in currency.Reverse().Skip(currency.Count()/2))
             {
                 embed.AddField(x =>
                 {
@@ -154,8 +182,21 @@ namespace PoE.Bot.Plugin.Price
                     x.Value = String.Concat(curr.Alias, "\nCurrent going rate is ", curr.Quantity, " for ", curr.Price, " Chaos.\n", "Last Updated: ", curr.LastUpdated);
                 });
             }
-            
-            embed.AddField(x =>
+
+            var embed2 = this.PrepareEmbed(EmbedType.Info);
+            embed2.Timestamp = DateTime.Now;
+
+            foreach (var curr in currency.Skip(currency.Count() / 2))
+            {
+                embed2.AddField(x =>
+                {
+                    x.IsInline = false;
+                    x.Name = curr.Name.Replace("_", " ");
+                    x.Value = String.Concat(curr.Alias, "\nCurrent going rate is ", curr.Quantity, " for ", curr.Price, " Chaos.\n", "Last Updated: ", curr.LastUpdated);
+                });
+            }
+
+            embed2.AddField(x =>
             {
                 x.IsInline = false;
                 x.Name = "Disclaimer";
@@ -163,6 +204,7 @@ namespace PoE.Bot.Plugin.Price
             });
 
             await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed2);
         }
 
         private EmbedBuilder PrepareEmbed(EmbedType type)
@@ -198,6 +240,7 @@ namespace PoE.Bot.Plugin.Price
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
+            embed.Timestamp = DateTime.Now;
             return embed;
         }
 

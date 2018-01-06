@@ -26,7 +26,6 @@ namespace PoE.Bot.Core
         internal Client()
         {
             Log.W("Core Client", "Initializing Discord");
-            this.Game = "Use `help";
 
             var dsc = new DiscordSocketConfig()
             {
@@ -223,8 +222,6 @@ namespace PoE.Bot.Core
                 }
             }
 
-            if (this.CurrentUser.Game == null || this.CurrentUser.Game.Value.Name != this.Game)
-                this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
             Log.W("Core Client", "Ticked PoE.Bot");
         }
 
@@ -262,6 +259,7 @@ namespace PoE.Bot.Core
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
+            embed.Timestamp = DateTime.Now;
             return embed;
         }
 

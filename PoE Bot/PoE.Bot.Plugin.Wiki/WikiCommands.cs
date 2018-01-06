@@ -28,6 +28,9 @@ namespace PoE.Bot.Plugin.Wiki
         public async Task wiki(CommandContext ctx,
             [ArgumentParameter("Item to search for", true)] string item)
         {
+            if (string.IsNullOrWhiteSpace(item))
+                throw new ArgumentException("You must enter a item.");
+
             Log.W("Wiki", item);
             EmbedBuilder builder = await GetWikiItem(item);
 
@@ -414,6 +417,7 @@ namespace PoE.Bot.Plugin.Wiki
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
+            embed.Timestamp = DateTime.Now;
             return embed;
         }
 

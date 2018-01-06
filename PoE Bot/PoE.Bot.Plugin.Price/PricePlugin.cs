@@ -47,9 +47,9 @@ namespace PoE.Bot.Plugin.Price
             UpdateConfig();
         }
 
-        public void RemoveCurrency(string Name, string Alias, Double Quantity, Double Price)
+        public void RemoveCurrency(string Name, string Alias)
         {
-            var curr = this.conf.Currency.FirstOrDefault(xf => xf.Name == Name && xf.Alias == Alias);
+            var curr = this.conf.Currency.FirstOrDefault(xf => xf.Name == Name && xf.Alias.Contains(Alias));
             this.conf.Currency.Remove(curr);
             Log.W("Price", "Removed Price for {0}", Name);
 
@@ -69,7 +69,7 @@ namespace PoE.Bot.Plugin.Price
 
         internal string GetCurrencyName(string alias)
         {
-            var currency = this.conf.Currency.FirstOrDefault(xf => xf.Alias == alias).Name;
+            var currency = this.conf.Currency.FirstOrDefault(xf => xf.Alias.Contains(alias)).Name;
             return currency;
         }
 

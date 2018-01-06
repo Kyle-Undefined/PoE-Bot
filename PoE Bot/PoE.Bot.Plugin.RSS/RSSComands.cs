@@ -127,6 +127,7 @@ namespace PoE.Bot.Plugin.RSS
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
+            embed.Timestamp = DateTime.Now;
             return embed;
         }
 

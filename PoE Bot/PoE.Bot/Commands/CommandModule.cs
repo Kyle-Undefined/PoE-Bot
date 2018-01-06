@@ -780,6 +780,8 @@ namespace PoE.Bot.Commands
                 throw new ArgumentNullException("Specified user is invalid.");
 
             var embed = this.PrepareEmbed(EmbedType.Info);
+            if (!string.IsNullOrWhiteSpace(usr.GetAvatarUrl()))
+                embed.ThumbnailUrl = usr.GetAvatarUrl();
 
             embed.AddField(x =>
             {
@@ -1044,6 +1046,23 @@ namespace PoE.Bot.Commands
                 var embedmod = this.PrepareEmbed("Config updated", string.Concat(usr.Mention, " has has updated guild setting **", setting, "** with value **", val, "**."), EmbedType.Info);
                 await mod.SendMessageAsync("", false, embedmod);
             }
+
+            await chn.SendMessageAsync("", false, embed);
+        }
+
+        [Command("setgame", "Sets the game the Bot is playing", Aliases = "sg;setbotgame;setg", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task SetBotGame(CommandContext ctx,
+            [ArgumentParameter("Game to set.", true)] params string[] game)
+        {
+            if (game.Count() == 0)
+                throw new ArgumentException("You must put in a game.");
+
+            var chn = ctx.Channel;
+            var val = string.Join(" ", game);
+            var embed = (EmbedBuilder)null;
+
+            await PoE_Bot.Client.DiscordClient.SetGameAsync(val);
+            embed = this.PrepareEmbed("Success", "Bot Game has been updated to **" + val + "**.", EmbedType.Success);
 
             await chn.SendMessageAsync("", false, embed);
         }
@@ -1321,6 +1340,7 @@ namespace PoE.Bot.Commands
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
+            embed.Timestamp = DateTime.Now;
             return embed;
         }
 
