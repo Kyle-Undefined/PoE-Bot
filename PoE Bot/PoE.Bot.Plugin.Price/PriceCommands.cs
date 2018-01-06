@@ -77,7 +77,7 @@ namespace PoE.Bot.Plugin.Price
             [ArgumentParameter("Alias of the currency to update.", true)] string Alias,
             [ArgumentParameter("Quanity of the currency, per Chaos.", true)] Double Quantity,
             [ArgumentParameter("Price of the currency, in Chaos.", true)] Double Price,
-            [ArgumentParameter("Aliases of the currency, everything it can be known for.", true)] params string[] Aliases)
+            [ArgumentParameter("Aliases of the currency, everything it can be known for.", false)] params string[] Aliases)
         {
             if (string.IsNullOrWhiteSpace(Alias))
                 throw new ArgumentException("You must enter an alias.");
@@ -85,12 +85,13 @@ namespace PoE.Bot.Plugin.Price
                 throw new ArgumentException("You must add a quantity.");
             if (Double.IsNaN(Price))
                 throw new ArgumentException("You must add a price.");
-            if (Aliases.Count() == 0)
-                throw new ArgumentException("You must add aliases this currency is known as.");
 
             var chn = ctx.Channel;
             var currName = PricePlugin.Instance.GetCurrencyName(Alias);
-            var aliases = string.Join(", ", Aliases);
+            var aliases = Alias;
+
+            if (Aliases.Count() > 0)
+                aliases = string.Join(", ", Aliases);
 
             PricePlugin.Instance.RemoveCurrency(currName, Alias);
             PricePlugin.Instance.AddCurrency(currName, aliases, Quantity, Price, DateTime.Now);
