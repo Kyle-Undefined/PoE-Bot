@@ -140,7 +140,14 @@ namespace PoE.Bot.Plugin.Price
                 throw new ArgumentException("You must enter an alias.");
 
             var chn = ctx.Channel;
-            var alias = (Alias.Contains(":") ? Alias.Replace(":", "") : Alias);
+            var alias = Alias;
+
+            if (alias.Contains(":"))
+            {
+                var s = alias.Split(':');
+                alias = s[1];
+            }
+
             var curr = PricePlugin.Instance.GetCurrency(alias);
             var embed = this.PrepareEmbed(curr.Name.Replace("_", " "), curr.Alias, EmbedType.Info);
 
