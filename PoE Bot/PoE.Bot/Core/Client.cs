@@ -30,7 +30,7 @@ namespace PoE.Bot.Core
             var dsc = new DiscordSocketConfig()
             {
                 LogLevel = Debugger.IsAttached ? LogSeverity.Debug : LogSeverity.Info,
-                MessageCacheSize = 0
+                MessageCacheSize = 10
             };
 
             this.DiscordClient = new DiscordSocketClient(dsc);
@@ -38,10 +38,7 @@ namespace PoE.Bot.Core
             this.DiscordClient.Ready += Client_Ready;
 
             // modlog events
-            //this.DiscordClient.UserJoined += DiscordClient_UserJoined;
-            //this.DiscordClient.UserLeft += DiscordClient_UserLeft;
-            //this.DiscordClient.UserBanned += DiscordClient_UserBanned;
-            //this.DiscordClient.UserUnbanned += DiscordClient_UserUnbanned;
+            this.DiscordClient.MessageDeleted += DiscordClient_MessageDeleted;
 
             var a = typeof(Client).GetTypeInfo().Assembly;
             var n = a.GetName();
@@ -223,6 +220,45 @@ namespace PoE.Bot.Core
             }
 
             Log.W("Core Client", "Ticked PoE.Bot");
+        }
+
+        private async Task DiscordClient_MessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+        {
+            var msg = await arg1.GetOrDownloadAsync();
+            var usr = (SocketGuildUser)msg.Author;
+            var gld = usr.Guild;
+            var gid = gld.Id;
+
+            var cfg = PoE_Bot.ConfigManager.GetGuildConfig(gid);
+            if (cfg == null || cfg.ModLogChannel == null)
+                return;
+
+            var chn = gld.GetTextChannel(cfg.ModLogChannel.Value);
+            if (chn == null)
+                return;
+
+            var dChn = (SocketTextChannel)msg.Channel;
+            var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Info);
+            embed.AddField(x =>
+            {
+                x.IsInline = true;
+                x.Name = "User";
+                x.Value = usr.Mention;
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = true;
+                x.Name = "Channel";
+                x.Value = string.Concat(dChn.Mention, " (", dChn.Id, ")");
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Message";
+                x.Value = msg.Content;
+            });
+
+            await chn.SendMessageAsync("", false, embed);
         }
 
         #region Embeds

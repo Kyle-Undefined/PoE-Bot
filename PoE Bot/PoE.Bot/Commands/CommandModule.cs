@@ -359,18 +359,16 @@ namespace PoE.Bot.Commands
 
             var mod = await gld.GetTextChannelAsync(cnf.ReportUserChannel.Value);
 
-            var embed1 = this.PrepareEmbed("User report", string.Concat(usr.Mention, " reported ", rep.Mention, "."), EmbedType.Info);
-            embed1.AddField(x =>
+            var embed = this.PrepareEmbed("User report", string.Concat(usr.Mention, " reported ", rep.Mention, "."), EmbedType.Info);
+            embed.AddField(x =>
             {
                 x.IsInline = false;
                 x.Name = "Reason";
                 x.Value = rsn;
             });
 
-            var embed2 = this.PrepareEmbed("Success", string.Concat("User ", rep.Mention, " was reported."), EmbedType.Success);
-
-            await mod.SendMessageAsync("", false, embed1);
-            await chn.SendMessageAsync("", false, embed2);
+            await mod.SendMessageAsync("", false, embed);
+            await msg.DeleteAsync();
         }
 
         [Command("mute", "Mutes users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]

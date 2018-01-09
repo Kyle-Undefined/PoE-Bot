@@ -45,12 +45,12 @@ namespace PoE.Bot.Plugin.RSS
 
         public void AddFeed(Uri uri, ulong channel)
         {
-            AddFeed(uri, channel, null);
+            AddFeed(uri, channel, 0, null);
         }
 
-        public void AddFeed(Uri uri, ulong channel, string tag)
+        public void AddFeed(Uri uri, ulong channel, ulong role, string tag)
         {
-            this.conf.Feeds.Add(new Feed(uri, channel, tag));
+            this.conf.Feeds.Add(new Feed(uri, channel, role, tag));
             Log.W("RSS", "Added RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag);
 
             UpdateConfig();
@@ -118,34 +118,38 @@ namespace PoE.Bot.Plugin.RSS
                     if (!feed.RecentUris.Contains(itu.ToString()))
                     {
                         changed = true;
+
+                        SocketGuildUser usr = (SocketGuildUser)PoE_Bot.Client.CurrentUser;
+                        var gld = usr.Guild;
+                        IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
+
                         var embed = new EmbedBuilder();
 
-                        des = des.Replace("<br/>", "\n");
-                        des = StripTagsCharArray(des);
+                        des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                        if (des.Length >= 2048)
+                            des = des.Substring(0, 2044).Insert(2044, "....");
 
-                        switch (feed.ChannelId)
-                        {
-                            //#announcements
-                            case 349951470189412363:
-                            case 352983759840083988:
-                                embed.Title = string.Concat(":wisdom: ", itt, " :wisdom:");
-                                embed.Description = des;
-                                var image = GetAnnouncementImage(itu.ToString());
-                                if (!string.IsNullOrWhiteSpace(image))
-                                    embed.ThumbnailUrl = image;
-                                break;
-                            //#ggg-tracker
-                            case 352902423104323590:
-                            case 396867733465202698:
-                                embed.Title = string.Concat(":witchlove: ", itt, " :witchlove:");
-                                break;
-                        }
-                        
+                        embed.Title = itt;
+                        embed.Description = des;
+
+                        var image = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                        if (!string.IsNullOrWhiteSpace(image))
+                            embed.ImageUrl = image;
+
                         embed.Url = itu.ToString();
                         embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                        embed.Color = new Color(255, 127, 0);
+                        embed.Color = new Color(0, 127, 255);
 
-                        if (feed.Initialized) PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                        if (feed.Initialized)
+                        {
+                            if (feed.RoleId > 0)
+                            {
+                                IRole role = gld.GetRole(feed.RoleId);
+                                PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                            }
+
+                            PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                        }
                     }
                 }
 
@@ -159,7 +163,7 @@ namespace PoE.Bot.Plugin.RSS
             Log.W("RSS", "Ticked RSS");
         }
 
-        private string GetAnnouncementImage(string url)
+        public static string GetAnnouncementImage(string url)
         {
             var imageURL = string.Empty;
             var doc = new HtmlDocument();
@@ -196,7 +200,7 @@ namespace PoE.Bot.Plugin.RSS
             return imageURL;
         }
 
-        private static string StripTagsCharArray(string source)
+        public static string StripTagsCharArray(string source)
         {
             char[] array = new char[source.Length];
             int arrayIndex = 0;
