@@ -119,20 +119,28 @@ namespace PoE.Bot.Plugin.RSS
                     {
                         changed = true;
 
-                        SocketGuildUser usr = (SocketGuildUser)PoE_Bot.Client.CurrentUser;
-                        var gld = usr.Guild;
+                        var discordClient = PoE_Bot.Client._discordClient;
+                        var guilds = discordClient.Guilds;
+                        SocketGuild gld = null;
+
+                        foreach(var guild in guilds)
+                        {
+                            gld = guild;
+                            break;
+                        }
+
                         IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
 
                         var embed = new EmbedBuilder();
 
-                        des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                        des = StripTagsCharArray(des.Replace("<br/>", "\n"));
                         if (des.Length >= 2048)
                             des = des.Substring(0, 2044).Insert(2044, "....");
 
                         embed.Title = itt;
                         embed.Description = des;
 
-                        var image = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                        var image = GetAnnouncementImage(itu.ToString());
                         if (!string.IsNullOrWhiteSpace(image))
                             embed.ImageUrl = image;
 

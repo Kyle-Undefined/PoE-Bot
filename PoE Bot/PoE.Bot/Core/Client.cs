@@ -17,6 +17,7 @@ namespace PoE.Bot.Core
     public sealed class Client
     {
         public IUser CurrentUser { get { return this.DiscordClient.CurrentUser; } }
+        public DiscordSocketClient _discordClient { get { return this.DiscordClient; } }
         public string Game { get; private set; }
         internal DiscordSocketClient DiscordClient { get; private set; }
         internal JObject ConfigJson { get; private set; }
