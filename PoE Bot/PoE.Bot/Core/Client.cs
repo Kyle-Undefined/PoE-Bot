@@ -244,13 +244,13 @@ namespace PoE.Bot.Core
             {
                 x.IsInline = true;
                 x.Name = "User";
-                x.Value = usr.Mention;
+                x.Value = string.Concat(usr.Mention, " (", usr.Username, ")");
             });
             embed.AddField(x =>
             {
                 x.IsInline = true;
                 x.Name = "Channel";
-                x.Value = string.Concat(dChn.Mention, " (", dChn.Id, ")");
+                x.Value = string.Concat(dChn.Mention, " (", dChn.Name, ")");
             });
             embed.AddField(x =>
             {

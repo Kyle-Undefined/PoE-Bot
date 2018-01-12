@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Xml.Linq;
@@ -136,6 +137,7 @@ namespace PoE.Bot.Plugin.RSS
 
                     var embed = this.PrepareEmbed(EmbedType.Info);
 
+                    des = WebUtility.HtmlDecode(des);
                     des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
                     if (des.Length >= 2048)
                         des = des.Substring(0, 2044).Insert(2044, "....");

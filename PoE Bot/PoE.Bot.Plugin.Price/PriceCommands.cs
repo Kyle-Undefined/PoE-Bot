@@ -48,7 +48,7 @@ namespace PoE.Bot.Plugin.Price
             {
                 x.IsInline = false;
                 x.Name = "Alias";
-                x.Value = Alias;
+                x.Value = alias.ToLower();
             });
             embed.AddField(x =>
             {
@@ -108,7 +108,7 @@ namespace PoE.Bot.Plugin.Price
             {
                 x.IsInline = false;
                 x.Name = "Alias";
-                x.Value = aliases;
+                x.Value = aliases.ToLower();
             });
             embed.AddField(x =>
             {
@@ -140,7 +140,7 @@ namespace PoE.Bot.Plugin.Price
                 throw new ArgumentException("You must enter an alias.");
 
             var chn = ctx.Channel;
-            var alias = Alias;
+            var alias = Alias.ToLower();
 
             if (alias.Contains(":"))
             {
@@ -149,6 +149,10 @@ namespace PoE.Bot.Plugin.Price
             }
 
             var curr = PricePlugin.Instance.GetCurrency(alias);
+
+            if (curr == null)
+                throw new ArgumentException("Sorry, there was an issue getting the price. Please make sure it's spelled correctly.");
+
             var embed = this.PrepareEmbed(curr.Name.Replace("_", " "), curr.Alias, EmbedType.Info);
 
             embed.AddField(x =>
