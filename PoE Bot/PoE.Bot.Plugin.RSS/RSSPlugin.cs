@@ -6,8 +6,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using System.Net;
-using System.IO;
 using Discord;
 using Discord.WebSocket;
 using PoE.Bot.Config;
@@ -133,6 +131,7 @@ namespace PoE.Bot.Plugin.RSS
 
                         var embed = new EmbedBuilder();
 
+                        des = HtmlEntity.DeEntitize(des);
                         des = StripTagsCharArray(des.Replace("<br/>", "\n"));
                         if (des.Length >= 2048)
                             des = des.Substring(0, 2044).Insert(2044, "....");
