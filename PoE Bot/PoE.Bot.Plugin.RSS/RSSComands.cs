@@ -12,6 +12,7 @@ using Discord.WebSocket;
 using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
 using PoE.Bot.Commands.Permissions;
+using HtmlAgilityPack;
 
 namespace PoE.Bot.Plugin.RSS
 {
@@ -84,11 +85,15 @@ namespace PoE.Bot.Plugin.RSS
             foreach (var feed in feeds)
             {
                 var xch = gld.GetChannel(feed.ChannelId) as SocketTextChannel;
-                var role = gld.GetRole((ulong)feed.RoleId);
+                SocketRole role = null;
+
+                if (feed.RoleId > 0)
+                    role = gld.GetRole((ulong)feed.RoleId);
+
                 sb.AppendFormat("**URL**: <{0}>", feed.FeedUri).AppendLine();
                 sb.AppendFormat("**Tag**: {0}", feed.Tag).AppendLine();
                 sb.AppendFormat("**Channel**: {0}", xch.Mention).AppendLine();
-                sb.AppendFormat("**Role**: {0}", role.Mention).AppendLine();
+                sb.AppendFormat("**Role**: {0}", role != null ? role.Mention : "None").AppendLine();
                 sb.AppendLine("---------");
             }
 
@@ -126,6 +131,11 @@ namespace PoE.Bot.Plugin.RSS
                     var itl = (string)it.Element("link");
                     var itp = (string)it.Element("pubDate");
                     var des = (string)it.Element("description");
+                    var cat = (string)it.Element("category");
+
+                    if (!string.IsNullOrWhiteSpace(cat))
+                        itp = itp.Substring(0, itp.Length - 2);
+
                     if (itl.StartsWith("/"))
                         uri_root_builder.Path = itl;
                     else
@@ -137,20 +147,43 @@ namespace PoE.Bot.Plugin.RSS
 
                     var embed = this.PrepareEmbed(EmbedType.Info);
 
-                    des = WebUtility.HtmlDecode(des);
-                    des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
-                    if (des.Length >= 2048)
-                        des = des.Substring(0, 2044).Insert(2044, "....");
+                    switch (cat)
+                    {
+                        case "live":
+                            var desHTML = HtmlEntity.DeEntitize(des);
+                            var doc = new HtmlDocument();
+                            doc.LoadHtml(desHTML);
+                            HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
+                            var liveimage = node.Attributes["src"].Value;
 
-                    embed.Title = itt;
-                    embed.Description = des;
+                            embed.Title = itt;
+                            embed.ImageUrl = liveimage;
+                            embed.Url = itu.ToString();
+                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                            embed.Color = new Color(0, 127, 255);
 
-                    var image = RSSPlugin.GetAnnouncementImage(itu.ToString());
-                    if (!string.IsNullOrWhiteSpace(image))
-                        embed.ImageUrl = image;
+                            break;
+                        case "archive":
+                        case "highlight":
+                        case "upload":
+                            break;
+                        default:
+                            des = HtmlEntity.DeEntitize(des);
+                            des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                            if (des.Length >= 2048)
+                                des = des.Substring(0, 2044).Insert(2044, "....");
 
-                    embed.Url = itu.ToString();
-                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                            embed.Title = itt;
+                            embed.Description = des;
+
+                            var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                            if (!string.IsNullOrWhiteSpace(newsimage))
+                                embed.ImageUrl = newsimage;
+
+                            embed.Url = itu.ToString();
+                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                            break;
+                    }
 
                     if (feed.RoleId > 0)
                     {
@@ -158,7 +191,9 @@ namespace PoE.Bot.Plugin.RSS
                         await chan.SendMessageAsync(role.Mention);
                     }
                     
-                    await chan.SendMessageAsync("", false, embed);
+                    if(!string.IsNullOrWhiteSpace(embed.Title))
+                        await chan.SendMessageAsync("", false, embed);
+
                     break;
                 }
             }

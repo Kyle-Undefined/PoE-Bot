@@ -105,6 +105,11 @@ namespace PoE.Bot.Plugin.RSS
                     var itl = (string)it.Element("link");
                     var itp = (string)it.Element("pubDate");
                     var des = (string)it.Element("description");
+                    var cat = (string)it.Element("category");
+
+                    if (!string.IsNullOrWhiteSpace(cat))
+                        itp = itp.Substring(0, itp.Length - 2);
+
                     if (itl.StartsWith("/"))
                         uri_root_builder.Path = itl;
                     else
@@ -112,51 +117,79 @@ namespace PoE.Bot.Plugin.RSS
                     var itu = uri_root_builder.Uri;
                     var itd = DateTime.Parse(itp, CultureInfo.InvariantCulture);
 
-                    rec.Add(itu.ToString());
-                    if (!feed.RecentUris.Contains(itu.ToString()))
+                    if (cat != "archive" && cat != "highlight" && cat != "upload")
                     {
-                        changed = true;
+                        rec.Add(itu.ToString());
 
-                        var discordClient = PoE_Bot.Client._discordClient;
-                        var guilds = discordClient.Guilds;
-                        SocketGuild gld = null;
-
-                        foreach(var guild in guilds)
+                        if (!feed.RecentUris.Contains(itu.ToString()))
                         {
-                            gld = guild;
-                            break;
-                        }
+                            changed = true;
 
-                        IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
+                            var discordClient = PoE_Bot.Client._discordClient;
+                            var guilds = discordClient.Guilds;
+                            SocketGuild gld = null;
 
-                        var embed = new EmbedBuilder();
-
-                        des = HtmlEntity.DeEntitize(des);
-                        des = StripTagsCharArray(des.Replace("<br/>", "\n"));
-                        if (des.Length >= 2048)
-                            des = des.Substring(0, 2044).Insert(2044, "....");
-
-                        embed.Title = itt;
-                        embed.Description = des;
-
-                        var image = GetAnnouncementImage(itu.ToString());
-                        if (!string.IsNullOrWhiteSpace(image))
-                            embed.ImageUrl = image;
-
-                        embed.Url = itu.ToString();
-                        embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                        embed.Color = new Color(0, 127, 255);
-
-                        if (feed.Initialized)
-                        {
-                            if (feed.RoleId > 0)
+                            foreach (var guild in guilds)
                             {
-                                IRole role = gld.GetRole(feed.RoleId);
-                                PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                gld = guild;
+                                break;
                             }
 
-                            PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                            IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
+
+                            var embed = new EmbedBuilder();
+
+                            switch (cat)
+                            {
+                                case "live":
+                                    var desHTML = HtmlEntity.DeEntitize(des);
+                                    var doc = new HtmlDocument();
+                                    doc.LoadHtml(desHTML);
+                                    HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
+                                    var liveimage = node.Attributes["src"].Value;
+
+                                    embed.Title = itt;
+                                    embed.ImageUrl = liveimage;
+                                    embed.Url = itu.ToString();
+                                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                    embed.Color = new Color(0, 127, 255);
+                                    break;
+
+                                default:
+                                    des = HtmlEntity.DeEntitize(des);
+                                    des = StripTagsCharArray(des.Replace("<br/>", "\n"));
+                                    if (des.Length >= 2048)
+                                        des = des.Substring(0, 2044).Insert(2044, "....");
+
+                                    embed.Title = itt;
+                                    embed.Description = des;
+
+                                    var newsimage = GetAnnouncementImage(itu.ToString());
+                                    if (!string.IsNullOrWhiteSpace(newsimage))
+                                        embed.ImageUrl = newsimage;
+
+                                    embed.Url = itu.ToString();
+                                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                    embed.Color = new Color(0, 127, 255);
+                                    break;
+                            }
+
+                            if (feed.Initialized)
+                            {
+                                if (feed.RoleId > 0)
+                                {
+                                    IRole role = gld.GetRole(feed.RoleId);
+                                    PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                }
+
+                                PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                            }
                         }
+                    }
+                    else
+                    {
+                        changed = true;
+                        rec = new List<string>();
                     }
                 }
 
