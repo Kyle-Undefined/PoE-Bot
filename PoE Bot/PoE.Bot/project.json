@@ -9,13 +9,18 @@
   },
 
   "dependencies": {
-    "Discord.Net.Commands": "1.0.2",
-    "Discord.Net.Core": "1.0.2",
-    "Discord.Net.Rest": "1.0.2",
-    "Discord.Net.WebSocket": "1.0.2",
-    "HtmlAgilityPack": "1.6.11",
+    "Discord.Addons.EmbedTool": "1.0.0",
+    "Discord.Addons.Interactive": "1.0.1",
+    "Discord.Net": "2.0.0-beta-00880",
+    "Discord.Net.Commands": "2.0.0-beta-00880",
+    "Discord.Net.Core": "2.0.0-beta-00880",
+    "Discord.Net.Rest": "2.0.0-beta-00880",
+    "Discord.Net.Rpc": "2.0.0-beta-00860",
+    "Discord.Net.Webhook": "2.0.0-beta-00880",
+    "Discord.Net.WebSocket": "2.0.0-beta-00880",
+    "HtmlAgilityPack": "1.6.13",
     "Microsoft.Extensions.PlatformAbstractions": "1.1.0",
-    "Newtonsoft.Json": "10.0.3",
+    "Newtonsoft.Json": "11.0.1-beta3",
     "System.Runtime.Serialization.Primitives": "4.3.0"
   },
 

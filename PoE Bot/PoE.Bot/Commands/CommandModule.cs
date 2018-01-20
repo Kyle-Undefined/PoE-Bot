@@ -37,11 +37,11 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Role create", string.Concat(usr.Mention, " has created role **", grl.Name, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was created successfully.", grl.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("rmrole", "Removes a role.", Aliases = "removerole;deleterole;delrole;rmgroup;removegroup;deletegroup;delgroup;gdel;gdelete;grm;gremove", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -65,11 +65,11 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Role remove", string.Concat(usr.Mention, " has removed role **", grp.Name, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was deleted successfully.", grp.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("modrole", "Edits a role.", Aliases = "modifyrole;editrole;modgroup;modifygroup;editgroup;gmod;gmodify;gedit", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -116,11 +116,11 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Role modify", string.Concat(usr.Mention, " has modified role **", grp.Name, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was edited successfully.", grp.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("roleinfo", "Dumps all properties of a role.", Aliases = "rinfo;dumprole;printrole;dumpgroup;printgroup;gdump", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -229,7 +229,7 @@ namespace PoE.Bot.Commands
                 x.Value = string.Join(", ", perms);
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("listroles", "Lists all roles on the server.", Aliases = "lsroles;lsgroups;listgroups;glist;gls", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -250,7 +250,7 @@ namespace PoE.Bot.Commands
                 x.Name = "Role list";
                 x.Value = string.Join(", ", grp.Select(xr => string.Concat("**", xr.Name, "**")));
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("roleadd", "Adds users to a role.", Aliases = "groupadd;ugadd", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -281,7 +281,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Role Member Add", string.Concat(usr.Mention, " has added ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " to role **", grp.Name, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " added to the role."), EmbedType.Success);
@@ -291,7 +291,7 @@ namespace PoE.Bot.Commands
                 x.Name = "Details";
                 x.Value = string.Concat("The following user", usrs.Count() > 1 ? "s were" : " was", " added to role **", grp.Name, "**: ", string.Join(", ", usrs.Select(xusr => xusr.Mention)));
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("roleremove", "Removes users from a role.", Aliases = "groupremove;ugremove;ugrm", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
@@ -322,7 +322,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Role Member Remove", string.Concat(usr.Mention, " has removed ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " from role **", grp.Name, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " removed from the role."), EmbedType.Success);
@@ -332,7 +332,7 @@ namespace PoE.Bot.Commands
                 x.Name = "Details";
                 x.Value = string.Concat("The following user", usrs.Count() > 1 ? "s were" : " was", " removed from role **", grp.Name, "**: ", string.Join(", ", usrs.Select(xusr => xusr.Mention)));
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -370,7 +370,7 @@ namespace PoE.Bot.Commands
                 x.Value = rsn;
             });
 
-            await mod.SendMessageAsync("", false, embed);
+            await mod.SendMessageAsync("", false, embed.Build());
             await msg.DeleteAsync();
         }
 
@@ -434,10 +434,10 @@ namespace PoE.Bot.Commands
                     });
                 }
                     
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
 
                 if (rep != null)
-                    await rep.SendMessageAsync("", false, embedmod);
+                    await rep.SendMessageAsync("", false, embedmod.Build());
             }
 
             await msg.DeleteAsync();
@@ -454,7 +454,7 @@ namespace PoE.Bot.Commands
                 });
             }
                 
-            await userMute.SendMessageAsync("", false, embed);
+            await userMute.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("unmute", "Unmutes users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
@@ -492,7 +492,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("User unmutes", string.Concat(usr.Mention, " (", usr.Username, ") has unmuted ", string.Join(", ", uss.Select(xus => xus.Mention)), " (", string.Join(", ", uss.Select(xus => xus.Username)), ")."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             await msg.DeleteAsync();
@@ -566,7 +566,7 @@ namespace PoE.Bot.Commands
                 });
             }
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("kick", "Kicks users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
@@ -594,7 +594,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("User kicks", string.Concat(usr.Mention, " has kicked ", string.Join(", ", uss.Select(xus => xus.Mention)), "."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed(EmbedType.Success);
@@ -605,7 +605,7 @@ namespace PoE.Bot.Commands
                 x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " kicked: ", string.Join(", ", uss.Select(xusr => xusr.Mention)), ".");
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("ban", "Bans users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
@@ -645,7 +645,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("User bans", string.Concat(usr.Mention, " has banned ", string.Join(", ", uss.Select(xus => xus.Mention)), " ", dsr, ". Reason: ", reason, "."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed(EmbedType.Success);
@@ -656,7 +656,7 @@ namespace PoE.Bot.Commands
                 x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " banned ", dsr, ": ", string.Join(", ", uss.Select(xusr => xusr.Mention)), ". Reason: ", reason, ".");
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("unban", "Unbans users. Consult listbans for user IDs.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
@@ -690,7 +690,7 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("User unbans", string.Concat(usr.Mention, " has unbanned ", string.Join(", ", uss.Select(xus => xus.User.Mention)), "."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed(EmbedType.Success);
@@ -701,7 +701,7 @@ namespace PoE.Bot.Commands
                 x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " unbanned: ", string.Join(", ", uss.Select(xusr => xusr.User.Mention)));
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("baninfo", "Lists current bans or displays information about specific ban.", Aliases = "listbans;banlist", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
@@ -786,7 +786,7 @@ namespace PoE.Bot.Commands
                 }
             }
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("userinfo", "Displays information about users matching given name.", Aliases = "uinfo;userlist;ulist;userfind;ufind", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -833,12 +833,12 @@ namespace PoE.Bot.Commands
                 x.Value = usr.Status.ToString();
             });
 
-            if (usr.Game != null)
+            if (usr.Activity.Name != null)
                 embed.AddField(x =>
                 {
                     x.IsInline = true;
                     x.Name = "Game";
-                    x.Value = usr.Game.Value.Name;
+                    x.Value = usr.Activity.Name;
                 });
 
             embed.AddField(x =>
@@ -848,7 +848,7 @@ namespace PoE.Bot.Commands
                 x.Value = string.Join(", ", usr.Roles.Select(xid => string.Concat("**", gld.GetRole(xid.Id).Name, "**")));
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -885,7 +885,7 @@ namespace PoE.Bot.Commands
                 predicate = (x => true);
             }
 
-            msgs = (await chn.GetMessagesAsync(50).Flatten()).Where(predicate).Take(count).ToArray();
+            msgs = (await chn.GetMessagesAsync(50).FlattenAsync()).Where(predicate).Take(count).ToArray();
             var allDeleted = new List<IMessage>();
 
             while (count > 0 && msgs.Any())
@@ -912,7 +912,7 @@ namespace PoE.Bot.Commands
                     allDeleted.Add(x);
 
                 if (bulkDeletable.Count > 0)
-                    await Task.WhenAll(Task.Delay(1000), chn.DeleteMessagesAsync(bulkDeletable)).ConfigureAwait(false);
+                    await Task.WhenAll(Task.Delay(1000), chp.DeleteMessagesAsync(bulkDeletable)).ConfigureAwait(false);
 
                 var i = 0;
                 foreach (var group in singleDeletable.GroupBy(x => ++i / (singleDeletable.Count / 5)))
@@ -922,7 +922,7 @@ namespace PoE.Bot.Commands
                 //100 messages, Maybe this needs to be reduced by msgs.Length instead of 100
                 count -= 50;
                 if (count > 0)
-                    msgs = (await chn.GetMessagesAsync(lastMessage, Direction.Before, 50).Flatten()).Where(predicate).Take(count).ToArray();
+                    msgs = (await chn.GetMessagesAsync(lastMessage, Direction.Before, 50).FlattenAsync()).Where(predicate).Take(count).ToArray();
             }
 
             var gid = gld.Id;
@@ -948,7 +948,7 @@ namespace PoE.Bot.Commands
                     x.Value = messagesDeleted.ToString();
                 });
 
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
         }
 
@@ -962,7 +962,7 @@ namespace PoE.Bot.Commands
             var usr = ctx.User;
 
             var chp = channel;
-            var msgs = await chp.GetMessagesAsync(100).Flatten();
+            var msgs = await chp.GetMessagesAsync(100).FlattenAsync();
             await chp.DeleteMessagesAsync(msgs);
 
             var gid = gld.Id;
@@ -972,11 +972,11 @@ namespace PoE.Bot.Commands
             if (mod != null)
             {
                 var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " has purged ", msgs.Count().ToString("#,##0"), " messages from channel ", chp.Mention, "."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
             var embed = this.PrepareEmbed("Success", string.Format("Deleted {0:#,##0} message{2} from channel {1}.", msgs.Count(), chp.Mention, msgs.Count() > 1 ? "s" : ""), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("guildconfig", "Manages  configuration for this guild.", Aliases = "guildconf;config;conf;modconfig;modconf", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -1089,10 +1089,10 @@ namespace PoE.Bot.Commands
             {
                 mod = await gld.GetTextChannelAsync(cnf.ModLogChannel.Value);
                 var embedmod = this.PrepareEmbed("Config updated", string.Concat(usr.Mention, " has has updated guild setting **", setting, "** with value **", val, "**."), EmbedType.Info);
-                await mod.SendMessageAsync("", false, embedmod);
+                await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("setgame", "Sets the game the Bot is playing", Aliases = "sg;setbotgame;setg", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -1109,7 +1109,7 @@ namespace PoE.Bot.Commands
             await PoE_Bot.Client.DiscordClient.SetGameAsync(val);
             embed = this.PrepareEmbed("Success", "Bot Game has been updated to **" + val + "**.", EmbedType.Success);
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -1205,7 +1205,7 @@ namespace PoE.Bot.Commands
                 }
             }
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -1332,7 +1332,7 @@ namespace PoE.Bot.Commands
             //});
             //_sb0 = null;
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("hang", "Hangs current thread. This command can only be used by Kyle Undefined.", CheckerId = "CoreDebugChecker", CheckPermissions = true)]
@@ -1347,7 +1347,7 @@ namespace PoE.Bot.Commands
             await Task.Delay(duration);
 
             var embed = this.PrepareEmbed("Thread hang complete", string.Concat("Thread was hanged for ", duration.ToString("#,##0"), "ms."), EmbedType.Warning);
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 

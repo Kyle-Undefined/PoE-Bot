@@ -136,6 +136,11 @@ namespace PoE.Bot.Commands
             return this == (obj as Command);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public static bool operator ==(Command cmd1, Command cmd2)
         {
             var ocmd1 = (object)cmd1;

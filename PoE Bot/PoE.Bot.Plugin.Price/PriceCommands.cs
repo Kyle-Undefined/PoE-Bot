@@ -69,7 +69,7 @@ namespace PoE.Bot.Plugin.Price
                 x.Value = DateTime.Now;
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("priceupdate", "Updates the price for the currency.", Aliases = "updateprice;pupdate;updatep", CheckerId = "CorePriceChecker", CheckPermissions = true)]
@@ -129,7 +129,7 @@ namespace PoE.Bot.Plugin.Price
                 x.Value = DateTime.Now;
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("price", "Pulls the price for the requested currency, all values based on Chaos.", Aliases = "", CheckPermissions = false)]
@@ -174,7 +174,7 @@ namespace PoE.Bot.Plugin.Price
                 x.Value = "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.";
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("pricelist", "Pulls the price for the all currency", Aliases = "prices;plist", CheckPermissions = false)]
@@ -215,8 +215,8 @@ namespace PoE.Bot.Plugin.Price
                 x.Value = "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.";
             });
 
-            await chn.SendMessageAsync("", false, embed);
-            await chn.SendMessageAsync("", false, embed2);
+            await chn.SendMessageAsync("", false, embed.Build());
+            await chn.SendMessageAsync("", false, embed2.Build());
         }
 
         private EmbedBuilder PrepareEmbed(EmbedType type)

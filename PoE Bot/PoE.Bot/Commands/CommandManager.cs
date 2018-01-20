@@ -290,7 +290,7 @@ namespace PoE.Bot.Commands
                 });
             }
 
-            ctx.Channel.SendMessageAsync("", false, embed).GetAwaiter().GetResult();
+            ctx.Channel.SendMessageAsync("", false, embed.Build()).GetAwaiter().GetResult();
         }
 
         private void CommandExecuted(CommandContext ctx)

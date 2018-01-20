@@ -43,7 +43,7 @@ namespace PoE.Bot.Plugin.RSS
                 x.Name = "Details";
                 x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, role != null ? string.Concat(" and will mention the ", role.Mention, " role.") : ".");
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("rmrss", "Removes an RSS feed from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -68,7 +68,7 @@ namespace PoE.Bot.Plugin.RSS
                 x.Name = "Details";
                 x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was removed from ", chf.Mention, ".");
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("listrss", "Lists RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -104,7 +104,7 @@ namespace PoE.Bot.Plugin.RSS
                 x.Name = "RSS Feeds";
                 x.Value = sb.Length > 0 ? sb.ToString() : "No feeds are configured.";
             });
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("testrss", "Tests the RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -192,7 +192,7 @@ namespace PoE.Bot.Plugin.RSS
                     }
                     
                     if(!string.IsNullOrWhiteSpace(embed.Title))
-                        await chan.SendMessageAsync("", false, embed);
+                        await chan.SendMessageAsync("", false, embed.Build());
 
                     break;
                 }

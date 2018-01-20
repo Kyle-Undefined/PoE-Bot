@@ -35,7 +35,7 @@ namespace PoE.Bot.Plugin.Wiki
             EmbedBuilder builder = await GetWikiItem(item);
 
             var chn = ctx.Channel;
-            await chn.SendMessageAsync("", false, builder);
+            await chn.SendMessageAsync("", false, builder.Build());
         }
 
         private async Task<EmbedBuilder> GetWikiItem(string item)
@@ -229,7 +229,7 @@ namespace PoE.Bot.Plugin.Wiki
 
                                 if (s.Length > 1)
                                 {
-                                    builder.AddInlineField(s[0], s[1].Replace("&#8211;", "-"));
+                                    builder.AddField(s[0], s[1].Replace("&#8211;", "-"), true);
                                 }
                                 else
                                 {

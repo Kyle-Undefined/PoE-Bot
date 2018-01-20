@@ -148,7 +148,7 @@ namespace PoE.Bot.Core
 
         internal void SendEmbed(EmbedBuilder embed, SocketTextChannel channel)
         {
-            channel.SendMessageAsync("", false, embed).GetAwaiter().GetResult();
+            channel.SendMessageAsync("", false, embed.Build()).GetAwaiter().GetResult();
         }
 
         internal void WriteConfig()
@@ -259,7 +259,7 @@ namespace PoE.Bot.Core
                 x.Value = msg.Content;
             });
 
-            await chn.SendMessageAsync("", false, embed);
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         #region Embeds
