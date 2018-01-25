@@ -91,7 +91,18 @@ namespace PoE.Bot.Plugin.RSS
                 var rec = new List<string>();
 
                 var uri_root_builder = new UriBuilder(feed.FeedUri);
-                var ctx = wc.GetStringAsync(feed.FeedUri).GetAwaiter().GetResult();
+                string ctx = string.Empty;
+
+                try
+                {
+                    ctx = wc.GetStringAsync(feed.FeedUri).GetAwaiter().GetResult();
+                }
+                catch
+                {
+                    Log.W("RSS", "Cannot get FeedUri");
+                    break;
+                }
+
                 var rss = XDocument.Parse(ctx);
                 var chn = rss.Root.Element("channel");
                 var img = chn.Element("image");
