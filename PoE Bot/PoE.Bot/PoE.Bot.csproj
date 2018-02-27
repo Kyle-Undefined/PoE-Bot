@@ -5,7 +5,7 @@
     <Copyright>2018 Kyle Undefined</Copyright>
     <AssemblyTitle>PoE Bot</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>PoE.Bot</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>PoE.Bot</PackageId>
@@ -14,6 +14,7 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <ApplicationIcon></ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
@@ -32,10 +33,18 @@
     <PackageReference Include="Discord.Net.Rpc" Version="2.0.0-beta-00860" />
     <PackageReference Include="Discord.Net.Webhook" Version="2.0.0-beta-00880" />
     <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0-beta-00880" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.6.13" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.7.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1-beta3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PoE.Bot.AssemblyResolver\PoE.Bot.AssemblyResolver.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>
