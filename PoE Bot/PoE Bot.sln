@@ -18,6 +18,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.RSS", "PoE.B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Shops", "PoE.Bot.Plugin.Shops\PoE.Bot.Plugin.Shops.csproj", "{EC43A877-37FD-4324-924C-CE8D7FA159CC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Trials", "PoE.Bot.Plugin.Trials\PoE.Bot.Plugin.Trials.csproj", "{9ED54240-3D41-497E-A370-DAF03A0E540A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

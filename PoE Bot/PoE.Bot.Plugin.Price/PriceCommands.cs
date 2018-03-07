@@ -219,6 +219,20 @@ namespace PoE.Bot.Plugin.Price
             await chn.SendMessageAsync("", false, embed2.Build());
         }
 
+        [Command("pricereset", "Resets all the prices for items to 0 for league reset", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task PriceReset(CommandContext ctx)
+        {
+            var currency = PricePlugin.Instance.GetCurrency();
+
+            foreach (var curr in currency.ToArray())
+            {
+                PricePlugin.Instance.RemoveCurrency(curr.Name, curr.Alias);
+                PricePlugin.Instance.AddCurrency(curr.Name, curr.Alias, 0, 0, DateTime.Now);
+            }
+
+            await ctx.Message.DeleteAsync();
+        }
+
         private EmbedBuilder PrepareEmbed(EmbedType type)
         {
             var embed = new EmbedBuilder();

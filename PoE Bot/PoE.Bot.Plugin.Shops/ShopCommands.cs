@@ -46,6 +46,7 @@ namespace PoE.Bot.Plugin.Shops
                     var nChn = await gld.CreateTextChannelAsync(usrChnN);
 
                     await nChn.ModifyAsync(x => x.CategoryId = (chn as IGuildChannel).CategoryId);
+                    await nChn.AddPermissionOverwriteAsync(usr, new OverwritePermissions(manageMessages: PermValue.Allow));
 
                     var embed = this.PrepareEmbed("Your personal shop has been created!", "You may now list your items here: " + nChn.Mention, EmbedType.Info);
                     await chn.SendMessageAsync("", false, embed.Build());
@@ -63,6 +64,26 @@ namespace PoE.Bot.Plugin.Shops
 
                     break;
             }
+        }
+
+        [Command("shopspurge", "Purges all channels under the Shops category", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task ShopsPurge(CommandContext ctx)
+        {
+            var gld = ctx.Guild;
+            var chn = ctx.Channel;
+            var chans = await gld.GetChannelsAsync();
+            var catChans = chans.Where(x => x.CategoryId == (chn as IGuildChannel).CategoryId);
+
+            foreach (var chan in catChans)
+            {
+                if (chan.Name.ToLower() != "setup")
+                {
+                    var dChan = catChans.SingleOrDefault(x => x.Name == chan.Name) as ITextChannel;
+                    await dChan.DeleteAsync();
+                }
+            }
+
+            await ctx.Message.DeleteAsync();
         }
 
         private EmbedBuilder PrepareEmbed(EmbedType type)

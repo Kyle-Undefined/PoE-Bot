@@ -51,6 +51,7 @@ namespace PoE.Bot.Core
             var sjo = JObject.Parse(sjson);
             this.ConfigJson = sjo;
             this.Token = (string)sjo["token"];
+            this.Game = "Use " + sjo.SelectToken("$.guild_config.*.command_prefix") + "help";
             Log.W("Core Client", "Discord initialized");
         }
 
@@ -219,6 +220,9 @@ namespace PoE.Bot.Core
                     PoE_Bot.ConfigManager.SetGuildConfig(kvp.Key, kvp.Value);
                 }
             }
+
+            if (this.CurrentUser.Activity == null || this.CurrentUser.Activity.Name != this.Game)
+                this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
 
             Log.W("Core Client", "Ticked PoE.Bot");
         }

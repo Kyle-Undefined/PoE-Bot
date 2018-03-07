@@ -376,7 +376,7 @@ namespace PoE.Bot.Commands
 
         [Command("mute", "Mutes users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
         public async Task Mute(CommandContext ctx,
-            [ArgumentParameter("Duration of the mute. Use 0 for permanent. In format of: 0d0h0m (days, hours, minutes). Ex: mute 5m {user}", true)] TimeSpan duration,
+            [ArgumentParameter("Duration of the mute. Use 0 for permanent. In format of: 0d0h0m (days, hours, minutes). Ex: mute 5m user", true)] TimeSpan duration,
             [ArgumentParameter("Mention of a user to mute.", true)] IUser user,
             [ArgumentParameter("Reason for mute.", false)] params string[] reason)
         {
@@ -833,14 +833,6 @@ namespace PoE.Bot.Commands
                 x.Value = usr.Status.ToString();
             });
 
-            if (usr.Activity.Name != null)
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Game";
-                    x.Value = usr.Activity.Name;
-                });
-
             embed.AddField(x =>
             {
                 x.IsInline = true;
@@ -971,7 +963,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " has purged ", msgs.Count().ToString("#,##0"), " messages from channel ", chp.Mention, "."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", msgs.Count().ToString("#,##0"), " messages from channel ", chp.Mention, " (", chp.Name, ")."), EmbedType.Info);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
