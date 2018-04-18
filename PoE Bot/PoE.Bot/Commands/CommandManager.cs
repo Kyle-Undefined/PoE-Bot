@@ -182,7 +182,7 @@ namespace PoE.Bot.Commands
             await Task.Delay(1);
 
             var msg = arg as SocketUserMessage;
-            if (msg == null || msg.Author == null || msg.Author.IsBot)
+            if (msg == null || msg.Author == null || msg.Author.IsBot || msg.Content.Length == 1)
                 return;
 
             var chn = msg.Channel as SocketTextChannel;

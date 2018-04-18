@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -182,41 +183,29 @@ namespace PoE.Bot.Plugin.Price
         {
             var chn = ctx.Channel;
             var currency = PricePlugin.Instance.GetCurrency();
+            var sb = new StringBuilder();
 
-            var embed = this.PrepareEmbed("Disclaimer", "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.", EmbedType.Info);
-
-            foreach (var curr in currency.Reverse().Skip(currency.Count()/2))
+            foreach (var curr in currency)
             {
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = curr.Name.Replace("_", " ");
-                    x.Value = String.Concat(curr.Alias, "\nCurrent going rate is ", curr.Quantity, " for ", curr.Price, " Chaos.\n", "Last Updated: ", curr.LastUpdated);
-                });
+                sb.AppendFormat("**Name**: {0}", curr.Name.Replace("_", " ")).AppendLine();
+                sb.AppendFormat("**Alias**: {0}", curr.Alias).AppendLine();
+                sb.AppendFormat("**Going Rate**: {0}", curr.Quantity + " for " + curr.Price + " Chaos.").AppendLine();
+                sb.AppendFormat("**Last Updated**: {0}", curr.LastUpdated).AppendLine();
+                sb.AppendLine("---------");
             }
 
-            var embed2 = this.PrepareEmbed(EmbedType.Info);
-            embed2.Timestamp = DateTime.Now;
-
-            foreach (var curr in currency.Skip(currency.Count() / 2))
+            var embedChunks = ChunkString(sb.ToString(), 1024);
+            foreach (var chunk in embedChunks)
             {
-                embed2.AddField(x =>
+                var chunkedEmbed = this.PrepareEmbed("Disclaimer", "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.", EmbedType.Info);
+                chunkedEmbed.AddField(x =>
                 {
                     x.IsInline = false;
-                    x.Name = curr.Name.Replace("_", " ");
-                    x.Value = String.Concat(curr.Alias, "\nCurrent going rate is ", curr.Quantity, " for ", curr.Price, " Chaos.\n", "Last Updated: ", curr.LastUpdated);
+                    x.Name = "Currency List";
+                    x.Value = chunk;
                 });
+                await chn.SendMessageAsync("", false, chunkedEmbed.Build());
             }
-
-            embed2.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Disclaimer";
-                x.Value = "Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.";
-            });
-
-            await chn.SendMessageAsync("", false, embed.Build());
-            await chn.SendMessageAsync("", false, embed2.Build());
         }
 
         [Command("pricereset", "Resets all the prices for items to 0 for league reset", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -277,6 +266,12 @@ namespace PoE.Bot.Plugin.Price
             Error,
             Warning,
             Info
+        }
+
+        static IEnumerable<string> ChunkString(string str, int maxChunkSize)
+        {
+            for (int i = 0; i < str.Length; i += maxChunkSize)
+                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
     }
 }

@@ -153,17 +153,21 @@ namespace PoE.Bot.Plugin.RSS
                             switch (cat)
                             {
                                 case "live":
-                                    var desHTML = HtmlEntity.DeEntitize(des);
-                                    var doc = new HtmlDocument();
-                                    doc.LoadHtml(desHTML);
-                                    HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
-                                    var liveimage = node.Attributes["src"].Value;
+                                    if (itd >= DateTime.Now || itd.ToShortDateString() == DateTime.Now.ToShortDateString())
+                                    {
+                                        var desHTML = HtmlEntity.DeEntitize(des);
+                                        var doc = new HtmlDocument();
+                                        doc.LoadHtml(desHTML);
+                                        HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
+                                        var liveimage = node.Attributes["src"].Value;
 
-                                    embed.Title = itt;
-                                    embed.ImageUrl = liveimage;
-                                    embed.Url = itu.ToString();
-                                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                                    embed.Color = new Color(0, 127, 255);
+                                        embed.Title = itt;
+                                        embed.ImageUrl = liveimage;
+                                        embed.Url = itu.ToString();
+                                        embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                        embed.Color = new Color(0, 127, 255);
+                                    }
+
                                     break;
 
                                 default:

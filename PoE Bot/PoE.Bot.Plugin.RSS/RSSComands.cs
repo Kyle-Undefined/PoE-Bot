@@ -91,20 +91,25 @@ namespace PoE.Bot.Plugin.RSS
                     role = gld.GetRole((ulong)feed.RoleId);
 
                 sb.AppendFormat("**URL**: <{0}>", feed.FeedUri).AppendLine();
-                sb.AppendFormat("**Tag**: {0}", feed.Tag).AppendLine();
+                if(!string.IsNullOrEmpty(feed.Tag))
+                    sb.AppendFormat("**Tag**: {0}", feed.Tag).AppendLine();
                 sb.AppendFormat("**Channel**: {0}", xch.Mention).AppendLine();
                 sb.AppendFormat("**Role**: {0}", role != null ? role.Mention : "None").AppendLine();
                 sb.AppendLine("---------");
             }
 
-            var embed = this.PrepareEmbed("RSS Feeds", "Listing of all RSS feeds on this server.", EmbedType.Info);
-            embed.AddField(x =>
+            var embedChunks = ChunkString(sb.ToString(), 1024);
+            foreach (var chunk in embedChunks)
             {
-                x.IsInline = false;
-                x.Name = "RSS Feeds";
-                x.Value = sb.Length > 0 ? sb.ToString() : "No feeds are configured.";
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
+                var chunkedEmbed = this.PrepareEmbed("RSS Feeds", "Listing of all RSS feeds on this server.", EmbedType.Info);
+                chunkedEmbed.AddField(x =>
+                {
+                    x.IsInline = false;
+                    x.Name = "RSS Feeds";
+                    x.Value = chunk;
+                });
+                await chn.SendMessageAsync("", false, chunkedEmbed.Build());
+            }
         }
 
         [Command("testrss", "Tests the RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -143,24 +148,27 @@ namespace PoE.Bot.Plugin.RSS
                     var itu = uri_root_builder.Uri;
                     var itd = DateTime.Parse(itp, CultureInfo.InvariantCulture);
 
-                    IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);                      
+                    IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
 
                     var embed = this.PrepareEmbed(EmbedType.Info);
 
                     switch (cat)
                     {
                         case "live":
-                            var desHTML = HtmlEntity.DeEntitize(des);
-                            var doc = new HtmlDocument();
-                            doc.LoadHtml(desHTML);
-                            HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
-                            var liveimage = node.Attributes["src"].Value;
+                            if (itd >= DateTime.Now || itd.ToShortDateString() == DateTime.Now.ToShortDateString())
+                            {
+                                var desHTML = HtmlEntity.DeEntitize(des);
+                                var doc = new HtmlDocument();
+                                doc.LoadHtml(desHTML);
+                                HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
+                                var liveimage = node.Attributes["src"].Value;
 
-                            embed.Title = itt;
-                            embed.ImageUrl = liveimage;
-                            embed.Url = itu.ToString();
-                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                            embed.Color = new Color(0, 127, 255);
+                                embed.Title = itt;
+                                embed.ImageUrl = liveimage;
+                                embed.Url = itu.ToString();
+                                embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                embed.Color = new Color(0, 127, 255);
+                            }
 
                             break;
                         case "archive":
@@ -243,6 +251,12 @@ namespace PoE.Bot.Plugin.RSS
             Error,
             Warning,
             Info
+        }
+
+        static IEnumerable<string> ChunkString(string str, int maxChunkSize)
+        {
+            for (int i = 0; i < str.Length; i += maxChunkSize)
+                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
     }
 }
