@@ -43,12 +43,12 @@ namespace PoE.Bot.Plugin.RSS
 
         public void AddFeed(Uri uri, ulong channel)
         {
-            AddFeed(uri, channel, 0, null);
+            AddFeed(uri, channel, null, null);
         }
 
-        public void AddFeed(Uri uri, ulong channel, ulong role, string tag)
+        public void AddFeed(Uri uri, ulong channel, string roles, string tag)
         {
-            this.conf.Feeds.Add(new Feed(uri, channel, role, tag));
+            this.conf.Feeds.Add(new Feed(uri, channel, roles, tag));
             Log.W("RSS", "Added RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag);
 
             UpdateConfig();
@@ -191,13 +191,20 @@ namespace PoE.Bot.Plugin.RSS
 
                             if (feed.Initialized)
                             {
-                                if (feed.RoleId > 0)
+                                if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
                                 {
-                                    IRole role = gld.GetRole(feed.RoleId);
-                                    PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                    foreach (var rl in feed.RoleIds.Split(","))
+                                    {
+                                        IRole role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
+                                        if (role.Name.ToLower().Contains("everyone") && embed.Title.ToLower().Contains(feed.Tag.ToLower()))
+                                            PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                        else
+                                            PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                    }
                                 }
 
-                                PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                                if(!string.IsNullOrEmpty(embed.Title))
+                                    PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
                             }
                         }
                     }

@@ -24,8 +24,8 @@ namespace PoE.Bot.Plugin.RSS
         public async Task AddRss(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to add the feed to.", true)] ITextChannel channel,
             [ArgumentParameter("URL of the RSS feed.", true)] string url,
-            [ArgumentParameter("Mention of the role to tag.", false)] IRole role,
-            [ArgumentParameter("Tag of the feed to use as title prefix.", false)] string tag)
+            [ArgumentParameter("Tag of the feed to use as title prefix.", false)] string tag,
+            [ArgumentParameter("Mention of the role to tag.", false)] params IRole[] roles)
         {
             var gld = ctx.Guild;
             var chn = ctx.Channel;
@@ -35,13 +35,16 @@ namespace PoE.Bot.Plugin.RSS
             if (chf == null)
                 throw new ArgumentException("Invalid channel specified.");
 
-            RSSPlugin.Instance.AddFeed(new Uri(url), chf.Id, role != null ? role.Id : 0, tag);
+            var sb = string.Join(",", Array.ConvertAll(roles, x => x.Mention));
+            var rles = string.Join(",", Array.ConvertAll(roles, x => x.Id.ToString()));
+
+            RSSPlugin.Instance.AddFeed(new Uri(url), chf.Id, rles, tag);
             var embed = this.PrepareEmbed("Success", "Feed was added successfully.", EmbedType.Success);
             embed.AddField(x =>
             {
                 x.IsInline = false;
                 x.Name = "Details";
-                x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, role != null ? string.Concat(" and will mention the ", role.Mention, " role.") : ".");
+                x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, sb != null ? string.Concat(" and will mention the ", sb.ToString(), " role(s).") : ".");
             });
             await chn.SendMessageAsync("", false, embed.Build());
         }
@@ -85,16 +88,29 @@ namespace PoE.Bot.Plugin.RSS
             foreach (var feed in feeds)
             {
                 var xch = gld.GetChannel(feed.ChannelId) as SocketTextChannel;
-                SocketRole role = null;
-
-                if (feed.RoleId > 0)
-                    role = gld.GetRole((ulong)feed.RoleId);
 
                 sb.AppendFormat("**URL**: <{0}>", feed.FeedUri).AppendLine();
                 if(!string.IsNullOrEmpty(feed.Tag))
                     sb.AppendFormat("**Tag**: {0}", feed.Tag).AppendLine();
                 sb.AppendFormat("**Channel**: {0}", xch.Mention).AppendLine();
-                sb.AppendFormat("**Role**: {0}", role != null ? role.Mention : "None").AppendLine();
+
+                if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
+                {
+                    SocketRole role = null;
+                    var roles = new StringBuilder();
+                    foreach (var rl in feed.RoleIds.Split(","))
+                    {
+                        role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
+                        roles.Append(role.Mention + ",");
+                    }
+                    roles.Remove(roles.Length - 1, 1);
+                    sb.AppendFormat("**Role**: {0}", roles.ToString()).AppendLine();
+                }
+                else
+                {
+                    sb.AppendFormat("**Role**: {0}", "None").AppendLine();
+                }
+
                 sb.AppendLine("---------");
             }
 
@@ -193,10 +209,16 @@ namespace PoE.Bot.Plugin.RSS
                             break;
                     }
 
-                    if (feed.RoleId > 0)
+                    if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
                     {
-                        IRole role = gld.GetRole(feed.RoleId);
-                        await chan.SendMessageAsync(role.Mention);
+                        foreach (var rl in feed.RoleIds.Split(","))
+                        {
+                            IRole role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
+                            if (role.Name.ToLower().Contains("everyone") && embed.Title.ToLower().Contains(feed.Tag.ToLower()))
+                                await chan.SendMessageAsync(role.Mention);
+                            else if (!role.Name.ToLower().Contains("everyone"))
+                                await chan.SendMessageAsync(role.Mention);
+                        }
                     }
                     
                     if(!string.IsNullOrWhiteSpace(embed.Title))

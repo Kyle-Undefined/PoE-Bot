@@ -34,6 +34,7 @@ namespace PoE.Bot.Plugin.Price
 
             var chn = ctx.Channel;
             var alias = string.Join(", ", Alias);
+            alias = alias.ToLower();
 
             PricePlugin.Instance.AddCurrency(Name, alias, Quantity, Price, DateTime.Now);
             var embed = this.PrepareEmbed("Success", "Currency was added successfully.", EmbedType.Success);
@@ -88,12 +89,14 @@ namespace PoE.Bot.Plugin.Price
                 throw new ArgumentException("You must add a price.");
 
             var chn = ctx.Channel;
+            Alias = Alias.ToLower();
             var currName = PricePlugin.Instance.GetCurrencyName(Alias);
             var aliases = Alias;
 
             if (Aliases.Count() > 0)
                 aliases = string.Join(", ", Aliases);
 
+            aliases = aliases.ToLower();
             PricePlugin.Instance.RemoveCurrency(currName, Alias);
             PricePlugin.Instance.AddCurrency(currName, aliases, Quantity, Price, DateTime.Now);
 
@@ -208,7 +211,7 @@ namespace PoE.Bot.Plugin.Price
             }
         }
 
-        [Command("pricereset", "Resets all the prices for items to 0 for league reset", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("pricereset", "Resets all the prices for items to 0 for league reset", CheckerId = "CorePriceChecker", CheckPermissions = true)]
         public async Task PriceReset(CommandContext ctx)
         {
             var currency = PricePlugin.Instance.GetCurrency();
@@ -220,6 +223,55 @@ namespace PoE.Bot.Plugin.Price
             }
 
             await ctx.Message.DeleteAsync();
+        }
+
+        [Command("pricedelete", "Deletes a currency from the system, by alias, should only be used if one is added in wrong", Aliases = "pricedel;pdel", CheckerId = "CorePriceChecker", CheckPermissions = true)]
+        public async Task PriceDelete(CommandContext ctx,
+            [ArgumentParameter("Currency to delete, based on alias name, use pricelist to see all currency aliases.", true)] string Alias)
+        {
+            if (string.IsNullOrWhiteSpace(Alias))
+                throw new ArgumentException("You must enter an alias.");
+
+            var chn = ctx.Channel;
+            var alias = Alias.ToLower();
+            var curr = PricePlugin.Instance.GetCurrency(alias);
+
+            PricePlugin.Instance.RemoveCurrency(curr.Name, curr.Alias);
+
+            var embed = this.PrepareEmbed("Success", "Currency was deleted successfully.", EmbedType.Success);
+
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Name";
+                x.Value = curr.Name.Replace("_", " ");
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Alias";
+                x.Value = curr.Alias;
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Quantity";
+                x.Value = curr.Quantity;
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Price";
+                x.Value = curr.Price;
+            });
+            embed.AddField(x =>
+            {
+                x.IsInline = false;
+                x.Name = "Last Updated";
+                x.Value = curr.LastUpdated;
+            });
+
+            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         private EmbedBuilder PrepareEmbed(EmbedType type)

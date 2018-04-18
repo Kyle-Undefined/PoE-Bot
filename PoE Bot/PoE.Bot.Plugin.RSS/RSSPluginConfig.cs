@@ -37,7 +37,7 @@ namespace PoE.Bot.Plugin.RSS
                 var uri_ = (string)xjo["uri"];
                 var uri = new Uri(uri_);
                 var chn = (ulong)xjo["channel"];
-                var role = (ulong)xjo["role"];
+                var role = (string)xjo["role"];
                 var ini = xjo["initialized"] != null ? (bool)xjo["initialized"] : true;
                 var ris = (JArray)xjo["recent"];
                 this.Feeds.Add(new Feed(uri, chn, role, tag) { RecentUris = ris.Select(xjv => (string)xjv).ToList() });
@@ -54,7 +54,7 @@ namespace PoE.Bot.Plugin.RSS
                 xjo.Add("tag", feed.Tag);
                 xjo.Add("uri", feed.FeedUri.ToString());
                 xjo.Add("channel", feed.ChannelId);
-                xjo.Add("role", feed.RoleId);
+                xjo.Add("role", feed.RoleIds);
                 xjo.Add("initialized", feed.Initialized);
                 xjo.Add("recent", new JArray(feed.RecentUris));
                 ja.Add(xjo);

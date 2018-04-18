@@ -923,24 +923,29 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Message Prune", string.Concat(usr.Mention, " (", usr.Username, ") has pruned ", totMsgs.ToString("#,##0"), user != null ? string.Concat(" of ", user.Mention, " (", usr.Username, ")'s") : "", " messages from channel ", chp.Mention, " (", chp.Name, ")."), EmbedType.Info);
                 var messagesDeleted = new StringBuilder();
 
-                messagesDeleted.Append("```");
-
                 foreach (var x in allDeleted)
-                    messagesDeleted.Append(string.Concat(x.Content, "\n\n"));
+                    messagesDeleted.Append(string.Concat(x.Author, ":\n\"", x.Content, "\"\n", x.Timestamp.ToString("G"), "\n\n"));
 
-                messagesDeleted.Append("```");
+                var embedChunks = ChunkString(messagesDeleted.ToString(), 1018);
 
-                embedmod.AddField(x =>
+                foreach(var chunk in embedChunks)
                 {
-                    x.IsInline = false;
-                    x.Name = "Messages";
-                    x.Value = messagesDeleted.ToString();
-                });
+                    var embedmod = this.PrepareEmbed("Message Prune", string.Concat(usr.Mention, " (", usr.Username, ") has pruned ", totMsgs.ToString("#,##0"), user != null ? string.Concat(" of ", user.Mention, " (", usr.Username, ")'s") : "", " messages from channel ", chp.Mention, " (", chp.Name, ")."), EmbedType.Info);
 
-                await mod.SendMessageAsync("", false, embedmod.Build());
+                    chunk.Insert(0, "```");
+                    chunk.Insert(chunk.Length, "```");
+
+                    embedmod.AddField(x =>
+                    {
+                        x.IsInline = false;
+                        x.Name = "Messages";
+                        x.Value = chunk;
+                    });
+
+                    await mod.SendMessageAsync("", false, embedmod.Build());
+                }
             }
         }
 
@@ -1388,6 +1393,14 @@ namespace PoE.Bot.Commands
             Error,
             Warning,
             Info
+        }
+        #endregion
+
+        #region ChunkString
+        static IEnumerable<string> ChunkString(string str, int maxChunkSize)
+        {
+            for (int i = 0; i < str.Length; i += maxChunkSize)
+                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
         #endregion
     }

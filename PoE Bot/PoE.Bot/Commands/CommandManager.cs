@@ -49,7 +49,7 @@ namespace PoE.Bot.Commands
 
         public string GetPrefix(ulong guildid)
         {
-            var prefix = "?";
+            var prefix = "!";
             var gconf = PoE_Bot.ConfigManager.GetGuildConfig(guildid);
             if (gconf != null && gconf.CommandPrefix != null)
                 prefix = gconf.CommandPrefix;
@@ -182,21 +182,21 @@ namespace PoE.Bot.Commands
             await Task.Delay(1);
 
             var msg = arg as SocketUserMessage;
-            if (msg == null || msg.Author == null || msg.Author.IsBot || msg.Content.Length == 1)
+            if (msg == null || msg.Author == null || msg.Author.IsBot || msg.Content.Length == 1 || msg.Content.IndexOf(" ") == 1)
                 return;
 
             var chn = msg.Channel as SocketTextChannel;
-            if (chn == null)
+            if (chn == null && !IsPrivateMessage(msg))
                 return;
 
-            var gld = chn.Guild;
-            if (gld == null)
+            var gld = IsPrivateMessage(msg) ? null : chn.Guild;
+            if (gld == null && !IsPrivateMessage(msg))
                 return;
 
             var client = PoE_Bot.Client.DiscordClient;
             var argpos = 0;
-            var gconf = PoE_Bot.ConfigManager.GetGuildConfig(gld.Id);
-            var cprefix = "?";
+            var gconf = IsPrivateMessage(msg) ? null : PoE_Bot.ConfigManager.GetGuildConfig(gld.Id);
+            var cprefix = "!";
             if (gconf != null && gconf.CommandPrefix != null)
                 cprefix = gconf.CommandPrefix;
 
@@ -217,8 +217,9 @@ namespace PoE.Bot.Commands
                 {
                     try
                     {
-                        if (gconf.DeleteCommands != null && gconf.DeleteCommands.Value)
-                            await msg.DeleteAsync();
+                        if (!IsPrivateMessage(msg))
+                            if (gconf.DeleteCommands != null && gconf.DeleteCommands.Value)
+                                await msg.DeleteAsync();
                         await cmd.Execute(ctx);
                         this.CommandExecuted(ctx);
                     }
@@ -248,8 +249,9 @@ namespace PoE.Bot.Commands
                 {
                     try
                     {
-                        if (gconf.DeleteCommands != null && gconf.DeleteCommands.Value)
-                            await msg.DeleteAsync();
+                        if(!IsPrivateMessage(msg))
+                            if (gconf.DeleteCommands != null && gconf.DeleteCommands.Value)
+                                await msg.DeleteAsync();
                         await cmd.Execute(ctx);
                         this.CommandExecuted(ctx);
                     }
@@ -332,6 +334,11 @@ namespace PoE.Bot.Commands
             }
 
             return arglist.AsReadOnly();
+        }
+
+        private bool IsPrivateMessage(SocketMessage msg)
+        {
+            return (msg.Channel.GetType() == typeof(SocketDMChannel));
         }
     }
 }
