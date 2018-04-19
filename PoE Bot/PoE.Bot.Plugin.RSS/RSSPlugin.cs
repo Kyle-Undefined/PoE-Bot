@@ -198,7 +198,7 @@ namespace PoE.Bot.Plugin.RSS
                                         IRole role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
                                         if (role.Name.ToLower().Contains("everyone") && embed.Title.ToLower().Contains(feed.Tag.ToLower()))
                                             PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
-                                        else
+                                        else if (!role.Name.ToLower().Contains("everyone"))
                                             PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
                                     }
                                 }
