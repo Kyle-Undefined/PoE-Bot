@@ -182,7 +182,7 @@ namespace PoE.Bot.Commands
             await Task.Delay(1);
 
             var msg = arg as SocketUserMessage;
-            if (msg == null || msg.Author == null || msg.Author.IsBot || msg.Content.Length == 1 || msg.Content.IndexOf(" ") == 1)
+            if (msg == null || msg.Author == null || msg.Author.IsBot || msg.Content.Length == 1)
                 return;
 
             var chn = msg.Channel as SocketTextChannel;
@@ -231,6 +231,9 @@ namespace PoE.Bot.Commands
             }
             else if (msg.HasStringPrefix(cprefix, ref argpos) || msg.HasMentionPrefix(client.CurrentUser, ref argpos))
             {
+                if (msg.Content.IndexOf(" ") == 1 && msg.Content.StartsWith(cprefix))
+                    return;
+
                 var cmdn = msg.Content.Substring(argpos);
                 var argi = cmdn.IndexOf(' ');
                 if (argi == -1)
