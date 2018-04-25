@@ -231,26 +231,29 @@ namespace PoE.Bot.Plugin.Wiki
                         List<string> itemModsArray = new List<string>();
                         List<string> Mods = new List<string>();
 
-                        foreach (var mod in itemMods)
+                        if(itemMods != null)
                         {
-                            if (!mod.InnerText.Contains("uality") && !mod.InnerText.StartsWith("Level"))
+                            foreach (var mod in itemMods)
                             {
-                                itemModsArray.Add(mod.InnerText + vaalsouls);
-                                vaalsouls = string.Empty;
+                                if (!mod.InnerText.Contains("uality") && !mod.InnerText.StartsWith("Level"))
+                                {
+                                    itemModsArray.Add(mod.InnerText + vaalsouls);
+                                    vaalsouls = string.Empty;
+                                }
                             }
-                        }
 
-                        foreach (var imod in itemModsArray)
-                        {
-                            string[] s = imod.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var imod in itemModsArray)
+                            {
+                                string[] s = imod.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
-                            if (s.Length > 1)
-                            {
-                                builder.AddField(s[0], s[1].Replace("&#8211;", "-"), true);
-                            }
-                            else
-                            {
-                                builder.AddField(s[0], "------------------------------------------");
+                                if (s.Length > 1)
+                                {
+                                    builder.AddField(s[0], s[1].Replace("&#8211;", "-"), true);
+                                }
+                                else
+                                {
+                                    builder.AddField(s[0], "------------------------------------------");
+                                }
                             }
                         }
 
