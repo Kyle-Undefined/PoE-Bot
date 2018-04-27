@@ -26,10 +26,10 @@ namespace PoE.Bot.Plugin.Shops
 
         public void Initialize()
         {
-            Log.W("Shop", "Initializing Shop");
+            Log.W(new LogMessage(LogSeverity.Info, "Shop Plugin", "Initializing Shop"));
             Instance = this;
             this.conf = new ShopPluginConfig();
-            Log.W("Shop", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Shop Plugin", "Shop Initialized"));
         }
 
         public void LoadConfig(IPluginConfig config)

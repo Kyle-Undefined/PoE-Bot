@@ -34,7 +34,7 @@ namespace PoE.Bot.Extensions
         {
             var i32 = ptr.ToInt32();
             var i64 = ptr.ToInt64();
-            var pst = (string)null;
+            var pst = null as string;
             //if (Environment.Is64BitOperatingSystem)
             if (IntPtr.Size == 8)
                 pst = string.Concat("0x", i64.ToString("X16"));

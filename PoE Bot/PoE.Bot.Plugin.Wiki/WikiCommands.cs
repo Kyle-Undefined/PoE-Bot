@@ -352,7 +352,7 @@ namespace PoE.Bot.Plugin.Wiki
 
                     builder.Title = "Oops! No items were found.";
                     builder.Description = "Please make sure you type in the name correctly, and try again.";
-                    builder.Color = Color.Purple;
+                    builder.Color = new Color(255, 127, 0);
                     builder.WithCurrentTimestamp();
 
                     return builder;

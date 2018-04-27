@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using Discord;
 using Discord.WebSocket;
 using PoE.Bot.Attributes;
@@ -36,7 +37,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Role create", string.Concat(usr.Mention, " has created role **", grl.Name, "**."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Role create", string.Concat(usr.Mention, " has created role **", grl.Name, "**."), EmbedType.Success);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -64,7 +65,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Role remove", string.Concat(usr.Mention, " has removed role **", grp.Name, "**."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Role remove", string.Concat(usr.Mention, " has removed role **", grp.Name, "**."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -280,7 +281,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Role Member Add", string.Concat(usr.Mention, " has added ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " to role **", grp.Name, "**."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Role Member Add", string.Concat(usr.Mention, " has added ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " to role **", grp.Name, "**."), EmbedType.Success);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -321,7 +322,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Role Member Remove", string.Concat(usr.Mention, " has removed ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " from role **", grp.Name, "**."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Role Member Remove", string.Concat(usr.Mention, " has removed ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " from role **", grp.Name, "**."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -362,7 +363,7 @@ namespace PoE.Bot.Commands
 
             var mod = await gld.GetTextChannelAsync(cnf.ReportUserChannel.Value);
 
-            var embed = this.PrepareEmbed("User report", string.Concat(usr.Mention, " (", usr.Username, ") reported ", rep.Mention, " (", rep.Username, ")."), EmbedType.Info);
+            var embed = this.PrepareEmbed("User report", string.Concat(usr.Mention, " (", usr.Username, ") reported ", rep.Mention, " (", rep.Username, ")."), EmbedType.Warning);
             embed.AddField(x =>
             {
                 x.IsInline = false;
@@ -387,7 +388,7 @@ namespace PoE.Bot.Commands
 
             var gls = gld as SocketGuild;
 
-            var userMute = (SocketGuildUser)user;
+            var userMute = user as SocketGuildUser;
             if (userMute == null)
                 throw new ArgumentException("You must mention a user you want to mute.");
 
@@ -422,7 +423,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User muted", string.Concat(usr.Mention, " (", usr.Username, ") has muted ", userMute.Mention, " (", userMute.Username, ") ", dsr, "."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("User muted", string.Concat(usr.Mention, " (", usr.Username, ") has muted ", userMute.Mention, " (", userMute.Username, ") ", dsr, "."), EmbedType.Warning);
 
                 if (!string.IsNullOrWhiteSpace(rsn))
                 {
@@ -442,7 +443,7 @@ namespace PoE.Bot.Commands
 
             await msg.DeleteAsync();
 
-            var embed = this.PrepareEmbed("You were muted", dsr, EmbedType.Info);
+            var embed = this.PrepareEmbed("You were muted", dsr, EmbedType.Warning);
 
             if (!string.IsNullOrWhiteSpace(rsn))
             {
@@ -491,7 +492,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User unmutes", string.Concat(usr.Mention, " (", usr.Username, ") has unmuted ", string.Join(", ", uss.Select(xus => xus.Mention)), " (", string.Join(", ", uss.Select(xus => xus.Username)), ")."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("User unmutes", string.Concat(usr.Mention, " (", usr.Username, ") has unmuted ", string.Join(", ", uss.Select(xus => xus.Mention)), " (", string.Join(", ", uss.Select(xus => xus.Username)), ")."), EmbedType.Success);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -593,7 +594,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User kicks", string.Concat(usr.Mention, " has kicked ", string.Join(", ", uss.Select(xus => xus.Mention)), "."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("User kicks", string.Concat(usr.Mention, " has kicked ", string.Join(", ", uss.Select(xus => xus.Mention)), "."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -644,7 +645,7 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User bans", string.Concat(usr.Mention, " has banned ", string.Join(", ", uss.Select(xus => xus.Mention)), " ", dsr, ". Reason: ", reason, "."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("User bans", string.Concat(usr.Mention, " has banned ", string.Join(", ", uss.Select(xus => xus.Mention)), " ", dsr, ". Reason: ", reason, "."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
@@ -949,18 +950,48 @@ namespace PoE.Bot.Commands
             }
         }
 
-        [Command("purgechannel", "Purges a channel. Removes up to 100 messages.", Aliases = "purgech;chpurge;chanpurge;purgechan", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
+        [Command("purgechannel", "Cleans a channel up, can specify All, Bot, or Self messages.", Aliases = "purge;purgech;chpurge;chanpurge;purgechan;clean;cleanup;", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
         public async Task PurgeChannel(CommandContext ctx,
-            [ArgumentParameter("Channel to purge.", true)] ITextChannel channel)
+            [ArgumentParameter("The optional number of messages to delete; defaults to 10.", false)] int count,
+            [ArgumentParameter("The type of messages to delete - Self, Bot, or All; defaults to Self.", false)] string delType,
+            [ArgumentParameter("The strategy to delete messages - Bulk or Manual; defaults to Bulk.", false)] string delStrategy)
         {
             var gld = ctx.Guild;
             var chn = ctx.Channel;
-            var msg = ctx.Message;
             var usr = ctx.User;
+            var chp = chn as ITextChannel;
 
-            var chp = channel;
-            var msgs = await chp.GetMessagesAsync(100).FlattenAsync();
-            await chp.DeleteMessagesAsync(msgs);
+            if (count == 0)
+                count = 10;
+            if (string.IsNullOrEmpty(delType))
+                delType = "Self";
+            if (string.IsNullOrEmpty(delStrategy))
+                delStrategy = "Bulk";
+
+            DeleteType deleteType = (DeleteType)Enum.Parse(typeof(DeleteType), UppercaseFirst(delType));
+            DeleteStrategy deleteStrategy = (DeleteStrategy)Enum.Parse(typeof(DeleteStrategy), UppercaseFirst(delStrategy));
+
+            int index = 0;
+            var deleteMessages = new List<IMessage>(count);
+            var messages = ctx.Channel.GetMessagesAsync();
+
+            await messages.ForEachAsync(async m =>
+            {
+                IEnumerable<IMessage> delete = null;
+                if (deleteType == DeleteType.Self)
+                    delete = m.Where(msg => msg.Author.Id == ctx.User.Id);
+                else if (deleteType == DeleteType.Bot)
+                    delete = m.Where(msg => msg.Author.IsBot);
+                else if (deleteType == DeleteType.All)
+                    delete = m;
+
+                foreach (var msg in delete.OrderByDescending(msg => msg.Timestamp))
+                {
+                    if (index >= count) { await EndClean(chp, deleteMessages, deleteStrategy); return; }
+                    deleteMessages.Add(msg);
+                    index++;
+                }
+            });
 
             var gid = gld.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
@@ -968,11 +999,11 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", msgs.Count().ToString("#,##0"), " messages from channel ", chp.Mention, " (", chp.Name, ")."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", count.ToString("#,##0"), " ", deleteType, " style messages from channel ", chp.Mention, " (", chp.Name, ") using ", deleteStrategy, " delete."), EmbedType.Info);
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            var embed = this.PrepareEmbed("Success", string.Format("Deleted {0:#,##0} message{2} from channel {1}.", msgs.Count(), chp.Mention, msgs.Count() > 1 ? "s" : ""), EmbedType.Success);
+            var embed = this.PrepareEmbed("Success", string.Format("Purged {0:#,##0} {1} style message{2} from channel {3} using {4} delete.", count, deleteType, count > 1 ? "s" : "", chp.Mention, deleteStrategy), EmbedType.Success);
             await chn.SendMessageAsync("", false, embed.Build());
         }
 
@@ -989,10 +1020,10 @@ namespace PoE.Bot.Commands
             if (string.IsNullOrWhiteSpace(setting))
                 throw new ArgumentException("You need to specify setting and value.");
             var val = string.Join(" ", value);
-            var embed = (EmbedBuilder)null;
+            var embed = null as EmbedBuilder;
 
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gld.Id);
-            var mod = (ITextChannel)null;
+            var mod = null as ITextChannel;
 
             switch (setting)
             {
@@ -1025,7 +1056,7 @@ namespace PoE.Bot.Commands
                     embed = this.PrepareEmbed("Success", string.Concat("Reported log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
                     break;
                 case "muterole":
-                    var mute = (IRole)null;
+                    var mute = null as IRole;
                     if (msg.MentionedRoleIds.Count > 0)
                         mute = gld.GetRole(msg.MentionedRoleIds.First());
                     else
@@ -1048,7 +1079,7 @@ namespace PoE.Bot.Commands
                     embed = this.PrepareEmbed("Success", string.Concat("Mute role was ", mute != null ? string.Concat("set to ", val) : "removed", "."), EmbedType.Success);
                     break;
                 case "pricerole":
-                    var price = (IRole)null;
+                    var price = null as IRole;
                     if (msg.MentionedRoleIds.Count > 0)
                         price = gld.GetRole(msg.MentionedRoleIds.First());
                     else
@@ -1101,7 +1132,7 @@ namespace PoE.Bot.Commands
 
             var chn = ctx.Channel;
             var val = string.Join(" ", game);
-            var embed = (EmbedBuilder)null;
+            var embed = null as EmbedBuilder;
 
             await PoE_Bot.Client.DiscordClient.SetGameAsync(val);
             embed = this.PrepareEmbed("Success", "Bot Game has been updated to **" + val + "**.", EmbedType.Success);
@@ -1120,7 +1151,7 @@ namespace PoE.Bot.Commands
             var msg = ctx.Message;
             var usr = ctx.User;
 
-            var embed = (EmbedBuilder)null;
+            var embed = null as EmbedBuilder;
             if (string.IsNullOrWhiteSpace(command))
             {
                 embed = this.PrepareEmbed(" Help", string.Format("List of all  commands, with aliases, and descriptions. All commands use the **{0}** prefix. Run **{0}help** command to learn more about a specific command.", PoE_Bot.CommandManager.GetPrefix(gld.Id)), EmbedType.Info);
@@ -1147,7 +1178,7 @@ namespace PoE.Bot.Commands
                 var cmd = PoE_Bot.CommandManager.GetCommand(command);
                 if (cmd == null)
                     throw new InvalidOperationException(string.Format("Command **{0}** does not exist", command));
-                var err = (string)null;
+                var err = null as string;
                 if (cmd.Checker != null && !cmd.Checker.CanRun(cmd, usr, msg, chn, gld, out err))
                     throw new ArgumentException("You can't run this command.");
 
@@ -1204,6 +1235,37 @@ namespace PoE.Bot.Commands
 
             await chn.SendMessageAsync("", false, embed.Build());
         }
+
+        [Command("regionalize", "Turns text into Discord Regional Indicator Text", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task Regionalize(CommandContext ctx,
+           [ArgumentParameter("Text to regionalize, only works with A-Z text.", true)] params string[] text)
+        {
+            var gld = ctx.Guild;
+            var chn = ctx.Channel;
+            var msg = ctx.Message;
+            var usr = ctx.User;
+            var sb = new StringBuilder();
+
+            foreach (var str in text)
+            {
+                var txt = str;
+                txt = txt.ToLower();
+                txt = Regex.Replace(txt, "[^a-zA-Z]", "");
+
+                foreach (char c in txt)
+                {
+                    sb.Append(":regional_indicator_" + c + ": ");
+                }
+
+                sb.Append("   ");
+            }
+
+            var finalText = sb.ToString();
+            if (finalText.Length > 2000)
+                finalText = finalText.Remove(2000);
+
+            await chn.SendMessageAsync(finalText);
+        }
         #endregion
 
         #region Debug Commands
@@ -1227,7 +1289,7 @@ namespace PoE.Bot.Commands
             var _e = PlatformServices.Default;
 
             // dump holders
-            var _sb0 = (StringBuilder)null;
+            var _sb0 = null as StringBuilder;
 
             // create the dump
             var embed = this.PrepareEmbed(" Diagnostic Information", "Full dump of all diagnostic information about this  instance.", EmbedType.Warning);
@@ -1385,6 +1447,53 @@ namespace PoE.Bot.Commands
             embed.Timestamp = DateTime.Now;
             return embed;
         }
+        #endregion
+
+        #region Miscellaneous Functions
+        static IEnumerable<string> ChunkString(string str, int maxChunkSize)
+        {
+            for (int i = 0; i < str.Length; i += maxChunkSize)
+                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+        }
+
+        static string UppercaseFirst(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return string.Empty;
+            char[] a = s.ToCharArray();
+            a[0] = char.ToUpper(a[0]);
+            return new string(a);
+        }
+        #endregion
+
+        #region EndClean
+        internal async Task EndClean(ITextChannel Chan, IEnumerable<IMessage> messages, DeleteStrategy strategy)
+        {
+            if (strategy == DeleteStrategy.Bulk)
+                await Chan.DeleteMessagesAsync(messages);
+            else if (strategy == DeleteStrategy.Manual)
+            {
+                foreach (var msg in messages.Cast<IUserMessage>())
+                {
+                    await msg.DeleteAsync();
+                }
+            }
+        }
+        #endregion
+
+        #region Enums
+        public enum DeleteType
+        {
+            Self = 0,
+            Bot = 1,
+            All = 2
+        }
+
+        public enum DeleteStrategy
+        {
+            Bulk = 0,
+            Manual = 1,
+        }
 
         private enum EmbedType : uint
         {
@@ -1393,14 +1502,6 @@ namespace PoE.Bot.Commands
             Error,
             Warning,
             Info
-        }
-        #endregion
-
-        #region ChunkString
-        static IEnumerable<string> ChunkString(string str, int maxChunkSize)
-        {
-            for (int i = 0; i < str.Length; i += maxChunkSize)
-                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
         #endregion
     }

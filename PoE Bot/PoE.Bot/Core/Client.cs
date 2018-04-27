@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
 using Discord.WebSocket;
+using Discord.Commands;
 using PoE.Bot.Config;
 using Newtonsoft.Json.Linq;
 
@@ -23,23 +24,31 @@ namespace PoE.Bot.Core
         internal JObject ConfigJson { get; private set; }
         private Timer PoEBot { get; set; }
         private string Token { get; set; }
+        private readonly CommandService _commands;
 
         internal Client()
         {
-            Log.W("Core Client", "Initializing Discord");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Initializing Discord"));
 
             var dsc = new DiscordSocketConfig()
             {
-                LogLevel = Debugger.IsAttached ? LogSeverity.Debug : LogSeverity.Info,
+                LogLevel = LogSeverity.Debug,
                 MessageCacheSize = 10
             };
+
+            _commands = new CommandService(new CommandServiceConfig
+            {
+                LogLevel = LogSeverity.Debug,
+                CaseSensitiveCommands = false,
+            });
 
             this.DiscordClient = new DiscordSocketClient(dsc);
             this.DiscordClient.Log += Client_Log;
             this.DiscordClient.Ready += Client_Ready;
+            _commands.Log += Client_Log;
 
             // Reliability Service, to work with auto reconnects with the Daemon script
-            ReliabilityService rs = new ReliabilityService(this.DiscordClient);
+            ReliabilityService rs = new ReliabilityService(this.DiscordClient, Client_Log);
 
             // modlog events
             this.DiscordClient.MessageDeleted += DiscordClient_MessageDeleted;
@@ -48,14 +57,14 @@ namespace PoE.Bot.Core
             var n = a.GetName();
             var l = Path.GetDirectoryName(a.Location);
 
-            Log.W("Core Client", "Loading config");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Loading config"));
             var sp = Path.Combine(l, "config.json");
             var sjson = File.ReadAllText(sp, PoE_Bot.UTF8);
             var sjo = JObject.Parse(sjson);
             this.ConfigJson = sjo;
             this.Token = (string)sjo["token"];
             this.Game = "Use " + sjo.SelectToken("$.guild_config.*.command_prefix") + "help";
-            Log.W("Core Client", "Discord initialized");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Discord initialized"));
         }
 
         /// <summary>
@@ -74,7 +83,7 @@ namespace PoE.Bot.Core
         /// <param name="channel">Channel to send the embed to.</param>
         public void SendEmbed(EmbedBuilder embed, ulong channel)
         {
-            var ch = (SocketTextChannel)null;
+            var ch = null as SocketTextChannel;
             var tg = DateTime.Now;
             while (ch == null && (DateTime.Now - tg).TotalSeconds < 10)
                 ch = this.DiscordClient.GetChannel(channel) as SocketTextChannel;
@@ -85,18 +94,18 @@ namespace PoE.Bot.Core
 
         internal void Initialize()
         {
-            Log.W("Core Client", "Connecting");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Connecting"));
             this.DiscordClient.LoginAsync(TokenType.Bot, this.Token).GetAwaiter().GetResult();
             this.DiscordClient.StartAsync();
         }
 
         internal void Deinitialize()
         {
-            Log.W("Core Client", "Saving configs");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Saving configs"));
             PoE_Bot.PluginManager.UpdateAllConfigs();
-            Log.W("Core Client", "Disconnecting");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Disconnecting"));
             this.DiscordClient.StopAsync();
-            Log.W("Core Client", "Disconnected");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Disconnected"));
         }
 
         /// <summary>
@@ -106,7 +115,7 @@ namespace PoE.Bot.Core
         /// <param name="channel">Channel to send the message to.</param>
         public void SendMessage(string message, ulong channel)
         {
-            var ch = (SocketTextChannel)null;
+            var ch = null as SocketTextChannel;
             var tg = DateTime.Now;
             while (ch == null && (DateTime.Now - tg).TotalSeconds < 10)
                 ch = this.DiscordClient.GetChannel(channel) as SocketTextChannel;
@@ -164,11 +173,10 @@ namespace PoE.Bot.Core
             File.WriteAllText(sp, this.ConfigJson.ToString(), PoE_Bot.UTF8);
         }
 
-        private Task Client_Log(LogMessage e)
+        private Task Client_Log(LogMessage message)
         {
-            Log.W("DISCORD", "{0}/{1}: {2}", e.Severity, e.Source, e.Message);
-            if (e.Exception != null)
-                Log.X("DISCORD", e.Exception);
+            Log.W(message);
+            Console.ResetColor();
             return Task.CompletedTask;
         }
 
@@ -227,13 +235,13 @@ namespace PoE.Bot.Core
             if (this.CurrentUser.Activity == null || this.CurrentUser.Activity.Name != this.Game)
                 this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
 
-            Log.W("Core Client", "Ticked PoE.Bot");
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Ticked PoE.Bot"));
         }
 
         private async Task DiscordClient_MessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
         {
             var msg = await arg1.GetOrDownloadAsync();
-            var usr = (SocketGuildUser)msg.Author;
+            var usr = msg.Author as SocketGuildUser;
             var gld = usr.Guild;
             var gid = gld.Id;
 
@@ -245,8 +253,8 @@ namespace PoE.Bot.Core
             if (chn == null)
                 return;
 
-            var dChn = (SocketTextChannel)msg.Channel;
-            var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Info);
+            var dChn = msg.Channel as SocketTextChannel;
+            var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Error);
             embed.AddField(x =>
             {
                 x.IsInline = true;

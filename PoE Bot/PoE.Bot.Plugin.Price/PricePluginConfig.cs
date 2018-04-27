@@ -28,10 +28,10 @@ namespace PoE.Bot.Plugin.Price
 
         public void Load(JObject jo)
         {
-            var ja = (JArray)jo["currency"];
+            var ja = jo["currency"] as JArray;
             foreach (var xjt in ja)
             {
-                var xjo = (JObject)xjt;
+                var xjo = xjt as JObject;
 
                 var name = (string)xjo["name"];
                 var alias = (string)xjo["alias"];

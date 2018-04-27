@@ -35,8 +35,14 @@ namespace PoE.Bot.Plugin.RSS
             if (chf == null)
                 throw new ArgumentException("Invalid channel specified.");
 
-            var sb = string.Join(",", Array.ConvertAll(roles, x => x.Mention));
-            var rles = string.Join(",", Array.ConvertAll(roles, x => x.Id.ToString()));
+            string sb = null;
+            string rles = null;
+
+            if(roles != null)
+            {
+                sb = string.Join(",", Array.ConvertAll(roles, x => x.Mention));
+                rles = string.Join(",", Array.ConvertAll(roles, x => x.Id.ToString()));
+            }
 
             RSSPlugin.Instance.AddFeed(new Uri(url), chf.Id, rles, tag);
             var embed = this.PrepareEmbed("Success", "Feed was added successfully.", EmbedType.Success);
@@ -104,11 +110,7 @@ namespace PoE.Bot.Plugin.RSS
                         roles.Append(role.Mention + ",");
                     }
                     roles.Remove(roles.Length - 1, 1);
-                    sb.AppendFormat("**Role**: {0}", roles.ToString()).AppendLine();
-                }
-                else
-                {
-                    sb.AppendFormat("**Role**: {0}", "None").AppendLine();
+                    sb.AppendFormat("**Role(s)**: {0}", roles.ToString()).AppendLine();
                 }
 
                 sb.AppendLine("---------");
@@ -142,7 +144,7 @@ namespace PoE.Bot.Plugin.RSS
                 var rss = XDocument.Parse(gsa);
                 var chn = rss.Root.Element("channel");
                 var img = chn.Element("image");
-                var thm = (string)null;
+                var thm = null as string;
                 if (img != null)
                     thm = img.Element("url").Value;
                 var its = chn.Elements("item");
@@ -164,9 +166,10 @@ namespace PoE.Bot.Plugin.RSS
                     var itu = uri_root_builder.Uri;
                     var itd = DateTime.Parse(itp, CultureInfo.InvariantCulture);
 
-                    IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
+                    IMessageChannel chan = gld.GetChannel(feed.ChannelId) as IMessageChannel;
 
                     var embed = this.PrepareEmbed(EmbedType.Info);
+                    StringBuilder sb = new StringBuilder();
 
                     switch (cat)
                     {
@@ -194,18 +197,34 @@ namespace PoE.Bot.Plugin.RSS
                         default:
                             des = HtmlEntity.DeEntitize(des);
                             des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                            if (des.StartsWith("\""))
+                                des = des.Substring(1);
                             if (des.Length >= 2048)
-                                des = des.Substring(0, 2044).Insert(2044, "....");
+                                des = des.Substring(0, 2043).Insert(2043, "[...]");
 
-                            embed.Title = itt;
-                            embed.Description = des;
+                            switch (feed.FeedUri.ToString().Contains("gggtracker"))
+                            {
+                                case true:
+                                    sb.AppendLine("-----------------------------------------------------------");
+                                    sb.AppendLine($":newspaper: ***{itt}***\n");
+                                    sb.AppendLine(itu.ToString());
+                                    sb.AppendLine($"```{des}```");
 
-                            var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
-                            if (!string.IsNullOrWhiteSpace(newsimage))
-                                embed.ImageUrl = newsimage;
+                                    break;
+                                default:
+                                    embed.Title = itt;
+                                    embed.Description = des;
 
-                            embed.Url = itu.ToString();
-                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                    var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                                    if (!string.IsNullOrWhiteSpace(newsimage))
+                                        embed.ImageUrl = newsimage;
+
+                                    embed.Url = itu.ToString();
+                                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+
+                                    break;
+                            }
+
                             break;
                     }
 
@@ -220,9 +239,11 @@ namespace PoE.Bot.Plugin.RSS
                                 await chan.SendMessageAsync(role.Mention);
                         }
                     }
-                    
-                    if(!string.IsNullOrWhiteSpace(embed.Title))
+
+                    if (!string.IsNullOrWhiteSpace(embed.Title))
                         await chan.SendMessageAsync("", false, embed.Build());
+                    else if(!string.IsNullOrEmpty(sb.ToString()))
+                        await chan.SendMessageAsync(sb.ToString());
 
                     break;
                 }

@@ -27,11 +27,11 @@ namespace PoE.Bot.Plugin.RSS
 
         public void Initialize()
         {
-            Log.W("RSS", "Initializing RSS");
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", "Initializing RSS"));
             Instance = this;
             this.conf = new RSSPluginConfig();
             this.RSSTimer = new Timer(new TimerCallback(RSS_Tick), null, 5000, 900000);
-            Log.W("RSS", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", "RSS Initialized"));
         }
 
         public void LoadConfig(IPluginConfig config)
@@ -49,7 +49,7 @@ namespace PoE.Bot.Plugin.RSS
         public void AddFeed(Uri uri, ulong channel, string roles, string tag)
         {
             this.conf.Feeds.Add(new Feed(uri, channel, roles, tag));
-            Log.W("RSS", "Added RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag);
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", string.Format("Added RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag)));
 
             UpdateConfig();
         }
@@ -63,7 +63,7 @@ namespace PoE.Bot.Plugin.RSS
         {
             var feed = this.conf.Feeds.FirstOrDefault(xf => xf.FeedUri == uri && xf.ChannelId == channel && xf.Tag == tag);
             this.conf.Feeds.Remove(feed);
-            Log.W("RSS", "Removed RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag);
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", string.Format("Removed RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag)));
 
             UpdateConfig();
         }
@@ -77,7 +77,7 @@ namespace PoE.Bot.Plugin.RSS
 
         private void UpdateConfig()
         {
-            Log.W("RSS", "Updating config");
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", "Updating config"));
 
             PoE_Bot.ConfigManager.UpdateConfig(this);
         }
@@ -99,14 +99,14 @@ namespace PoE.Bot.Plugin.RSS
                 }
                 catch
                 {
-                    Log.W("RSS", "Cannot get FeedUri");
+                    Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", "Cannot get FeedUri"));
                     break;
                 }
 
                 var rss = XDocument.Parse(ctx);
                 var chn = rss.Root.Element("channel");
                 var img = chn.Element("image");
-                var thm = (string)null;
+                var thm = null as string;
                 if (img != null)
                     thm = img.Element("url").Value;
                 var its = chn.Elements("item").Reverse();
@@ -146,7 +146,7 @@ namespace PoE.Bot.Plugin.RSS
                                 break;
                             }
 
-                            IMessageChannel chan = (IMessageChannel)gld.GetChannel(feed.ChannelId);
+                            IMessageChannel chan = gld.GetChannel(feed.ChannelId) as IMessageChannel;
 
                             var embed = new EmbedBuilder();
 
@@ -222,7 +222,7 @@ namespace PoE.Bot.Plugin.RSS
             if (changed)
                 UpdateConfig();
 
-            Log.W("RSS", "Ticked RSS");
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", "Ticked RSS"));
         }
 
         public static string GetAnnouncementImage(string url)

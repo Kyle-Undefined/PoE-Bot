@@ -26,10 +26,10 @@ namespace PoE.Bot.Plugin.Wiki
 
         public void Initialize()
         {
-            Log.W("Wiki", "Initializing Wiki");
+            Log.W(new LogMessage(LogSeverity.Info, "Wiki Plugin", "Initializing Wiki"));
             Instance = this;
             this.conf = new WikiPluginConfig();
-            Log.W("Wiki", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Wiki Plugin", "Wiki Initialized"));
         }
 
         public void LoadConfig(IPluginConfig config)

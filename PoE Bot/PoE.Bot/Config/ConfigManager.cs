@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using PoE.Bot.Plugins;
 using Newtonsoft.Json.Linq;
+using Discord;
 
 namespace PoE.Bot.Config
 {
@@ -15,10 +16,10 @@ namespace PoE.Bot.Config
 
         internal ConfigManager()
         {
-            Log.W("Cfg Mgr", "Initializing PoEBot Config Manager");
+            Log.W(new LogMessage(LogSeverity.Info, "Config Manager", "Initializing PoEBot Config Manager"));
             this.DeclaredConfigs = new Dictionary<Type, IPluginConfig>();
             this.GuildConfigs = new Dictionary<ulong, GuildConfig>();
-            Log.W("Cfg Mgr", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Config Manager", "PoeBot Config Initialized"));
         }
 
         public void UpdateConfig(IPlugin plugin)
@@ -51,14 +52,14 @@ namespace PoE.Bot.Config
 
         internal void Initialize()
         {
-            Log.W("Cfg Mgr", "Initializing PoEBot Plugin Configs");
+            Log.W(new LogMessage(LogSeverity.Info, "Config Manager", "Initializing PoEBot Plugin Configs"));
             var jconfig = PoE_Bot.Client.ConfigJson;
 
-            var gconfs = (JObject)jconfig["guild_config"];
+            var gconfs = jconfig["guild_config"] as JObject;
             foreach (var kvp in gconfs)
             {
                 var guild = ulong.Parse(kvp.Key);
-                var gconf = (JObject)kvp.Value;
+                var gconf = kvp.Value as JObject;
 
                 var gcf = new GuildConfig();
                 gcf.ModLogChannel = gconf["modlog"] != null ? (ulong?)gconf["modlog"] : null;
@@ -70,7 +71,7 @@ namespace PoE.Bot.Config
                 var jma = gconf["mod_actions"] != null ? (JArray)gconf["mod_actions"] : new JArray();
                 foreach (var xjma in jma)
                 {
-                    var xma = (JObject)xjma;
+                    var xma = xjma as JObject;
                     var ma = new ModAction
                     {
                         ActionType = (ModActionType)(byte)xma["type"],
@@ -86,7 +87,7 @@ namespace PoE.Bot.Config
                 this.GuildConfigs[guild] = gcf;
             }
 
-            var confnode = (JArray)jconfig["conf_manager"];
+            var confnode = jconfig["conf_manager"] as JArray;
             var confs = new Dictionary<string, JObject>();
             foreach (var xconf in confnode)
             {
@@ -103,14 +104,14 @@ namespace PoE.Bot.Config
                 if (!pt.IsAssignableFrom(t.AsType()) || !t.IsClass || t.IsAbstract)
                     continue;
 
-                Log.W("Cfg Mgr PLG", "Type {0} is a plugin config", t.ToString());
-                var iplg = (IPluginConfig)Activator.CreateInstance(t.AsType());
+                Log.W(new LogMessage(LogSeverity.Info, "Config Manager Plugin", string.Format("Type {0} is a plugin config", t.ToString())));
+                var iplg = Activator.CreateInstance(t.AsType()) as IPluginConfig;
                 var icfg = iplg.DefaultConfig;
                 if (confs.ContainsKey(t.ToString()))
                     icfg.Load(confs[t.ToString()]);
                 this.DeclaredConfigs.Add(t.AsType(), icfg);
             }
-            Log.W("Cfg Mgr", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Config Manager", "PoEBot Plugin Configs Initialized"));
         }
 
         internal IPluginConfig GetConfig(IPlugin plugin)

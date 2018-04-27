@@ -76,7 +76,7 @@ namespace PoE.Bot.Commands
 
         internal async Task Execute(CommandContext context)
         {
-            var error = (string)null;
+            var error = null as string;
             var canrun = false;
             if (this.Checker == null)
                 canrun = true;
@@ -143,8 +143,8 @@ namespace PoE.Bot.Commands
 
         public static bool operator ==(Command cmd1, Command cmd2)
         {
-            var ocmd1 = (object)cmd1;
-            var ocmd2 = (object)cmd2;
+            var ocmd1 = cmd1 as object;
+            var ocmd2 = cmd2 as object;
             if (ocmd1 == null && ocmd2 != null)
                 return false;
             if (ocmd1 != null && ocmd2 == null)

@@ -48,7 +48,7 @@ namespace PoE.Bot.Plugin.Shops
                     await nChn.ModifyAsync(x => x.CategoryId = (chn as IGuildChannel).CategoryId);
                     await nChn.AddPermissionOverwriteAsync(usr, new OverwritePermissions(manageMessages: PermValue.Allow));
 
-                    var embed = this.PrepareEmbed("Your personal shop has been created!", "You may now list your items here: " + nChn.Mention, EmbedType.Info);
+                    var embed = this.PrepareEmbed("Your personal shop has been created!", "You may now list your items here: " + nChn.Mention, EmbedType.Success);
                     await chn.SendMessageAsync("", false, embed.Build());
 
                     break;
@@ -59,7 +59,7 @@ namespace PoE.Bot.Plugin.Shops
 
                     var dChn = chans.SingleOrDefault(x => x.Name == usrChnN) as ITextChannel;
                     await dChn.DeleteAsync();
-                    var dembed = this.PrepareEmbed(usr.Username + ", your personal shop has been deleted!", "", EmbedType.Info);
+                    var dembed = this.PrepareEmbed(usr.Username + ", your personal shop has been deleted!", "", EmbedType.Success);
                     await chn.SendMessageAsync("", false, dembed.Build());
 
                     break;

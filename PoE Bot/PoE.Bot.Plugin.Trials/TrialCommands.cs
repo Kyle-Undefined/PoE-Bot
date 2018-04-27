@@ -32,8 +32,6 @@ namespace PoE.Bot.Plugin.Trials
             var usr = ctx.User;
             var chn = ctx.Channel;
 
-            Log.W("Trial", trl);
-
             if(trl == "all")
             {
                 var roles = gld.Roles;

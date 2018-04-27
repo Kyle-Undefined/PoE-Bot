@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Discord;
 
 namespace PoE.Bot
 {
@@ -74,6 +75,44 @@ namespace PoE.Bot
         /// <summary>
         /// Writes a message with default tag.
         /// </summary>
+        /// <param name="msg">LogMessage to write.</param>
+        public static void W(LogMessage msg)
+        {
+            if (outputs.Count == 0 && !debug_output)
+                return;
+
+            switch (msg.Severity)
+            {
+                case LogSeverity.Critical:
+                case LogSeverity.Error:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case LogSeverity.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                case LogSeverity.Info:
+                    Console.ForegroundColor = ConsoleColor.White;
+                    break;
+                case LogSeverity.Verbose:
+                case LogSeverity.Debug:
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    break;
+            }
+
+            var ls = C(msg);
+            foreach (var output in outputs)
+                foreach (var xl in ls)
+                    output.WriteLine(xl);
+            if (debug_output)
+                foreach (var xl in ls)
+                    Debug.WriteLine(xl);
+
+            Console.ResetColor();
+        }
+
+        /// <summary>
+        /// Writes a message with default tag.
+        /// </summary>
         /// <param name="msg">Message to write.</param>
         public static void W(string msg)
         {
@@ -81,7 +120,7 @@ namespace PoE.Bot
                 return;
 
             var m = msg;
-            var ls = C(m, "stdout");
+            var ls = C(m, "Discord");
             foreach (var output in outputs)
                 foreach (var xl in ls)
                     output.WriteLine(xl);
@@ -101,7 +140,7 @@ namespace PoE.Bot
                 return;
 
             var m = string.Format(format, args);
-            var ls = C(m, "stdout");
+            var ls = C(m, "Discord");
             foreach (var output in outputs)
                 foreach (var xl in ls)
                     output.WriteLine(xl);
@@ -161,7 +200,7 @@ namespace PoE.Bot
                 return;
 
             var m = msg;
-            var ls = C(m, "stdout");
+            var ls = C(m, "Discord");
             foreach (var xl in ls)
                 Debug.WriteLine(xl);
         }
@@ -177,7 +216,7 @@ namespace PoE.Bot
                 return;
 
             var m = string.Format(format, args);
-            var ls = C(m, "stdout");
+            var ls = C(m, "Discord");
             foreach (var xl in ls)
                 Debug.WriteLine(xl);
         }
@@ -298,6 +337,11 @@ namespace PoE.Bot
             var d = DateTime.Now;
             foreach (var xl in l)
                 yield return string.Format("[{0:yyyy-MM-ddTHH:mm:ss}] [{1}] {2}", d, u, xl);
+        }
+
+        private static IEnumerable<string> C(LogMessage message)
+        {
+            yield return $"{DateTime.Now,-19} [{message.Severity,8}] {message.Source}: {message.Message} {message.Exception}";
         }
     }
 }

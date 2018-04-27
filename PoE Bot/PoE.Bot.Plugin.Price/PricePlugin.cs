@@ -26,10 +26,10 @@ namespace PoE.Bot.Plugin.Price
 
         public void Initialize()
         {
-            Log.W("Price", "Initializing Price");
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", "Initializing Price"));
             Instance = this;
             this.conf = new PricePluginConfig();
-            Log.W("Price", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", "Price Initialized"));
         }
 
         public void LoadConfig(IPluginConfig config)
@@ -42,7 +42,7 @@ namespace PoE.Bot.Plugin.Price
         public void AddCurrency(string Name, string Alias, Double Quantity, Double Price, DateTime LastUpdated)
         {
             this.conf.Currency.Add(new Currency(Name, Alias, Quantity, Price, DateTime.Now));
-            Log.W("Price", "Added Price for {0} with a ratio of {1} to {2} Chaos", Name, Quantity, Price);
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", string.Format("Added Price for {0} with a ratio of {1} to {2} Chaos", Name, Quantity, Price)));
 
             UpdateConfig();
         }
@@ -51,7 +51,7 @@ namespace PoE.Bot.Plugin.Price
         {
             var curr = this.conf.Currency.FirstOrDefault(xf => xf.Name == Name && xf.Alias.Contains(Alias));
             this.conf.Currency.Remove(curr);
-            Log.W("Price", "Removed Price for {0}", Name);
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", string.Format("Removed Price for {0}", Name)));
 
             UpdateConfig();
         }
@@ -75,7 +75,7 @@ namespace PoE.Bot.Plugin.Price
 
         private void UpdateConfig()
         {
-            Log.W("Price", "Updating config");
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", "Updating config"));
 
             PoE_Bot.ConfigManager.UpdateConfig(this);
         }

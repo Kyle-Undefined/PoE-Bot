@@ -24,9 +24,9 @@ namespace PoE.Bot.Plugin.Trials
 
         public void Initialize()
         {
-            Log.W("Trials", "Initializing Trials");
+            Log.W(new LogMessage(LogSeverity.Info, "Trials Plugin", "Initializing Trials"));
             this.conf = new TrialPluginConfig();
-            Log.W("Trials", "Done");
+            Log.W(new LogMessage(LogSeverity.Info, "Trials Plugin", "Trials Initialized"));
         }
 
         public void LoadConfig(IPluginConfig config)

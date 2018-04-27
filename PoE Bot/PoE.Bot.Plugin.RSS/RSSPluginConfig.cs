@@ -28,10 +28,10 @@ namespace PoE.Bot.Plugin.RSS
 
         public void Load(JObject jo)
         {
-            var ja = (JArray)jo["feeds"];
+            var ja = jo["feeds"] as JArray;
             foreach (var xjt in ja)
             {
-                var xjo = (JObject)xjt;
+                var xjo = xjt as JObject;
 
                 var tag = (string)xjo["tag"];
                 var uri_ = (string)xjo["uri"];
