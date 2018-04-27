@@ -45,6 +45,8 @@ namespace PoE.Bot.Core
             this.DiscordClient = new DiscordSocketClient(dsc);
             this.DiscordClient.Log += Client_Log;
             this.DiscordClient.Ready += Client_Ready;
+            this.DiscordClient.ReactionAdded += ReactionHandlerAdd;
+            this.DiscordClient.ReactionRemoved += ReactionHandlerRemove;
             _commands.Log += Client_Log;
 
             // Reliability Service, to work with auto reconnects with the Daemon script
@@ -161,6 +163,72 @@ namespace PoE.Bot.Core
             return Task.CompletedTask;
         }
 
+        private void ReactionHandler(ISocketMessageChannel channel, SocketReaction reaction, bool ReactionAdded)
+        {
+            var guild = (channel as IGuildChannel).Guild;
+            var userId = reaction.UserId;
+            var user = guild.GetUserAsync(userId).GetAwaiter().GetResult();
+            var roles = guild.Roles;
+            IRole role = null;
+
+            switch (reaction.Emote.Name)
+            {
+                case "📰":
+                    role = roles.Where(x => x.Name == "News").First();
+                    break;
+                case "\uD83C\uDDF8":
+                    role = roles.Where(x => x.Name == "Standard").First();
+                    break;
+                case "\uD83C\uDDED":
+                    role = roles.Where(x => x.Name == "Hardcore").First();
+                    break;
+                case "\uD83C\uDDE8":
+                    role = roles.Where(x => x.Name == "Challenge").First();
+                    break;
+            }
+
+            if (ReactionAdded)
+                user.AddRoleAsync(role).GetAwaiter().GetResult();
+            else
+                user.RemoveRoleAsync(role).GetAwaiter().GetResult();
+        }
+
+        private Task ReactionHandlerAdd(Cacheable<IUserMessage, ulong> msg, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            var gconfs = PoE_Bot.ConfigManager != null ? PoE_Bot.ConfigManager.GetGuildConfigs() : new KeyValuePair<ulong, GuildConfig>[0];
+            if (gconfs.Count() > 0)
+            {
+                foreach (var kvp in gconfs.ToList())
+                {
+                    if (kvp.Value.RulesChannel != null)
+                    {
+                        if (kvp.Value.RulesChannel == channel.Id)
+                            ReactionHandler(channel, reaction, true);
+                    }
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private Task ReactionHandlerRemove(Cacheable<IUserMessage, ulong> msg, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            var gconfs = PoE_Bot.ConfigManager != null ? PoE_Bot.ConfigManager.GetGuildConfigs() : new KeyValuePair<ulong, GuildConfig>[0];
+            if (gconfs.Count() > 0)
+            {
+                foreach (var kvp in gconfs.ToList())
+                {
+                    if (kvp.Value.RulesChannel != null)
+                    {
+                        if (kvp.Value.RulesChannel == channel.Id)
+                            ReactionHandler(channel, reaction, false);
+                    }
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
         private void PoEBot_Tick(object _)
         {
             var gconfs = PoE_Bot.ConfigManager != null ? PoE_Bot.ConfigManager.GetGuildConfigs() : new KeyValuePair<ulong, GuildConfig>[0];
@@ -207,8 +275,11 @@ namespace PoE.Bot.Core
                 }
             }
 
-            if (this.CurrentUser.Activity == null || this.CurrentUser.Activity.Name != this.Game)
+            if (this.CurrentUser.Activity == null)
                 this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
+            else
+                if (this.CurrentUser.Activity.Name != this.Game)
+                    this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
 
             Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Ticked PoE.Bot"));
         }

@@ -1107,6 +1107,20 @@ namespace PoE.Bot.Commands
                     cnf.DeleteCommands = delcmd;
                     embed = this.PrepareEmbed("Success", string.Concat("Command message deletion is now **", delcmd ? "enabled" : "disabled", "**."), EmbedType.Success);
                     break;
+                case "ruleschannel":
+                    if (msg.MentionedChannelIds.Count() > 0)
+                    {
+                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        var bot = PoE_Bot.Client.CurrentUser;
+                        var prm = mod.GetPermissionOverwrite(bot);
+                        if (prm != null && prm.Value.SendMessages == PermValue.Deny)
+                            throw new InvalidOperationException(" cannot write to specified channel.");
+                    }
+
+                    val = mod != null ? mod.Mention : "<null>";
+                    cnf.RulesChannel = mod != null ? (ulong?)mod.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Rules channel was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
+                    break;
                 default:
                     throw new ArgumentException("Invalid setting specified.");
             }
@@ -1138,6 +1152,75 @@ namespace PoE.Bot.Commands
             embed = this.PrepareEmbed("Success", "Bot Game has been updated to **" + val + "**.", EmbedType.Success);
 
             await chn.SendMessageAsync("", false, embed.Build());
+        }
+
+        [Command("confrules", "Sets the rules that will be posted in the channel set by the Guild Config.", Aliases = "configrules;setuprules;cr", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
+        public async Task ConfigRules(CommandContext ctx,
+            [ArgumentParameter("Rules set by their HTML Markdown, character limit set to 2,000 by Discord.", true)] params string[] rules)
+        {
+            if (rules.Count() == 0)
+                throw new ArgumentException("You must supply rules.");
+
+            var rulesVal = string.Join(" ", rules);
+            if (rulesVal.Length > 2000)
+                throw new InvalidOperationException("Rules exceed 2,000 characters, please revise and try again.");
+
+            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(ctx.Guild.Id);
+            cnf.Rules = rulesVal;
+
+            PoE_Bot.ConfigManager.SetGuildConfig(ctx.Guild.Id, cnf);
+
+            var embed = this.PrepareEmbed("Success", "Rules have been configured.", EmbedType.Success);
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
+        }
+
+        [Command("postrules", "Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use confrules followed by editrules.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
+        public async Task PostRules(CommandContext ctx)
+        {
+            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(ctx.Guild.Id);
+
+            if (string.IsNullOrEmpty(cnf.Rules))
+                throw new InvalidOperationException("You have no rules to post, please use confrules to set them up.");
+
+            if (cnf.RulesChannel == null)
+                throw new InvalidOperationException("You have not configured a rules channel, please use guildconfig to set that up.");
+
+            var chan = await ctx.Guild.GetChannelAsync((ulong)cnf.RulesChannel);
+            var ruleChan = chan as IMessageChannel;
+            var msg = await ruleChan.SendMessageAsync(cnf.Rules);
+
+            await msg.AddReactionAsync(new Emoji("📰"));
+            await msg.AddReactionAsync(new Emoji("\uD83C\uDDF8"));  // Standard  (S)
+            await msg.AddReactionAsync(new Emoji("\uD83C\uDDED"));  // Hardcore  (H)
+            await msg.AddReactionAsync(new Emoji("\uD83C\uDDE8"));  // Challenge (C)
+
+            var embed = this.PrepareEmbed("Success", "Rules have been posted.", EmbedType.Success);
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
+        }
+
+        [Command("editrules", "Edits the rules you've configured and posted to the rules channel.", Aliases = "edrules;erules;er", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
+        public async Task EditRules(CommandContext ctx)
+        {
+            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(ctx.Guild.Id);
+
+            if (string.IsNullOrEmpty(cnf.Rules))
+                throw new InvalidOperationException("You have no rules to post, please use confrules to set them up.");
+
+            if (cnf.RulesChannel == null)
+                throw new InvalidOperationException("You have not configured a rules channel, please use guildconfig to set that up.");
+
+            var chan = await ctx.Guild.GetChannelAsync((ulong)cnf.RulesChannel);
+            var ruleChan = chan as IMessageChannel;
+            var msgs = await ruleChan.GetMessagesAsync(1).FlattenAsync();
+
+            if (msgs.Count() < 1)
+                throw new InvalidOperationException("No messages found to edit, please make sure you've posted the rules to the channel.");
+
+            foreach(IUserMessage msg in msgs)
+                await msg.ModifyAsync(x => x.Content = cnf.Rules);
+
+            var embed = this.PrepareEmbed("Success", "Rules have been edited.", EmbedType.Success);
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
