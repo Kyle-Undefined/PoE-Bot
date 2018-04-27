@@ -131,32 +131,7 @@ namespace PoE.Bot.Core
         /// <param name="channel">Channel to send the message to.</param>
         internal void SendMessage(string message, SocketTextChannel channel)
         {
-            var msg = new List<string>();
-            if (message.Length > 2000)
-            {
-                var cmsg = "";
-                message.Split(' ');
-                foreach (var str in msg)
-                {
-                    if (str.Length + cmsg.Length > 2000)
-                    {
-                        msg.Add(cmsg);
-                        cmsg = str;
-                    }
-                    else
-                    {
-                        cmsg += " " + str;
-                    }
-                }
-                msg.Add(cmsg);
-            }
-            else
-            {
-                msg.Add(message);
-            }
-
-            foreach (var ms in msg)
-                channel.SendMessageAsync(ms).GetAwaiter().GetResult();
+            channel.SendMessageAsync(message).GetAwaiter().GetResult();
         }
 
         internal void SendEmbed(EmbedBuilder embed, SocketTextChannel channel)
