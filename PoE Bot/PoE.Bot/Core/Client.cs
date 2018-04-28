@@ -66,6 +66,7 @@ namespace PoE.Bot.Core
             this.ConfigJson = sjo;
             this.Token = (string)sjo["token"];
             this.Game = "Use " + sjo.SelectToken("$.guild_config.*.command_prefix") + "help";
+            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Game is set to: " + this.Game));
             Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Discord initialized"));
         }
 

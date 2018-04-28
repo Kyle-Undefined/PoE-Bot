@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.IO;
 using Discord;
 using Discord.WebSocket;
 using PoE.Bot.Attributes;
@@ -12,6 +13,7 @@ using PoE.Bot.Commands.Permissions;
 using PoE.Bot.Config;
 using PoE.Bot.Extensions;
 using Microsoft.Extensions.PlatformAbstractions;
+using SkiaSharp;
 
 namespace PoE.Bot.Commands
 {
@@ -846,114 +848,11 @@ namespace PoE.Bot.Commands
         #endregion
 
         #region Guild, Channel, and Bot Management
-        [Command("prune", "Prunes a channel by deleting up to 100 messages, can single out a certain user.", Aliases = "delete;dm;deletemessages", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
-        public async Task Prune(CommandContext ctx,
-            [ArgumentParameter("How many messages to prune.", true)] int count,
-            [ArgumentParameter("Mention of the user to prune.", false)] IUser user = null)
-        {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-            var chp = chn as ITextChannel;
-
-            if (count < 1)
-                throw new ArgumentNullException("Specified amount is invalid.");
-
-            if (count > 100)
-                count = 100;
-
-            TimeSpan twoWeeks = TimeSpan.FromDays(14);
-            Func<IMessage, bool> predicate;
-            IMessage[] msgs;
-            IMessage lastMessage = null;
-            int totMsgs = 0;
-
-            if (user != null)
-            {
-                predicate = (m => m.Author.Id == user.Id && DateTime.UtcNow - m.CreatedAt < twoWeeks);
-            }
-            else
-            {
-                predicate = (x => true);
-            }
-
-            msgs = (await chn.GetMessagesAsync(50).FlattenAsync()).Where(predicate).Take(count).ToArray();
-            var allDeleted = new List<IMessage>();
-
-            while (count > 0 && msgs.Any())
-            {
-                totMsgs = totMsgs + msgs.Count();
-                lastMessage = msgs[msgs.Length - 1];
-
-                var bulkDeletable = new List<IMessage>();
-                var singleDeletable = new List<IMessage>();
-
-                foreach (var x in msgs)
-                {
-                    if (DateTime.UtcNow - x.CreatedAt < twoWeeks)
-                        bulkDeletable.Add(x);
-                    else
-                        singleDeletable.Add(x);
-                }
-
-                if (bulkDeletable.Count > 0)
-                    foreach (var x in bulkDeletable)
-                        allDeleted.Add(x);
-
-                foreach (var x in singleDeletable)
-                    allDeleted.Add(x);
-
-                if (bulkDeletable.Count > 0)
-                    await Task.WhenAll(Task.Delay(1000), chp.DeleteMessagesAsync(bulkDeletable)).ConfigureAwait(false);
-
-                var i = 0;
-                foreach (var group in singleDeletable.GroupBy(x => ++i / (singleDeletable.Count / 5)))
-                    await Task.WhenAll(Task.Delay(1000), Task.WhenAll(group.Select(x => x.DeleteAsync()))).ConfigureAwait(false);
-
-                //this isn't good, because this still work as if i want to remove only specific user's messages from the last
-                //100 messages, Maybe this needs to be reduced by msgs.Length instead of 100
-                count -= 50;
-                if (count > 0)
-                    msgs = (await chn.GetMessagesAsync(lastMessage, Direction.Before, 50).FlattenAsync()).Where(predicate).Take(count).ToArray();
-            }
-
-            var gid = gld.Id;
-            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
-
-            if (mod != null)
-            {
-                var messagesDeleted = new StringBuilder();
-
-                foreach (var x in allDeleted)
-                    messagesDeleted.Append(string.Concat(x.Author, ":\n\"", x.Content, "\"\n", x.Timestamp.ToString("G"), "\n\n"));
-
-                var embedChunks = ChunkString(messagesDeleted.ToString(), 1018);
-
-                foreach(var chunk in embedChunks)
-                {
-                    var embedmod = this.PrepareEmbed("Message Prune", string.Concat(usr.Mention, " (", usr.Username, ") has pruned ", totMsgs.ToString("#,##0"), user != null ? string.Concat(" of ", user.Mention, " (", usr.Username, ")'s") : "", " messages from channel ", chp.Mention, " (", chp.Name, ")."), EmbedType.Info);
-
-                    chunk.Insert(0, "```");
-                    chunk.Insert(chunk.Length, "```");
-
-                    embedmod.AddField(x =>
-                    {
-                        x.IsInline = false;
-                        x.Name = "Messages";
-                        x.Value = chunk;
-                    });
-
-                    await mod.SendMessageAsync("", false, embedmod.Build());
-                }
-            }
-        }
-
-        [Command("purgechannel", "Cleans a channel up, can specify All, Bot, or Self messages.", Aliases = "purge;purgech;chpurge;chanpurge;purgechan;clean;cleanup;", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
+        [Command("purgechannel", "Cleans a channel up, can specify All, Bot, or Self messages.", Aliases = "purge;purgech;chpurge;chanpurge;purgechan;clean;cleanup;prune", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
         public async Task PurgeChannel(CommandContext ctx,
             [ArgumentParameter("The optional number of messages to delete; defaults to 10.", false)] int count,
-            [ArgumentParameter("The type of messages to delete - Self, Bot, or All; defaults to Self.", false)] string delType,
+            [ArgumentParameter("The type of messages to delete - Self, Bot, User, or All; defaults to All.", false)] string delType,
+            [ArgumentParameter("The user of the messages you want to delete, must set DelType to User.", false)] IUser user,
             [ArgumentParameter("The strategy to delete messages - Bulk or Manual; defaults to Bulk.", false)] string delStrategy)
         {
             var gld = ctx.Guild;
@@ -961,12 +860,18 @@ namespace PoE.Bot.Commands
             var usr = ctx.User;
             var chp = chn as ITextChannel;
 
+            if (!string.IsNullOrEmpty(delType))
+                if (user == null && delType.ToLower() == "user")
+                    throw new InvalidOperationException("You are trying to delete a users message, but you didn't mention a user.");
+
             if (count == 0)
                 count = 10;
             if (string.IsNullOrEmpty(delType))
-                delType = "Self";
+                delType = "All";
             if (string.IsNullOrEmpty(delStrategy))
                 delStrategy = "Bulk";
+            if (user != null)
+                delType = "User";
 
             DeleteType deleteType = (DeleteType)Enum.Parse(typeof(DeleteType), UppercaseFirst(delType));
             DeleteStrategy deleteStrategy = (DeleteStrategy)Enum.Parse(typeof(DeleteStrategy), UppercaseFirst(delStrategy));
@@ -980,6 +885,8 @@ namespace PoE.Bot.Commands
                 IEnumerable<IMessage> delete = null;
                 if (deleteType == DeleteType.Self)
                     delete = m.Where(msg => msg.Author.Id == ctx.User.Id);
+                else if(deleteType == DeleteType.User)
+                    delete = m.Where(msg => msg.Author.Id == user.Id);
                 else if (deleteType == DeleteType.Bot)
                     delete = m.Where(msg => msg.Author.IsBot);
                 else if (deleteType == DeleteType.All)
@@ -999,12 +906,38 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", count.ToString("#,##0"), " ", deleteType, " style messages from channel ", chp.Mention, " (", chp.Name, ") using ", deleteStrategy, " delete."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", count.ToString("#,##0"), (count > 25 ? " (Showing the last 25) " : " "), deleteType, " style messages from channel ", chp.Mention, " (", chp.Name, ") using ", deleteStrategy, " delete."), EmbedType.Info);
+
+                int i = 0;
+                foreach (var msg in deleteMessages)
+                {
+                    i++;
+                    if (i < 26)
+                    {
+                        var content = msg.Content.Replace("`", "");
+                        var attachments = msg.Attachments;
+                        var embeds = msg.Embeds;
+
+                        foreach (var att in attachments)
+                            content = att.Url + "\n";
+                        foreach (var embed in embeds)
+                            content = embed.Title + "\n" + embed.Description;
+
+                        content = (content.Length > 1024) ? content.Remove(1018) : content;
+
+                        embedmod.AddField(x =>
+                        {
+                            x.Name = $"{msg.Author.Username}";
+                            x.Value = $"```{content}```";
+                        });
+                    }
+                }
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            var embed = this.PrepareEmbed("Success", string.Format("Purged {0:#,##0} {1} style message{2} from channel {3} using {4} delete.", count, deleteType, count > 1 ? "s" : "", chp.Mention, deleteStrategy), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
+            //var embed = this.PrepareEmbed("Success", string.Format("Purged {0:#,##0} {1} style message{2} from channel {3} using {4} delete.", count, deleteType, count > 1 ? "s" : "", chp.Mention, deleteStrategy), EmbedType.Success);
+            //await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("guildconfig", "Manages  configuration for this guild.", Aliases = "guildconf;config;conf;modconfig;modconf", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -1211,7 +1144,8 @@ namespace PoE.Bot.Commands
 
             var chan = await ctx.Guild.GetChannelAsync((ulong)cnf.RulesChannel);
             var ruleChan = chan as IMessageChannel;
-            var msgs = await ruleChan.GetMessagesAsync(1).FlattenAsync();
+            var msgs = await ruleChan.GetMessagesAsync().FlattenAsync();
+            msgs = msgs.Where(x => x.Author.IsBot);
 
             if (msgs.Count() < 1)
                 throw new InvalidOperationException("No messages found to edit, please make sure you've posted the rules to the channel.");
@@ -1347,7 +1281,81 @@ namespace PoE.Bot.Commands
             if (finalText.Length > 2000)
                 finalText = finalText.Remove(2000);
 
+            await msg.DeleteAsync();
             await chn.SendMessageAsync(finalText);
+        }
+
+        [Command("mock", "Turns text into Spongebob Mocking Meme.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task Mock(CommandContext ctx,
+            [ArgumentParameter("Text to mock.", true)] params string[] text)
+        {
+            var meme = string.Concat(string.Join(" ", text).ToLower().AsEnumerable().Select((c, i) => i % 2 == 0 ? c : char.ToUpper(c)));
+            IEnumerable<string> chunkedMeme = null;
+
+            if (meme.Length > 33)
+                chunkedMeme = ChunkString(meme, 33);
+
+            string path = @"img/mock.jpg";
+            string savePath = @"img/output/stoP-THAt-RiGHT-nOW-" + DateTime.Now.ToString("yyyy-dd-M-HH-mm-ss") + ".png";
+
+            var info = new SKImageInfo(583, 411);
+            using (var surface = SKSurface.Create(info))
+            {
+                var canvas = surface.Canvas;
+
+                Stream fileStream = File.OpenRead(path);
+                canvas.DrawColor(SKColors.White);
+
+                using (var stream = new SKManagedStream(fileStream))
+                using (var bitmap = SKBitmap.Decode(stream))
+                using (var paint = new SKPaint())
+                {
+                    var textPaint = new SKPaint
+                    {
+                        Color = SKColors.Black,
+                        IsAntialias = true,
+                        Style = SKPaintStyle.Fill,
+                        TextAlign = SKTextAlign.Center,
+                        TextSize = 32,
+                        FakeBoldText = true
+                    };
+
+                    canvas.DrawBitmap(bitmap, SKRect.Create(info.Width, info.Height), paint);
+
+                    var coord = new SKPoint(info.Width / 2, 32);
+
+                    if(meme.Length > 33)
+                    {
+                        if(chunkedMeme.Count() > 2)
+                            foreach(var str in chunkedMeme)
+                            {
+                                canvas.DrawText(str, coord, textPaint);
+                                coord.Offset(0, 42);
+                            }
+                        else
+                            foreach (var str in chunkedMeme)
+                            {
+                                canvas.DrawText(str, coord, textPaint);
+                                coord.Offset(0, 348);
+                            }
+                    }
+                    else
+                        canvas.DrawText(meme, coord, textPaint);
+
+                    using (var image = surface.Snapshot())
+                    using (var data = image.Encode(SKEncodedImageFormat.Png, 100))
+                    using (var streamImg = File.OpenWrite(savePath))
+                    {
+                        data.SaveTo(streamImg);
+                    }
+                }
+            }
+
+            var chn = ctx.Channel;
+            var msg = ctx.Message;
+
+            await msg.DeleteAsync();
+            await chn.SendFileAsync(savePath);
         }
         #endregion
 
@@ -1569,7 +1577,8 @@ namespace PoE.Bot.Commands
         {
             Self = 0,
             Bot = 1,
-            All = 2
+            All = 2,
+            User = 3
         }
 
         public enum DeleteStrategy
