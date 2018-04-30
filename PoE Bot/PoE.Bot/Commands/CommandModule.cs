@@ -22,69 +22,54 @@ namespace PoE.Bot.Commands
         public string Name { get { return "PoE.Bot.Commands Module"; } }
 
         #region Role Manipulation
-        [Command("mkrole", "Creates a new role.", Aliases = "makerole;createrole;mkgroup;makegroup;creategroup;gmk;gmake;gcreate", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("mkrole", "Creates a new role.", Aliases = "makerole;createrole", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task CreateRole(CommandContext ctx,
             [ArgumentParameter("Name of the new role.", true)] string name)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            var grl = await ctx.Guild.CreateRoleAsync(name, new GuildPermissions(0x0635CC01u), null, false);
 
-            var grl = await gld.CreateRoleAsync(name, new GuildPermissions(0x0635CC01u), null, false);
-
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+
+            var embedmod = this.PrepareEmbed("Role created", $"```The role '{grl.Name}' was created successfully.```", EmbedType.Success);
+            embedmod.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Message.DeleteAsync();
 
             if (mod != null)
-            {
-                var embedmod = this.PrepareEmbed("Role create", string.Concat(usr.Mention, " has created role **", grl.Name, "**."), EmbedType.Success);
                 await mod.SendMessageAsync("", false, embedmod.Build());
-            }
-
-            var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was created successfully.", grl.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("rmrole", "Removes a role.", Aliases = "removerole;deleterole;delrole;rmgroup;removegroup;deletegroup;delgroup;gdel;gdelete;grm;gremove", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("rmrole", "Removes a role.", Aliases = "removerole;deleterole;delrole", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task DeleteRole(CommandContext ctx,
             [ArgumentParameter("Name or mention of the role to delete.", true)] IRole role)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var grp = role;
             if (grp == null)
                 throw new ArgumentException("You must specify a role you want to delete.");
             await grp.DeleteAsync();
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+
+            var embedmod = this.PrepareEmbed("Role deleted", $"```The role '{grp.Name}' was deleted successfully.```", EmbedType.Success);
+            embedmod.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Message.DeleteAsync();
 
             if (mod != null)
-            {
-                var embedmod = this.PrepareEmbed("Role remove", string.Concat(usr.Mention, " has removed role **", grp.Name, "**."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
-            }
-
-            var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was deleted successfully.", grp.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("modrole", "Edits a role.", Aliases = "modifyrole;editrole;modgroup;modifygroup;editgroup;gmod;gmodify;gedit", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("modrole", "Edits a role.", Aliases = "modifyrole;editrole", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task ModifyRole(CommandContext ctx,
             [ArgumentParameter("Name or mention of the role to modify.", true)] IRole role,
-            [ArgumentParameter("Properties to set. Format is property=value.", true)] params string[] properties)
+            [ArgumentParameter("Properties to set. Format is property=value. Example: color=36393e", true)] params string[] properties)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var grp = role;
             if (grp == null)
                 throw new ArgumentException("You must specify a role you want to modify.");
@@ -112,71 +97,39 @@ namespace PoE.Bot.Commands
                     x.Position = gps;
             });
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+
+            var embedmod = this.PrepareEmbed("Role edit", $"```The role '{grp.Name}' was modified successfully.```", EmbedType.Success);
+            embedmod.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Message.DeleteAsync();
 
             if (mod != null)
-            {
-                var embedmod = this.PrepareEmbed("Role modify", string.Concat(usr.Mention, " has modified role **", grp.Name, "**."), EmbedType.Info);
                 await mod.SendMessageAsync("", false, embedmod.Build());
-            }
-
-            var embed = this.PrepareEmbed("Success", string.Format("Role **{0}** was edited successfully.", grp.Name), EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("roleinfo", "Dumps all properties of a role.", Aliases = "rinfo;dumprole;printrole;dumpgroup;printgroup;gdump", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("roleinfo", "Dumps all properties of a role.", Aliases = "rinfo;dumprole;printrole", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task RoleInfo(CommandContext ctx,
             [ArgumentParameter("Name or mention of the role to display.", true)] IRole role)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
             var grp = role;
             if (grp == null)
                 throw new ArgumentException("You must supply a role.");
 
             var grl = grp as SocketRole;
-            var gls = gld as SocketGuild;
+            var gls = ctx.Guild as SocketGuild;
 
             var embed = this.PrepareEmbed("Role Info", null, EmbedType.Info);
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Name";
-                x.Value = grl.Name;
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "ID";
-                x.Value = grl.Id.ToString();
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Color";
-                x.Value = grl.Color.RawValue.ToString("X6");
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Hoisted?";
-                x.Value = grl.IsHoisted ? "Yes" : "No";
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Mentionable?";
-                x.Value = grl.IsMentionable ? "Yes" : "No";
-            });
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl())
+                .AddField("Name", grl.Name, true)
+                .AddField("ID", grl.Id.ToString(), true)
+                .AddField("Color", grl.Color.RawValue.ToString("X6"), true)
+                .AddField("Hoisted?", grl.IsHoisted ? "Yes" : "No", true)
+                .AddField("Mentionable?", grl.IsMentionable ? "Yes" : "No", true);
 
             var perms = new List<string>(23);
             if (grl.Permissions.Administrator)
@@ -225,47 +178,29 @@ namespace PoE.Bot.Commands
                 perms.Add("Can speak");
             if (grl.Permissions.UseVAD)
                 perms.Add("Can use voice activation");
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Permissions";
-                x.Value = string.Join(", ", perms);
-            });
+            embed.AddField("Permissions", $"```{string.Join(", ", perms)}```");
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("listroles", "Lists all roles on the server.", Aliases = "lsroles;lsgroups;listgroups;glist;gls", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("listroles", "Lists all roles on the server.", Aliases = "lsroles", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task ListRoles(CommandContext ctx)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
-            var grp = gld.Roles;
+            var grp = ctx.Guild.Roles;
             if (grp == null)
                 return;
 
             var embed = this.PrepareEmbed("Role List", string.Format("Listing of all {0:#,##0} role{1} in this Guild.", grp.Count, grp.Count > 1 ? "s" : ""), EmbedType.Info);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Role list";
-                x.Value = string.Join(", ", grp.Select(xr => string.Concat("**", xr.Name, "**")));
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.AddField("Role list", $"```{string.Join(", ", grp.Select(xr => xr.Name))}```");
+
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("roleadd", "Adds users to a role.", Aliases = "groupadd;ugadd", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("roleadd", "Adds users to a role.", Aliases = "groupadd", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task RoleAdd(CommandContext ctx,
             [ArgumentParameter("Name or mention of the role to add to.", true)] IRole role,
             [ArgumentParameter("Mentions of users to add tp the role.", true)] params IUser[] users)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var grp = role as SocketRole;
             if (grp == null)
                 throw new ArgumentException("You must supply a role.");
@@ -277,36 +212,25 @@ namespace PoE.Bot.Commands
             foreach (var usm in usrs)
                 await usm.AddRoleAsync(grp);
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var embedmod = this.PrepareEmbed("Role Member Add", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " added to the role."), EmbedType.Success);
+            embedmod.AddField($"User{string.Concat(usrs.Count() > 1 ? "s" : "")} added to role: {grp.Name}", $"```{string.Join(", ", usrs.Select(xusr => xusr.Username))}```")
+                .WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Message.DeleteAsync();
 
             if (mod != null)
-            {
-                var embedmod = this.PrepareEmbed("Role Member Add", string.Concat(usr.Mention, " has added ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " to role **", grp.Name, "**."), EmbedType.Success);
                 await mod.SendMessageAsync("", false, embedmod.Build());
-            }
-
-            var embed = this.PrepareEmbed("Success", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " added to the role."), EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Details";
-                x.Value = string.Concat("The following user", usrs.Count() > 1 ? "s were" : " was", " added to role **", grp.Name, "**: ", string.Join(", ", usrs.Select(xusr => xusr.Mention)));
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("roleremove", "Removes users from a role.", Aliases = "groupremove;ugremove;ugrm", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
+        [Command("roleremove", "Removes users from a role.", Aliases = "groupremove", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageRoles)]
         public async Task RoleRemove(CommandContext ctx,
             [ArgumentParameter("Name or mention of the role to remove from.", true)] IRole role,
             [ArgumentParameter("Mentions of users to remove from the role.", true)] params IUser[] users)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var grp = role as SocketRole;
             if (grp == null)
                 throw new ArgumentException("You must supply a role.");
@@ -318,24 +242,18 @@ namespace PoE.Bot.Commands
             foreach (var usm in usrs)
                 await usm.RemoveRoleAsync(grp);
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var embedmod = this.PrepareEmbed("Role Member Remove", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " removed from the role."), EmbedType.Success);
+            embedmod.AddField($"User{string.Concat(usrs.Count() > 1 ? "s" : "")} removed from role: {grp.Name}", $"```{string.Join(", ", usrs.Select(xusr => xusr.Username))}```")
+                .WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Message.DeleteAsync();
 
             if (mod != null)
-            {
-                var embedmod = this.PrepareEmbed("Role Member Remove", string.Concat(usr.Mention, " has removed ", string.Join(", ", usrs.Select(xusr => xusr.Mention)), " from role **", grp.Name, "**."), EmbedType.Error);
                 await mod.SendMessageAsync("", false, embedmod.Build());
-            }
-
-            var embed = this.PrepareEmbed("Success", string.Concat("User", usrs.Count() > 1 ? "s were" : " was", " removed from the role."), EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Details";
-                x.Value = string.Concat("The following user", usrs.Count() > 1 ? "s were" : " was", " removed from role **", grp.Name, "**: ", string.Join(", ", usrs.Select(xusr => xusr.Mention)));
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -345,10 +263,7 @@ namespace PoE.Bot.Commands
             [ArgumentParameter("User to report.", true)] IUser user,
             [ArgumentParameter("Reason for report.", true)] params string[] reason)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            await ctx.Message.DeleteAsync();
 
             var rep = user;
             if (rep == null)
@@ -358,23 +273,18 @@ namespace PoE.Bot.Commands
             if (string.IsNullOrWhiteSpace(rsn))
                 throw new ArgumentException("You need to supply a report reason.");
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
             if (cnf.ReportUserChannel == null)
                 throw new InvalidOperationException("This guild does not have report log configured.");
 
-            var mod = await gld.GetTextChannelAsync(cnf.ReportUserChannel.Value);
-
-            var embed = this.PrepareEmbed("User report", string.Concat(usr.Mention, " (", usr.Username, ") reported ", rep.Mention, " (", rep.Username, ")."), EmbedType.Warning);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Reason";
-                x.Value = rsn;
-            });
+            var mod = await ctx.Guild.GetTextChannelAsync(cnf.ReportUserChannel.Value);
+            var embed = this.PrepareEmbed("User report", $"{rep.Mention} ({rep.Username}) was reported.", EmbedType.Warning);
+            embed.AddField("Reason", $"```{rsn}```")
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl())
+                .WithAuthor(ctx.User);
 
             await mod.SendMessageAsync("", false, embed.Build());
-            await msg.DeleteAsync();
         }
 
         [Command("mute", "Mutes users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
@@ -383,12 +293,7 @@ namespace PoE.Bot.Commands
             [ArgumentParameter("Mention of a user to mute.", true)] IUser user,
             [ArgumentParameter("Reason for mute.", false)] params string[] reason)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
-            var gls = gld as SocketGuild;
+            await ctx.Message.DeleteAsync();
 
             var userMute = user as SocketGuildUser;
             if (userMute == null)
@@ -399,43 +304,36 @@ namespace PoE.Bot.Commands
             if(reason.Count() > 0)
                 rsn = string.Join(" ", reason);
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
-            var rep = cnf != null && cnf.ReportUserChannel != null ? await gld.GetTextChannelAsync(cnf.ReportUserChannel.Value) : null;
-            var mrl = cnf != null && cnf.MuteRole != null ? gld.GetRole(cnf.MuteRole.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var rep = cnf != null && cnf.ReportUserChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ReportUserChannel.Value) : null;
+            var mrl = cnf != null && cnf.MuteRole != null ? ctx.Guild.GetRole(cnf.MuteRole.Value) : null;
 
             if (mrl == null)
                 throw new InvalidOperationException("Mute role is not configured. Specify via guildconfig.");
 
             var now = DateTime.UtcNow;
             var unt = duration != TimeSpan.Zero ? now + duration : DateTime.MaxValue.ToUniversalTime();
-            var dsr = duration != TimeSpan.Zero ? string.Concat("for ", duration.Days, " days, ", duration.Hours, " hours, ", duration.Minutes, " minutes") : "permanently";
+            var dsr = duration != TimeSpan.Zero ? string.Concat(duration.Days, " days, ", duration.Hours, " hours, ", duration.Minutes, " minutes") : "permanently";
 
-            if (!userMute.GuildPermissions.Administrator)
-            {
-                await userMute.AddRoleAsync(mrl);
-                var moda = cnf.ModActions.FirstOrDefault(xma => xma.UserId == userMute.Id && xma.ActionType == ModActionType.Mute);
-                if (moda != null)
-                    cnf.ModActions.Remove(moda);
-                cnf.ModActions.Add(new ModAction { ActionType = ModActionType.Mute, Issuer = usr.Id, Until = unt, UserId = userMute.Id });
-            }
+            await userMute.AddRoleAsync(mrl);
+            var moda = cnf.ModActions.FirstOrDefault(xma => xma.UserId == userMute.Id && xma.ActionType == ModActionType.Mute);
+            if (moda != null)
+                cnf.ModActions.Remove(moda);
+            cnf.ModActions.Add(new ModAction { ActionType = ModActionType.Mute, Issuer = ctx.User.Id, Until = unt, UserId = userMute.Id });
 
             PoE_Bot.ConfigManager.SetGuildConfig(gid, cnf);
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User muted", string.Concat(usr.Mention, " (", usr.Username, ") has muted ", userMute.Mention, " (", userMute.Username, ") ", dsr, "."), EmbedType.Warning);
+                var embedmod = this.PrepareEmbed("User muted", $"{userMute.Mention} ({userMute.Username})", EmbedType.Warning);
+                embedmod.AddField("Duration", dsr)
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
                 if (!string.IsNullOrWhiteSpace(rsn))
-                {
-                    embedmod.AddField(x =>
-                    {
-                        x.IsInline = false;
-                        x.Name = "Reason";
-                        x.Value = rsn;
-                    });
-                }
+                    embedmod.AddField("Reason", $"```{rsn}```");
                     
                 await mod.SendMessageAsync("", false, embedmod.Build());
 
@@ -443,19 +341,14 @@ namespace PoE.Bot.Commands
                     await rep.SendMessageAsync("", false, embedmod.Build());
             }
 
-            await msg.DeleteAsync();
-
-            var embed = this.PrepareEmbed("You were muted", dsr, EmbedType.Warning);
+            var embed = this.PrepareEmbed("Mod Action", $"You were muted in the {ctx.Guild.Name} server.", EmbedType.Warning);
+            embed.AddField("Duration", dsr)
+                .WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl())
+                .WithFooter($"You can PM {ctx.User.Username} directly to resolve the issue.");
 
             if (!string.IsNullOrWhiteSpace(rsn))
-            {
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "Reason";
-                    x.Value = rsn;
-                });
-            }
+                embed.AddField("Reason", $"```{rsn}```");
                 
             await userMute.SendMessageAsync("", false, embed.Build());
         }
@@ -464,25 +357,21 @@ namespace PoE.Bot.Commands
         public async Task Unmute(CommandContext ctx,
             [ArgumentParameter("Mentions of users to unmute.", true)] params IUser[] users)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            await ctx.Message.DeleteAsync();
 
-            var gls = gld as SocketGuild;
+            var gls = ctx.Guild as SocketGuild;
             var uss = users.Cast<SocketGuildUser>();
             if (uss.Count() < 1)
                 throw new ArgumentException("You must mention users you want to unmute.");
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
-            var mrl = cnf != null && cnf.MuteRole != null ? gld.GetRole(cnf.MuteRole.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mrl = cnf != null && cnf.MuteRole != null ? ctx.Guild.GetRole(cnf.MuteRole.Value) : null;
 
             if (mrl == null)
                 throw new InvalidOperationException("Mute role is not configured. Specify via guildconfig.");
 
-            uss = uss.Where(xus => !xus.GuildPermissions.Administrator);
             foreach (var usm in uss)
             {
                 await usm.RemoveRoleAsync(mrl);
@@ -490,27 +379,25 @@ namespace PoE.Bot.Commands
                 if (moda != null)
                     cnf.ModActions.Remove(moda);
             }
+
             PoE_Bot.ConfigManager.SetGuildConfig(gid, cnf);
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User unmutes", string.Concat(usr.Mention, " (", usr.Username, ") has unmuted ", string.Join(", ", uss.Select(xus => xus.Mention)), " (", string.Join(", ", uss.Select(xus => xus.Username)), ")."), EmbedType.Success);
+                var embedmod = this.PrepareEmbed("User unmutes", $"{uss.Count()} user" + (uss.Count() > 1 ? "s were " : " was ") + "unmuted.", EmbedType.Success);
+                embedmod.AddField("Users unmuted", $"```{string.Join(", ", uss.Select(xus => xus.Username))}```")
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
-
-            await msg.DeleteAsync();
         }
 
         [Command("muteinfo", "Lists current mutes or displays information about specific mute.", Aliases = "listmutes;mutelist", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
         public async Task MuteInfo(CommandContext ctx,
             [ArgumentParameter("Mention of muted user to view info for.", false)] IUser user)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
             var minf = cnf.ModActions.Where(xma => xma.ActionType == ModActionType.Mute);
             if (minf.Count() == 0)
@@ -518,168 +405,118 @@ namespace PoE.Bot.Commands
 
             var embed = this.PrepareEmbed("Mute Information", null, EmbedType.Info);
             if (user == null)
-            {
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "Current mutes";
-                    x.Value = string.Concat(string.Join(", ", minf.Select(xmute => gld.GetUserAsync(xmute.UserId).GetAwaiter().GetResult() != null ? gld.GetUserAsync(xmute.UserId).GetAwaiter().GetResult().Mention : xmute.UserId.ToString())), " (", string.Join(", ", minf.Select(xmute => gld.GetUserAsync(xmute.UserId).GetAwaiter().GetResult() != null ? gld.GetUserAsync(xmute.UserId).GetAwaiter().GetResult().Username : xmute.UserId.ToString())), ")");
-                });
-            }
+                embed.AddField("Current mutes", string.Concat(string.Join(", ", minf.Select(xmute => ctx.Guild.GetUserAsync(xmute.UserId).GetAwaiter().GetResult() != null ? ctx.Guild.GetUserAsync(xmute.UserId).GetAwaiter().GetResult().Mention : xmute.UserId.ToString())), " (", string.Join(", ", minf.Select(xmute => ctx.Guild.GetUserAsync(xmute.UserId).GetAwaiter().GetResult() != null ? ctx.Guild.GetUserAsync(xmute.UserId).GetAwaiter().GetResult().Username : xmute.UserId.ToString()))));
             else
             {
                 var mute = minf.FirstOrDefault(xma => xma.UserId == user.Id);
                 if (mute == null)
                     throw new InvalidProgramException("User is not in mute registry.");
-                var isr = await gld.GetUserAsync(mute.Issuer);
+                var isr = await ctx.Guild.GetUserAsync(mute.Issuer);
 
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "User";
-                    x.Value = string.Concat(user.Mention, " (", user.Username, ")");
-                });
-
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Id";
-                    x.Value = user.Id.ToString();
-                });
-
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Mod responsible";
-                    x.Value = isr != null ? string.Concat(isr.Mention, " (", isr.Username, ")") : "<unknown>";
-                });
-
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Issued (UTC)";
-                    x.Value = mute.Issued.ToString("yyyy-MM-dd HH:mm:ss");
-                });
-
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Active until (UTC)";
-                    x.Value = mute.Until != DateTime.MaxValue.ToUniversalTime() ? mute.Until.ToString("yyyy-MM-dd HH:mm:ss") : "End of the Universe";
-                });
+                embed.WithAuthor(isr)
+                    .WithThumbnailUrl(isr.GetAvatarUrl())
+                    .AddField("User", $"{user.Mention} ({user.Username})")
+                    .AddField("Mod Responsible", isr != null ? string.Concat(isr.Mention, " (", isr.Username, ")") : "<unknown>")
+                    .AddField("Issued (UTC)", mute.Issued.ToString("yyyy-MM-dd HH:mm:ss"))
+                    .AddField("Active until (UTC)", mute.Until != DateTime.MaxValue.ToUniversalTime() ? mute.Until.ToString("yyyy-MM-dd HH:mm:ss") : "End of the Universe");
             }
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("kick", "Kicks users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
+        [Command("kick", "Kicks user.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.KickMembers)]
         public async Task Kick(CommandContext ctx,
-            [ArgumentParameter("Mentions of users to kick.", true)] params IUser[] users)
+            [ArgumentParameter("Mentions of user to kick.", true)] IUser user,
+            [ArgumentParameter("Reason for the kick.", true)] params string[] reason)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            await ctx.Message.DeleteAsync();
 
-            var gls = gld as SocketGuild;
-            var uss = users.Cast<SocketGuildUser>();
-            if (uss.Count() < 1)
-                throw new ArgumentException("You must mention users you want to kick.");
+            var userKick = user as SocketGuildUser;
+            if (userKick == null)
+                throw new ArgumentException("You must mention a user you want to kick.");
 
-            var gid = gld.Id;
+            var rsn = string.Join(" ", reason);
+            if (string.IsNullOrWhiteSpace(rsn))
+                throw new ArgumentException("You need to supply a kick reason.");
+
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
-
-            uss = uss.Where(xus => !xus.GuildPermissions.Administrator);
-            foreach (var usm in uss)
-                await usm.KickAsync();
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User kicks", string.Concat(usr.Mention, " has kicked ", string.Join(", ", uss.Select(xus => xus.Mention)), "."), EmbedType.Error);
+                var embedmod = this.PrepareEmbed("User kicked", $"{userKick.Mention} ({userKick.Username})", EmbedType.Error);
+                embedmod.AddField("Reason", $"```{rsn}```")
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            var embed = this.PrepareEmbed(EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "User Kicked";
-                x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " kicked: ", string.Join(", ", uss.Select(xusr => xusr.Mention)), ".");
-            });
-
-            await chn.SendMessageAsync("", false, embed.Build());
+            await userKick.KickAsync(rsn);
         }
 
-        [Command("ban", "Bans users.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
+        [Command("ban", "Bans user.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
         public async Task Ban(CommandContext ctx,
-            [ArgumentParameter("Duration of the ban. Use 0 for permanent.", true)] TimeSpan duration,
-            [ArgumentParameter("Ban reason.", true)] string reason,
-            [ArgumentParameter("Mentions of users to ban.", true)] params IUser[] users)
+            [ArgumentParameter("Duration of the ban. Use 0 for permanent. In format of: 0d0h0m (days, hours, minutes). Ex: ban 5m user", true)] TimeSpan duration,
+            [ArgumentParameter("Mentions of user to ban.", true)] IUser user,
+            [ArgumentParameter("Ban reason.", true)] params string[] reason)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            await ctx.Message.DeleteAsync();
 
-            var gls = gld as SocketGuild;
-            var uss = users.Cast<SocketGuildUser>();
-            if (uss.Count() < 1)
-                throw new ArgumentException("You must mention users you want to ban.");
+            var gls = ctx.Guild as SocketGuild;
+            var userBan = user as SocketGuildUser;
+            if (userBan == null)
+                throw new ArgumentException("You must mention a user you want to ban.");
 
-            var gid = gld.Id;
+            var rsn = string.Join(" ", reason);
+            if (string.IsNullOrWhiteSpace(rsn))
+                throw new ArgumentException("You need to supply a ban reason.");
+
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
 
             var now = DateTime.UtcNow;
             var unt = duration != TimeSpan.Zero ? now + duration : DateTime.MaxValue.ToUniversalTime();
-            var dsr = duration != TimeSpan.Zero ? string.Concat("for ", duration.Days, " days, ", duration.Hours, " hours, ", duration.Minutes, " minutes") : "permanently";
-            uss = uss.Where(xus => !xus.GuildPermissions.Administrator);
-            foreach (var usm in uss)
-            {
-                await gls.AddBanAsync(usm);
-                var moda = cnf.ModActions.FirstOrDefault(xma => xma.UserId == usm.Id && xma.ActionType == ModActionType.HardBan);
-                if (moda != null)
-                    cnf.ModActions.Remove(moda);
-                cnf.ModActions.Add(new Config.ModAction { ActionType = ModActionType.HardBan, Issuer = usr.Id, Until = unt, UserId = usm.Id, Reason = reason });
-            }
-            PoE_Bot.ConfigManager.SetGuildConfig(gid, cnf);
+            var dsr = duration != TimeSpan.Zero ? string.Concat(duration.Days, " days, ", duration.Hours, " hours, ", duration.Minutes, " minutes") : "permanently";
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User bans", string.Concat(usr.Mention, " has banned ", string.Join(", ", uss.Select(xus => xus.Mention)), " ", dsr, ". Reason: ", reason, "."), EmbedType.Error);
+                var embedmod = this.PrepareEmbed("User banned", $"{userBan.Mention} ({userBan.Username})", EmbedType.Error);
+                embedmod.AddField("Duration", dsr)
+                    .AddField("Reason", $"```{rsn}```")
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            var embed = this.PrepareEmbed(EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "User Banned";
-                x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " banned ", dsr, ": ", string.Join(", ", uss.Select(xusr => xusr.Mention)), ". Reason: ", reason, ".");
-            });
+            var moda = cnf.ModActions.FirstOrDefault(xma => xma.UserId == user.Id && xma.ActionType == ModActionType.HardBan);
+            if (moda != null)
+                cnf.ModActions.Remove(moda);
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            cnf.ModActions.Add(new Config.ModAction { ActionType = ModActionType.HardBan, Issuer = ctx.User.Id, Until = unt, UserId = user.Id, Reason = rsn });
+            PoE_Bot.ConfigManager.SetGuildConfig(gid, cnf);
+
+            await gls.AddBanAsync(user, 0, rsn);
         }
 
         [Command("unban", "Unbans users. Consult listbans for user IDs.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
         public async Task Unban(CommandContext ctx,
             [ArgumentParameter("IDs of users to unban.", true)] params ulong[] users)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
+            await ctx.Message.DeleteAsync();
 
-            var gls = gld as SocketGuild;
-            var bns = await gld.GetBansAsync();
+            var gls = ctx.Guild as SocketGuild;
+            var bns = await ctx.Guild.GetBansAsync();
             var uss = bns.Where(xban => users.Contains(xban.User.Id));
             if (uss.Count() < 1)
                 throw new ArgumentException("You must list IDs of users you want to unban.");
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
 
             foreach (var usm in uss)
             {
@@ -692,158 +529,78 @@ namespace PoE.Bot.Commands
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("User unbans", string.Concat(usr.Mention, " has unbanned ", string.Join(", ", uss.Select(xus => xus.User.Mention)), "."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("User unbans", $"{uss.Count()} user" + (uss.Count() > 1 ? "s were " : " was ") + "unbanned.", EmbedType.Success);
+                embedmod.AddField("Users unbanned", $"```{string.Join(", ", uss.Select(xus => xus.User.Username))}```")
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
-
-            var embed = this.PrepareEmbed(EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "User Unbanned";
-                x.Value = string.Concat("The following user", uss.Count() > 1 ? "s were" : " was", " unbanned: ", string.Join(", ", uss.Select(xusr => xusr.User.Mention)));
-            });
-
-            await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("baninfo", "Lists current bans or displays information about specific ban.", Aliases = "listbans;banlist", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.BanMembers)]
         public async Task BanInfo(CommandContext ctx,
             [ArgumentParameter("ID of banned user to view info for.", false)] ulong id)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var embed = this.PrepareEmbed("Ban Information", null, EmbedType.Info);
             if (id == 0)
             {
-                var bans = await gld.GetBansAsync();
+                var bans = await ctx.Guild.GetBansAsync();
                 if (bans.Count == 0)
                     throw new InvalidOperationException("There are no users banned at this time.");
 
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "Current bans";
-                    x.Value = string.Join(", ", bans.Select(xban => string.Concat(xban.User.Mention, " (", xban.User.Id, ")")));
-                });
+                embed.AddField("Current bans", string.Join(", ", bans.Select(xban => string.Concat(xban.User.Mention, " (", xban.User.Id, ")"))));
             }
             else
             {
-                var bans = await gld.GetBansAsync();
+                var bans = await ctx.Guild.GetBansAsync();
                 var ban = bans.FirstOrDefault(xban => xban.User.Id == id);
                 if (ban == null)
                     throw new ArgumentException("Invalid ban ID.");
 
-                var gid = gld.Id;
+                var gid = ctx.Guild.Id;
                 var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
                 var binf = cnf.ModActions.FirstOrDefault(xma => xma.UserId == ban.User.Id && xma.ActionType == ModActionType.HardBan);
 
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "User";
-                    x.Value = ban.User.Mention;
-                });
-
-                embed.AddField(x =>
-                {
-                    x.IsInline = true;
-                    x.Name = "Id";
-                    x.Value = ban.User.Id.ToString();
-                });
+                embed.AddField("User", $"{ban.User.Mention} ({ban.User.Username})")
+                    .AddField("Id", ban.User.Id.ToString());
 
                 if (binf != null)
                 {
-                    var isr = await gld.GetUserAsync(binf.Issuer);
+                    var isr = await ctx.Guild.GetUserAsync(binf.Issuer);
 
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = true;
-                        x.Name = "Mod responsible";
-                        x.Value = isr != null ? isr.Mention : "<unknown>";
-                    });
-
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = true;
-                        x.Name = "Reason";
-                        x.Value = string.IsNullOrWhiteSpace(binf.Reason) ? "<unknown>" : binf.Reason;
-                    });
-
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = true;
-                        x.Name = "Issued (UTC)";
-                        x.Value = binf.Issued.ToString("yyyy-MM-dd HH:mm:ss");
-                    });
-
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = true;
-                        x.Name = "Active until (UTC)";
-                        x.Value = binf.Until != DateTime.MaxValue.ToUniversalTime() ? binf.Until.ToString("yyyy-MM-dd HH:mm:ss") : "End of the Universe";
-                    });
+                    embed.WithAuthor(isr)
+                        .WithThumbnailUrl(isr.GetAvatarUrl())
+                        .AddField("Mod Responsible", isr != null ? string.Concat(isr.Mention, " (", isr.Username, ")") : "<unknown>")
+                        .AddField("Reason", string.IsNullOrWhiteSpace(binf.Reason) ? "<unknown>" : binf.Reason)
+                        .AddField("Issued (UTC)", binf.Issued.ToString("yyyy-MM-dd HH:mm:ss"))
+                        .AddField("Active until (UTC)", binf.Until != DateTime.MaxValue.ToUniversalTime() ? binf.Until.ToString("yyyy-MM-dd HH:mm:ss") : "End of the Universe");
                 }
             }
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("userinfo", "Displays information about users matching given name.", Aliases = "uinfo;userlist;ulist;userfind;ufind", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task UserInfo(CommandContext ctx,
             [ArgumentParameter("Mention of the user to display.", true)] IUser user)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
             var usr = user as SocketGuildUser;
             if (usr == null)
                 throw new ArgumentNullException("Specified user is invalid.");
 
-            var embed = this.PrepareEmbed(EmbedType.Info);
+            var embed = this.PrepareEmbed("User Info", null, EmbedType.Info);
             if (!string.IsNullOrWhiteSpace(usr.GetAvatarUrl()))
                 embed.ThumbnailUrl = usr.GetAvatarUrl();
 
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Username";
-                x.Value = string.Concat("**", usr.Username, "**#", usr.DiscriminatorValue);
-            });
+            embed.AddField("Username", string.Concat(usr.Username, "#", usr.DiscriminatorValue), true)
+                .AddField("Nickname", usr.Nickname ?? usr.Username, true)
+                .AddField("Activity", usr.Activity != null ? usr.Activity.Type.ToString() + ": " + usr.Activity.Name : "None", true)
+                .AddField("Status", usr.Status.ToString(), true)
+                .AddField("Roles", $"```{string.Join(", ", usr.Roles.Select(xid => ctx.Guild.GetRole(xid.Id).Name))}```")
+                .WithAuthor(ctx.User);
 
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "ID";
-                x.Value = usr.Id.ToString();
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Nickname";
-                x.Value = usr.Nickname ?? usr.Username;
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Status";
-                x.Value = usr.Status.ToString();
-            });
-
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Roles";
-                x.Value = string.Join(", ", usr.Roles.Select(xid => string.Concat("**", gld.GetRole(xid.Id).Name, "**")));
-            });
-
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -855,10 +612,9 @@ namespace PoE.Bot.Commands
             [ArgumentParameter("The user of the messages you want to delete, must set DelType to User.", false)] IUser user,
             [ArgumentParameter("The strategy to delete messages - Bulk or Manual; defaults to Bulk.", false)] string delStrategy)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var usr = ctx.User;
-            var chp = chn as ITextChannel;
+            var chp = ctx.Channel as ITextChannel;
+            if (count == 1 && (delType.ToLower() == "self" || delType.ToLower() == "all" || (delType.ToLower() == "user" && user.Id == ctx.User.Id)))
+                throw new InvalidOperationException("You are trying to delete your own message, but if you want to delete the message you last sent, you need to use a count of at least 2.");
 
             if (!string.IsNullOrEmpty(delType))
                 if (user == null && delType.ToLower() == "user")
@@ -900,13 +656,13 @@ namespace PoE.Bot.Commands
                 }
             });
 
-            var gid = gld.Id;
+            var gid = ctx.Guild.Id;
             var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            var mod = cnf != null && cnf.ModLogChannel != null ? await gld.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
+            var mod = cnf != null && cnf.ModLogChannel != null ? await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value) : null;
 
             if (mod != null)
             {
-                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(usr.Mention, " (", usr.Username, ") has purged ", count.ToString("#,##0"), (count > 25 ? " (Showing the last 25) " : " "), deleteType, " style messages from channel ", chp.Mention, " (", chp.Name, ") using ", deleteStrategy, " delete."), EmbedType.Info);
+                var embedmod = this.PrepareEmbed("Channel Purge", string.Concat(ctx.User.Mention, " (", ctx.User.Username, ") has purged ", count.ToString("#,##0"), (count > 25 ? " (Showing the last 25) " : " "), deleteType, " style messages from channel ", chp.Mention, " (", chp.Name, ") using ", deleteStrategy, " delete."), EmbedType.Info);
 
                 int i = 0;
                 foreach (var msg in deleteMessages)
@@ -924,20 +680,12 @@ namespace PoE.Bot.Commands
                             content = embed.Title + "\n" + embed.Description;
 
                         content = (content.Length > 1024) ? content.Remove(1018) : content;
-
-                        embedmod.AddField(x =>
-                        {
-                            x.Name = $"{msg.Author.Username}";
-                            x.Value = $"```{content}```";
-                        });
+                        embedmod.AddField($"{msg.Author.Username}", $"```{content}```");
                     }
                 }
 
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
-
-            //var embed = this.PrepareEmbed("Success", string.Format("Purged {0:#,##0} {1} style message{2} from channel {3} using {4} delete.", count, deleteType, count > 1 ? "s" : "", chp.Mention, deleteStrategy), EmbedType.Success);
-            //await chn.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("guildconfig", "Manages  configuration for this guild.", Aliases = "guildconf;config;conf;modconfig;modconf", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -945,25 +693,34 @@ namespace PoE.Bot.Commands
             [ArgumentParameter("Setting to modify.", true)] string setting,
             [ArgumentParameter("New value.", true)] params string[] value)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             if (string.IsNullOrWhiteSpace(setting))
                 throw new ArgumentException("You need to specify setting and value.");
             var val = string.Join(" ", value);
             var embed = null as EmbedBuilder;
 
-            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(gld.Id);
+            var cnf = PoE_Bot.ConfigManager.GetGuildConfig(ctx.Guild.Id);
             var mod = null as ITextChannel;
 
             switch (setting)
             {
-                case "modlog":
-                    if (msg.MentionedChannelIds.Count() > 0)
+                case "alllog":
+                    if (ctx.Message.MentionedChannelIds.Count() > 0)
                     {
-                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        mod = await ctx.Guild.GetTextChannelAsync(ctx.Message.MentionedChannelIds.First());
+                        var bot = PoE_Bot.Client.CurrentUser;
+                        var prm = mod.GetPermissionOverwrite(bot);
+                        if (prm != null && prm.Value.SendMessages == PermValue.Deny)
+                            throw new InvalidOperationException(" cannot write to specified channel.");
+                    }
+
+                    val = mod != null ? mod.Mention : "<null>";
+                    cnf.AllLogChannel = mod != null ? (ulong?)mod.Id : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("All log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
+                    break;
+                case "modlog":
+                    if (ctx.Message.MentionedChannelIds.Count() > 0)
+                    {
+                        mod = await ctx.Guild.GetTextChannelAsync(ctx.Message.MentionedChannelIds.First());
                         var bot = PoE_Bot.Client.CurrentUser;
                         var prm = mod.GetPermissionOverwrite(bot);
                         if (prm != null && prm.Value.SendMessages == PermValue.Deny)
@@ -975,9 +732,9 @@ namespace PoE.Bot.Commands
                     embed = this.PrepareEmbed("Success", string.Concat("Moderator log was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
                     break;
                 case "replog":
-                    if (msg.MentionedChannelIds.Count() > 0)
+                    if (ctx.Message.MentionedChannelIds.Count() > 0)
                     {
-                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        mod = await ctx.Guild.GetTextChannelAsync(ctx.Message.MentionedChannelIds.First());
                         var bot = PoE_Bot.Client.CurrentUser;
                         var prm = mod.GetPermissionOverwrite(bot);
                         if (prm != null && prm.Value.SendMessages == PermValue.Deny)
@@ -990,10 +747,10 @@ namespace PoE.Bot.Commands
                     break;
                 case "muterole":
                     var mute = null as IRole;
-                    if (msg.MentionedRoleIds.Count > 0)
-                        mute = gld.GetRole(msg.MentionedRoleIds.First());
+                    if (ctx.Message.MentionedRoleIds.Count > 0)
+                        mute = ctx.Guild.GetRole(ctx.Message.MentionedRoleIds.First());
                     else
-                        mute = gld.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
+                        mute = ctx.Guild.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
 
                     if (mute != null &&
                         (mute.Permissions.SendMessages ||
@@ -1013,10 +770,10 @@ namespace PoE.Bot.Commands
                     break;
                 case "pricerole":
                     var price = null as IRole;
-                    if (msg.MentionedRoleIds.Count > 0)
-                        price = gld.GetRole(msg.MentionedRoleIds.First());
+                    if (ctx.Message.MentionedRoleIds.Count > 0)
+                        price = ctx.Guild.GetRole(ctx.Message.MentionedRoleIds.First());
                     else
-                        price = gld.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
+                        price = ctx.Guild.Roles.FirstOrDefault(xr => xr.Name == string.Join(" ", value));
 
                     val = price != null ? (price.IsMentionable ? price.Mention : price.Name) : "<null>";
                     cnf.PriceCheckerRole = price != null ? (ulong?)price.Id : null;
@@ -1041,9 +798,9 @@ namespace PoE.Bot.Commands
                     embed = this.PrepareEmbed("Success", string.Concat("Command message deletion is now **", delcmd ? "enabled" : "disabled", "**."), EmbedType.Success);
                     break;
                 case "ruleschannel":
-                    if (msg.MentionedChannelIds.Count() > 0)
+                    if (ctx.Message.MentionedChannelIds.Count() > 0)
                     {
-                        mod = await gld.GetTextChannelAsync(msg.MentionedChannelIds.First());
+                        mod = await ctx.Guild.GetTextChannelAsync(ctx.Message.MentionedChannelIds.First());
                         var bot = PoE_Bot.Client.CurrentUser;
                         var prm = mod.GetPermissionOverwrite(bot);
                         if (prm != null && prm.Value.SendMessages == PermValue.Deny)
@@ -1054,37 +811,37 @@ namespace PoE.Bot.Commands
                     cnf.RulesChannel = mod != null ? (ulong?)mod.Id : null;
                     embed = this.PrepareEmbed("Success", string.Concat("Rules channel was ", mod != null ? string.Concat("set to ", mod.Mention) : "removed", "."), EmbedType.Success);
                     break;
+                case "game":
+                    var game = val;
+                    if (string.IsNullOrWhiteSpace(val))
+                        game = null;
+
+                    cnf.Game = game != null ? game : null;
+                    embed = this.PrepareEmbed("Success", string.Concat("Bot Game has been updated to ", game != null ? string.Concat("**", game, "**") : "null", "."), EmbedType.Success);
+                    PoE_Bot.Client.DiscordClient.SetGameAsync(game).GetAwaiter().GetResult();
+                    break;
                 default:
                     throw new ArgumentException("Invalid setting specified.");
             }
                 
-            PoE_Bot.ConfigManager.SetGuildConfig(gld.Id, cnf);
+            PoE_Bot.ConfigManager.SetGuildConfig(ctx.Guild.Id, cnf);
 
             if (cnf.ModLogChannel != null)
             {
-                mod = await gld.GetTextChannelAsync(cnf.ModLogChannel.Value);
-                var embedmod = this.PrepareEmbed("Config updated", string.Concat(usr.Mention, " has has updated guild setting **", setting, "** with value **", val, "**."), EmbedType.Info);
+                mod = await ctx.Guild.GetTextChannelAsync(cnf.ModLogChannel.Value);
+                var embedmod = this.PrepareEmbed("Config updated", null, EmbedType.Info);
+                embedmod.AddField("Setting", $"```{setting}```")
+                    .AddField("Value", $"```{val}```")
+                    .WithAuthor(ctx.User)
+                    .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
                 await mod.SendMessageAsync("", false, embedmod.Build());
             }
 
-            await chn.SendMessageAsync("", false, embed.Build());
-        }
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
-        [Command("setgame", "Sets the game the Bot is playing", Aliases = "sg;setbotgame;setg", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
-        public async Task SetBotGame(CommandContext ctx,
-            [ArgumentParameter("Game to set.", true)] params string[] game)
-        {
-            if (game.Count() == 0)
-                throw new ArgumentException("You must put in a game.");
-
-            var chn = ctx.Channel;
-            var val = string.Join(" ", game);
-            var embed = null as EmbedBuilder;
-
-            await PoE_Bot.Client.DiscordClient.SetGameAsync(val);
-            embed = this.PrepareEmbed("Success", "Bot Game has been updated to **" + val + "**.", EmbedType.Success);
-
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("confrules", "Sets the rules that will be posted in the channel set by the Guild Config.", Aliases = "configrules;setuprules;cr", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.ManageMessages)]
@@ -1104,6 +861,9 @@ namespace PoE.Bot.Commands
             PoE_Bot.ConfigManager.SetGuildConfig(ctx.Guild.Id, cnf);
 
             var embed = this.PrepareEmbed("Success", "Rules have been configured.", EmbedType.Success);
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
@@ -1128,6 +888,9 @@ namespace PoE.Bot.Commands
             await msg.AddReactionAsync(new Emoji("\uD83C\uDDE8"));  // Challenge (C)
 
             var embed = this.PrepareEmbed("Success", "Rules have been posted.", EmbedType.Success);
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
@@ -1154,6 +917,9 @@ namespace PoE.Bot.Commands
                 await msg.ModifyAsync(x => x.Content = cnf.Rules);
 
             var embed = this.PrepareEmbed("Success", "Rules have been edited.", EmbedType.Success);
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
         #endregion
@@ -1163,31 +929,19 @@ namespace PoE.Bot.Commands
         public async Task Help(CommandContext ctx,
             [ArgumentParameter("Command to display help for.", false)] string command)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var embed = null as EmbedBuilder;
             if (string.IsNullOrWhiteSpace(command))
             {
-                embed = this.PrepareEmbed(" Help", string.Format("List of all  commands, with aliases, and descriptions. All commands use the **{0}** prefix. Run **{0}help** command to learn more about a specific command.", PoE_Bot.CommandManager.GetPrefix(gld.Id)), EmbedType.Info);
+                embed = this.PrepareEmbed(" Help", string.Format("List of all  commands, with aliases, and descriptions. All commands use the **{0}** prefix. Run **{0}help** command to learn more about a specific command.", PoE_Bot.CommandManager.GetPrefix(ctx.Guild.Id)), EmbedType.Info);
                 foreach (var cmdg in PoE_Bot.CommandManager.GetCommands().GroupBy(xcmd => xcmd.Module))
                 {
                     var err = "";
-                    var xcmds = cmdg.Where(xcmd => (xcmd.Checker != null && xcmd.Checker.CanRun(xcmd, usr, msg, chn, gld, out err)) || xcmd.Checker == null)
+                    var xcmds = cmdg.Where(xcmd => (xcmd.Checker != null && xcmd.Checker.CanRun(xcmd, ctx.User, ctx.Message, ctx.Channel, ctx.Guild, out err)) || xcmd.Checker == null)
                         .OrderBy(xcmd => xcmd.Name)
-                        .Select(xcmd => string.Concat("**", xcmd.Name, "**"));
+                        .Select(xcmd => xcmd.Name);
 
                     if (xcmds.Any())
-                    {
-                        embed.AddField(x =>
-                        {
-                            x.IsInline = false;
-                            x.Name = string.Format("Commands registered by {0}", cmdg.Key.Name);
-                            x.Value = string.Join(", ", xcmds);
-                        });
-                    }
+                        embed.AddField(string.Format("Commands registered by {0}", cmdg.Key.Name), $"```{string.Join(", ", xcmds)}```");
                 }
             }
             else
@@ -1195,73 +949,49 @@ namespace PoE.Bot.Commands
                 var cmd = PoE_Bot.CommandManager.GetCommand(command);
                 if (cmd == null)
                     throw new InvalidOperationException(string.Format("Command **{0}** does not exist", command));
+
                 var err = null as string;
-                if (cmd.Checker != null && !cmd.Checker.CanRun(cmd, usr, msg, chn, gld, out err))
+                if (cmd.Checker != null && !cmd.Checker.CanRun(cmd, ctx.User, ctx.Message, ctx.Channel, ctx.Guild, out err))
                     throw new ArgumentException("You can't run this command.");
 
                 embed = this.PrepareEmbed(" Help", string.Format("**{0}** Command help", cmd.Name), EmbedType.Info);
 
                 if (cmd.Checker != null && cmd.RequiredPermission != Permission.None)
-                {
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = false;
-                        x.Name = "Required permission";
-                        x.Value = cmd.RequiredPermission.ToString();
-                    });
-                }
+                    embed.AddField("Required permission", $"```{cmd.RequiredPermission.ToString()}```");
 
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "Description";
-                    x.Value = cmd.Description;
-                });
+                embed.AddField("Description", $"```{cmd.Description}```");
 
                 if (cmd.Aliases != null && cmd.Aliases.Count > 0)
-                {
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = false;
-                        x.Name = "Aliases";
-                        x.Value = string.Join(", ", cmd.Aliases.Select(xa => string.Concat("**", xa, "**")));
-                    });
-                }
+                    embed.AddField("Aliases", $"```{string.Join(", ", cmd.Aliases.Select(xa => xa))}```");
 
                 if (cmd.Parameters.Count > 0)
                 {
                     var sb1 = new StringBuilder();
                     var sb2 = new StringBuilder();
-                    sb1.Append(PoE_Bot.CommandManager.GetPrefix(gld.Id)).Append(cmd.Name).Append(' ');
+                    sb1.Append(PoE_Bot.CommandManager.GetPrefix(ctx.Guild.Id)).Append(cmd.Name).Append(' ');
                     foreach (var param in cmd.Parameters.OrderBy(xp => xp.Order))
                     {
                         sb1.Append(param.IsRequired ? '<' : '[').Append(param.Name).Append(param.IsCatchAll ? "..." : "").Append(param.IsRequired ? '>' : ']').Append(' ');
-                        sb2.Append("**").Append(param.Name).Append("**: ").AppendLine(param.Description);
+                        sb2.Append(param.IsRequired ? '<' : '[').Append(param.Name).Append(param.IsRequired ? '>' : ']').Append(": ").AppendLine(param.Description);
                     }
                     sb1.AppendLine();
                     sb1.Append(sb2.ToString());
 
-                    embed.AddField(x =>
-                    {
-                        x.IsInline = false;
-                        x.Name = "Usage";
-                        x.Value = sb1.ToString();
-                    });
+                    embed.AddField("Usage (<*> = Required | [*] = Optional)", $"```css\n{sb1.ToString()}```");
                 }
             }
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.WithFooter("Have questions? Tag @Server Nerd");
+
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("regionalize", "Turns text into Discord Regional Indicator Text", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task Regionalize(CommandContext ctx,
            [ArgumentParameter("Text to regionalize, only works with A-Z text.", true)] params string[] text)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
             var sb = new StringBuilder();
+            var charCount = 0;
 
             foreach (var str in text)
             {
@@ -1270,19 +1000,43 @@ namespace PoE.Bot.Commands
                 txt = Regex.Replace(txt, "[^a-zA-Z]", "");
 
                 foreach (char c in txt)
-                {
                     sb.Append(":regional_indicator_" + c + ": ");
-                }
 
                 sb.Append("   ");
             }
 
-            var finalText = sb.ToString();
-            if (finalText.Length > 2000)
-                finalText = finalText.Remove(2000);
+            var sbStr = sb.ToString();
+            var finalText = sbStr.Split("   ", StringSplitOptions.RemoveEmptyEntries).GroupBy(w => (charCount += w.Length + 1) / 2000).Select(g => string.Join("   ", g)).ToList();
 
-            await msg.DeleteAsync();
-            await chn.SendMessageAsync(finalText);
+            await ctx.Message.DeleteAsync();
+            await ctx.Channel.SendMessageAsync(finalText[0]);
+        }
+
+        [Command("regionalizeclap", "Turns text into Discord Regional Indicator Text", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task RegionalizeClap(CommandContext ctx,
+           [ArgumentParameter("Text to regionalize, only works with A-Z text.", true)] params string[] text)
+        {
+            var sb = new StringBuilder();
+            var charCount = 0;
+
+            sb.Append(":clap: ");
+            foreach (var str in text)
+            {
+                var txt = str;
+                txt = txt.ToLower();
+                txt = Regex.Replace(txt, "[^a-zA-Z]", "");
+
+                foreach (char c in txt)
+                    sb.Append(":regional_indicator_" + c + ": ");
+
+                sb.Append(" :clap: ");
+            }
+
+            var sbStr = sb.ToString().Trim();
+            var finalText = sbStr.Split(" :clap: ", StringSplitOptions.RemoveEmptyEntries).GroupBy(w => (charCount += w.Length + 1) / 2000).Select(g => string.Join(" :clap: ", g)).ToList();
+
+            await ctx.Message.DeleteAsync();
+            await ctx.Channel.SendMessageAsync(finalText[0]);
         }
 
         [Command("mock", "Turns text into Spongebob Mocking Meme.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -1291,9 +1045,11 @@ namespace PoE.Bot.Commands
         {
             var meme = string.Concat(string.Join(" ", text).ToLower().AsEnumerable().Select((c, i) => i % 2 == 0 ? c : char.ToUpper(c)));
             IEnumerable<string> chunkedMeme = null;
+            var charCount = 0;
+            var maxChar = 33;
 
-            if (meme.Length > 33)
-                chunkedMeme = ChunkString(meme, 33);
+            if (meme.Length > maxChar)
+                chunkedMeme = meme.Split(' ', StringSplitOptions.RemoveEmptyEntries).GroupBy(w => (charCount += w.Length + 1) / maxChar).Select(g => string.Join(" ", g));
 
             string path = @"img/mock.jpg";
             string savePath = @"img/output/stoP-THAt-RiGHT-nOW-" + DateTime.Now.ToString("yyyy-dd-M-HH-mm-ss") + ".png";
@@ -1324,20 +1080,13 @@ namespace PoE.Bot.Commands
 
                     var coord = new SKPoint(info.Width / 2, 32);
 
-                    if(meme.Length > 33)
+                    if(meme.Length > maxChar)
                     {
-                        if(chunkedMeme.Count() > 2)
-                            foreach(var str in chunkedMeme)
-                            {
-                                canvas.DrawText(str, coord, textPaint);
-                                coord.Offset(0, 42);
-                            }
-                        else
-                            foreach (var str in chunkedMeme)
-                            {
-                                canvas.DrawText(str, coord, textPaint);
-                                coord.Offset(0, 348);
-                            }
+                        foreach (var str in chunkedMeme)
+                        {
+                            canvas.DrawText(str, coord, textPaint);
+                            coord.Offset(0, 42);
+                        }
                     }
                     else
                         canvas.DrawText(meme, coord, textPaint);
@@ -1354,8 +1103,20 @@ namespace PoE.Bot.Commands
             var chn = ctx.Channel;
             var msg = ctx.Message;
 
-            await msg.DeleteAsync();
-            await chn.SendFileAsync(savePath);
+            await ctx.Message.DeleteAsync();
+            await ctx.Channel.SendFileAsync(savePath);
+        }
+
+        [Command("clap", "Claps your message out.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task Clap(CommandContext ctx,
+           [ArgumentParameter("Text to clap out.", true)] params string[] text)
+        {
+            var charCount = 0;
+            var clappedText = string.Join(" ", text).Trim().Replace(" ", " :clap: ");
+            var clappedFinal = clappedText.Insert(clappedText.Length, " :clap:").Insert(0, ":clap: ").Split(' ', StringSplitOptions.RemoveEmptyEntries).GroupBy(w => (charCount += w.Length + 1) / 2000).Select(g => string.Join(" ", g)).ToList();
+
+            await ctx.Message.DeleteAsync();
+            await ctx.Channel.SendMessageAsync(clappedFinal[0]);
         }
         #endregion
 
@@ -1363,10 +1124,6 @@ namespace PoE.Bot.Commands
         [Command("fulldump", "Performs a full environment dump. This command can only be used by Kyle Undefined.", CheckerId = "CoreDebugChecker", CheckPermissions = true)]
         public async Task FullDump(CommandContext ctx)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
             //  assembly data
             var _a = PoE_Bot.PluginManager.MainAssembly;
             var _n = _a.GetName();
@@ -1482,22 +1239,20 @@ namespace PoE.Bot.Commands
             //});
             //_sb0 = null;
 
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("hang", "Hangs current thread. This command can only be used by Kyle Undefined.", CheckerId = "CoreDebugChecker", CheckPermissions = true)]
         public async Task Hang(CommandContext ctx,
             [ArgumentParameter("How long to hang the thread for.", false)] int duration)
         {
-            var chn = ctx.Channel;
-
             if (duration == 0)
                 duration = 42510;
 
             await Task.Delay(duration);
 
             var embed = this.PrepareEmbed("Thread hang complete", string.Concat("Thread was hanged for ", duration.ToString("#,##0"), "ms."), EmbedType.Warning);
-            await chn.SendMessageAsync("", false, embed.Build());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
         #endregion
 
@@ -1535,7 +1290,7 @@ namespace PoE.Bot.Commands
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
         #endregion

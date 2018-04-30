@@ -27,15 +27,12 @@ namespace PoE.Bot.Plugin.Shops
                 throw new ArgumentException("You must enter a command.");
 
             var cmd = command.ToLower();
-            var gld = ctx.Guild;
-            var usr = ctx.User;
-            var chn = ctx.Channel;
-
-            var chans = await gld.GetChannelsAsync();
-            var usrChnN = Regex.Replace(usr.Username, @"[^a-zA-Z]+", "-").Trim('-').ToLower();
+            var chans = await ctx.Guild.GetChannelsAsync();
+            var usrChnN = Regex.Replace(ctx.User.Username, @"[^a-zA-Z]+", "-").Trim('-').ToLower();
 
             var snglChn = chans.Where(x => x.Name == usrChnN);
             bool exists = snglChn.Any();
+            var embed = this.PrepareEmbed(EmbedType.Success);
 
             switch (cmd)
             {
@@ -43,13 +40,16 @@ namespace PoE.Bot.Plugin.Shops
                     if(exists)
                         throw new ArgumentException("Sorry, that channel already exists.");
 
-                    var nChn = await gld.CreateTextChannelAsync(usrChnN);
+                    var nChn = await ctx.Guild.CreateTextChannelAsync(usrChnN);
 
-                    await nChn.ModifyAsync(x => x.CategoryId = (chn as IGuildChannel).CategoryId);
-                    await nChn.AddPermissionOverwriteAsync(usr, new OverwritePermissions(manageMessages: PermValue.Allow));
+                    await nChn.ModifyAsync(x => x.CategoryId = (ctx.Channel as IGuildChannel).CategoryId);
+                    await nChn.AddPermissionOverwriteAsync(ctx.User, new OverwritePermissions(manageMessages: PermValue.Allow));
 
-                    var embed = this.PrepareEmbed("Your personal shop has been created!", "You may now list your items here: " + nChn.Mention, EmbedType.Success);
-                    await chn.SendMessageAsync("", false, embed.Build());
+                    embed.WithTitle("Your personal shop has been created!")
+                        .WithDescription($"You may now list your items here: {nChn.Mention}")
+                        .WithAuthor(ctx.User)
+                        .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+                    await ctx.Channel.SendMessageAsync("", false, embed.Build());
 
                     break;
 
@@ -59,8 +59,11 @@ namespace PoE.Bot.Plugin.Shops
 
                     var dChn = chans.SingleOrDefault(x => x.Name == usrChnN) as ITextChannel;
                     await dChn.DeleteAsync();
-                    var dembed = this.PrepareEmbed(usr.Username + ", your personal shop has been deleted!", "", EmbedType.Success);
-                    await chn.SendMessageAsync("", false, dembed.Build());
+                    embed.WithTitle($"{ctx.User.Username}, your personal shop has been deleted!")
+                        .WithDescription("")
+                        .WithAuthor(ctx.User)
+                        .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+                    await ctx.Channel.SendMessageAsync("", false, embed.Build());
 
                     break;
             }
@@ -69,10 +72,8 @@ namespace PoE.Bot.Plugin.Shops
         [Command("shopspurge", "Purges all channels under the Shops category", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task ShopsPurge(CommandContext ctx)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var chans = await gld.GetChannelsAsync();
-            var catChans = chans.Where(x => x.CategoryId == (chn as IGuildChannel).CategoryId);
+            var chans = await ctx.Guild.GetChannelsAsync();
+            var catChans = chans.Where(x => x.CategoryId == (ctx.Channel as IGuildChannel).CategoryId);
 
             foreach (var chan in catChans)
             {
@@ -89,6 +90,7 @@ namespace PoE.Bot.Plugin.Shops
         private EmbedBuilder PrepareEmbed(EmbedType type)
         {
             var embed = new EmbedBuilder();
+            embed.WithCurrentTimestamp();
             switch (type)
             {
                 case EmbedType.Info:
@@ -119,7 +121,7 @@ namespace PoE.Bot.Plugin.Shops
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
 

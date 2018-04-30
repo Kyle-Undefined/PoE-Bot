@@ -270,28 +270,18 @@ namespace PoE.Bot.Commands
         {
             var ctx = ctxe.Context;
             Log.W(new LogMessage(LogSeverity.Error, "Command Error", string.Format("User '{0}#{1}' failed to execute command '{2}' in guild '{3}'; reason: {4} ({5}; message: '{6}')", ctx.User.Username, ctx.User.Discriminator, ctx.Command != null ? ctx.Command.Name : "<unknown>", ctx.Guild.Name, ctxe.Exception != null ? ctxe.Exception.GetType().ToString() : "<unknown exception type>", ctxe.Exception != null ? ctxe.Exception.Message : "N/A", ctx.Message.ToString())));
-
-            var embed = new EmbedBuilder();
-            embed.Title = "Error executing command";
-            embed.Description = string.Format("User {0} failed to execute command **{1}**.", ctx.User.Mention, ctx.Command != null ? ctx.Command.Name : "<unknown>");
-            embed.Color = new Color(255, 127, 0);
-
-            embed.AddField(x =>
+            
+            var embed = new EmbedBuilder
             {
-                x.IsInline = false;
-                x.Name = "Reason";
-                x.Value = ctxe.Exception != null ? ctxe.Exception.Message : "<unknown>";
-            });
+                Title = "Error executing the command"
+                , Description = $"**Command:**\n```{ctx.Command.Name}```\n**Parameter:**```{ctx.Message.Content.Remove(0, ctx.Command.Name.Length + 1).Trim()}```"
+                ,Color = new Color(255, 127, 0)
+            };
 
-            if (ctxe.Exception != null)
-            {
-                embed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "Exception details";
-                    x.Value = string.Format("**{0}**: {1}", ctxe.Exception.GetType().ToString(), ctxe.Exception.Message);
-                });
-            }
+            embed.AddField("Reason", ctxe.Exception != null ? ctxe.Exception.Message : "<unknown>", false)
+                .WithAuthor(ctx.User)
+                .WithFooter($"Having an issue? Try {PoE_Bot.ConfigManager.GetGuildConfig(ctx.Guild.Id).CommandPrefix}help {ctx.Command.Name}")
+                .WithCurrentTimestamp();
 
             ctx.Channel.SendMessageAsync("", false, embed.Build()).GetAwaiter().GetResult();
         }

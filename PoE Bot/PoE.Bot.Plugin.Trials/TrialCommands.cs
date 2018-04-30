@@ -28,28 +28,27 @@ namespace PoE.Bot.Plugin.Trials
                 throw new ArgumentException("You must enter a Trial.");
 
             var trl = trial.ToLower();
-            var gld = ctx.Guild;
-            var usr = ctx.User;
-            var chn = ctx.Channel;
 
             if(trl == "all")
             {
-                var roles = gld.Roles;
+                var roles = ctx.Guild.Roles;
                 foreach(var role in roles)
                 {
                     if (role.Name.ToLower().Contains("piercing") || role.Name.ToLower().Contains("swirling") || role.Name.ToLower().Contains("crippling") || role.Name.ToLower().Contains("burning") || role.Name.ToLower().Contains("lingering") || role.Name.ToLower().Contains("stinging"))
-                        await usr.AddRoleAsync(role);
+                        await ctx.User.AddRoleAsync(role);
                 }
             }
             else
             {
-                var roles = gld.Roles;
+                var roles = ctx.Guild.Roles;
                 var role = roles.First(x => x.Name.ToLower().Contains(trl));
-                await usr.AddRoleAsync(role);
+                await ctx.User.AddRoleAsync(role);
             }
 
             var embed = this.PrepareEmbed("Success", "Trial added to list!", EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("trialdelete", "Delete a Trial of Ascendancy that you have completed. Can be used like: trialdelete burning or trialdelete all for all trials", Aliases = "tdelete;deletetrial;deletet;trialdel", CheckPermissions = false)]
@@ -63,28 +62,27 @@ namespace PoE.Bot.Plugin.Trials
                 throw new ArgumentException("You must enter a Trial.");
 
             var trl = trial.ToLower();
-            var gld = ctx.Guild;
-            var usr = ctx.User;
-            var chn = ctx.Channel;
 
             if (trl == "all")
             {
-                var roles = gld.Roles;
+                var roles = ctx.Guild.Roles;
                 foreach (var role in roles)
                 {
                     if (role.Name.ToLower().Contains("piercing") || role.Name.ToLower().Contains("swirling") || role.Name.ToLower().Contains("crippling") || role.Name.ToLower().Contains("burning") || role.Name.ToLower().Contains("lingering") || role.Name.ToLower().Contains("stinging"))
-                        await usr.RemoveRoleAsync(role);
+                        await ctx.User.RemoveRoleAsync(role);
                 }
             }
             else
             {
-                var roles = gld.Roles;
+                var roles = ctx.Guild.Roles;
                 var role = roles.First(x => x.Name.ToLower().Contains(trl));
-                await usr.RemoveRoleAsync(role);
+                await ctx.User.RemoveRoleAsync(role);
             }
 
             var embed = this.PrepareEmbed("Success", "Trial deleted from list!", EmbedType.Success);
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("trial", "Announce a Trial of Ascendancy that you have come acrross. Can be used like: trial burning", CheckPermissions = false)]
@@ -98,19 +96,16 @@ namespace PoE.Bot.Plugin.Trials
                 throw new ArgumentException("You must enter a Trial.");
 
             var trl = trial.ToLower();
-            var gld = ctx.Guild;
-            var usr = ctx.User;
-            var chn = ctx.Channel;
-
-            var roles = gld.Roles;
+            var roles = ctx.Guild.Roles;
             var role = roles.First(x => x.Name.ToLower().Contains(trl));
 
-            await chn.SendMessageAsync(usr.Mention + " has found the Trial of " + role.Mention, false);
+            await ctx.Channel.SendMessageAsync(ctx.User.Mention + " has found the Trial of " + role.Mention, false);
         }
 
         private EmbedBuilder PrepareEmbed(EmbedType type)
         {
             var embed = new EmbedBuilder();
+            embed.WithCurrentTimestamp();
             switch (type)
             {
                 case EmbedType.Info:
@@ -141,7 +136,7 @@ namespace PoE.Bot.Plugin.Trials
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
 

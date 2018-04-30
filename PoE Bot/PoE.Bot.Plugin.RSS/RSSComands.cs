@@ -27,10 +27,6 @@ namespace PoE.Bot.Plugin.RSS
             [ArgumentParameter("Tag of the feed to use as title prefix.", false)] string tag,
             [ArgumentParameter("Mention of the role to tag.", false)] params IRole[] roles)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
             var chf = channel as SocketTextChannel;
             if (chf == null)
                 throw new ArgumentException("Invalid channel specified.");
@@ -46,13 +42,11 @@ namespace PoE.Bot.Plugin.RSS
 
             RSSPlugin.Instance.AddFeed(new Uri(url), chf.Id, rles, tag);
             var embed = this.PrepareEmbed("Success", "Feed was added successfully.", EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Details";
-                x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, sb != null ? string.Concat(" and will mention the ", sb.ToString(), " role(s).") : ".");
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.AddField("Details", string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, sb != null ? string.Concat(" and will mention the ", sb.ToString(), " role(s).") : "."))
+                .WithAuthor(ctx.User)
+                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("rmrss", "Removes an RSS feed from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
@@ -61,57 +55,44 @@ namespace PoE.Bot.Plugin.RSS
             [ArgumentParameter("URL of the RSS feed.", true)] string url,
             [ArgumentParameter("Tag of the feed to use as title prefix.", false)] string tag)
         {
-            var gld = ctx.Guild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-
             var chf = channel as SocketTextChannel;
             if (chf == null)
                 throw new ArgumentException("Invalid channel specified.");
 
             RSSPlugin.Instance.RemoveFeed(new Uri(url), chf.Id, tag);
             var embed = this.PrepareEmbed("Success", "Feed was removed successfully.", EmbedType.Success);
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Details";
-                x.Value = string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was removed from ", chf.Mention, ".");
-            });
-            await chn.SendMessageAsync("", false, embed.Build());
+            embed.AddField("Details", string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was removed from ", chf.Mention, "."))
+               .WithAuthor(ctx.User)
+               .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
+
+            await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
         [Command("listrss", "Lists RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task ListRss(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
-            var chn = ctx.Channel;
-            var msg = ctx.Message;
-            var usr = ctx.User;
-
             var feeds = RSSPlugin.Instance.GetFeeds(gld.Channels.Select(xch => xch.Id).ToArray());
 
             var sb = new StringBuilder();
             foreach (var feed in feeds)
             {
                 var xch = gld.GetChannel(feed.ChannelId) as SocketTextChannel;
-
-                sb.AppendFormat("**URL**: <{0}>", feed.FeedUri).AppendLine();
-                if(!string.IsNullOrEmpty(feed.Tag))
-                    sb.AppendFormat("**Tag**: {0}", feed.Tag).AppendLine();
-                sb.AppendFormat("**Channel**: {0}", xch.Mention).AppendLine();
-
+                var roles = new StringBuilder();
                 if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
                 {
                     SocketRole role = null;
-                    var roles = new StringBuilder();
                     foreach (var rl in feed.RoleIds.Split(","))
                     {
                         role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
-                        roles.Append(role.Mention + ",");
+                        roles.Append(role.Name + ",");
                     }
                     roles.Remove(roles.Length - 1, 1);
-                    sb.AppendFormat("**Role(s)**: {0}", roles.ToString()).AppendLine();
                 }
+
+                sb.Append("```");
+                sb.AppendFormat("URL: {0}\n{1}Channel: #{2}{3}", feed.FeedUri, (!string.IsNullOrEmpty(feed.Tag) ? "Tag: " + feed.Tag + "\n" : ""), xch.Name, (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0" ? "\nRole(s): " + roles.ToString() : "")).AppendLine();
+                sb.Append("```");
 
                 sb.AppendLine("---------");
             }
@@ -119,14 +100,9 @@ namespace PoE.Bot.Plugin.RSS
             var embedChunks = ChunkString(sb.ToString(), 1024);
             foreach (var chunk in embedChunks)
             {
-                var chunkedEmbed = this.PrepareEmbed("RSS Feeds", "Listing of all RSS feeds on this server.", EmbedType.Info);
-                chunkedEmbed.AddField(x =>
-                {
-                    x.IsInline = false;
-                    x.Name = "RSS Feeds";
-                    x.Value = chunk;
-                });
-                await chn.SendMessageAsync("", false, chunkedEmbed.Build());
+                var chunkedEmbed = this.PrepareEmbed(EmbedType.Info);
+                chunkedEmbed.AddField("RSS Feeds", chunk);
+                await ctx.Channel.SendMessageAsync("", false, chunkedEmbed.Build());
             }
         }
 
@@ -253,6 +229,7 @@ namespace PoE.Bot.Plugin.RSS
         private EmbedBuilder PrepareEmbed(EmbedType type)
         {
             var embed = new EmbedBuilder();
+            embed.WithCurrentTimestamp();
             switch (type)
             {
                 case EmbedType.Info:
@@ -283,7 +260,7 @@ namespace PoE.Bot.Plugin.RSS
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
 

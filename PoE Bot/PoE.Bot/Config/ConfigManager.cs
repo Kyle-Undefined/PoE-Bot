@@ -62,6 +62,7 @@ namespace PoE.Bot.Config
                 var gconf = kvp.Value as JObject;
 
                 var gcf = new GuildConfig();
+                gcf.AllLogChannel = gconf["alllog"] != null ? (ulong?)gconf["alllog"] : null;
                 gcf.ModLogChannel = gconf["modlog"] != null ? (ulong?)gconf["modlog"] : null;
                 gcf.ReportUserChannel = gconf["replog"] != null ? (ulong?)gconf["replog"] : null;
                 gcf.DeleteCommands = gconf["delete_commands"] != null ? (bool?)gconf["delete_commands"] : null;
@@ -70,6 +71,7 @@ namespace PoE.Bot.Config
                 gcf.PriceCheckerRole = gconf["price_role"] != null ? (ulong?)gconf["price_role"] : null;
                 gcf.RulesChannel = gconf["ruleschannel"] != null ? (ulong?)gconf["ruleschannel"] : null;
                 gcf.Rules = gconf["rules"] != null ? (string)gconf["rules"] : null;
+                gcf.Game = gconf["game"] != null ? (string)gconf["game"] : null;
                 var jma = gconf["mod_actions"] != null ? (JArray)gconf["mod_actions"] : new JArray();
                 foreach (var xjma in jma)
                 {
@@ -138,6 +140,8 @@ namespace PoE.Bot.Config
             foreach (var kvp in this.GuildConfigs)
             {
                 var gconf = new JObject();
+                if (kvp.Value.AllLogChannel != null)
+                    gconf.Add("alllog", kvp.Value.AllLogChannel.Value);
                 if (kvp.Value.ModLogChannel != null)
                     gconf.Add("modlog", kvp.Value.ModLogChannel.Value);
                 if (kvp.Value.ReportUserChannel != null)
@@ -154,6 +158,8 @@ namespace PoE.Bot.Config
                     gconf.Add("ruleschannel", kvp.Value.RulesChannel.Value);
                 if (!string.IsNullOrWhiteSpace(kvp.Value.Rules))
                     gconf.Add("rules", kvp.Value.Rules);
+                if (!string.IsNullOrWhiteSpace(kvp.Value.Game))
+                    gconf.Add("game", kvp.Value.Game);
                 var jma = new JArray();
                 foreach (var ma in kvp.Value.ModActions)
                 {

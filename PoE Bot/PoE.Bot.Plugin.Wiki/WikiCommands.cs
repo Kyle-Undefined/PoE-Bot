@@ -33,8 +33,7 @@ namespace PoE.Bot.Plugin.Wiki
 
             EmbedBuilder builder = await GetWikiItem(item);
 
-            var chn = ctx.Channel;
-            await chn.SendMessageAsync("", false, builder.Build());
+            await ctx.Channel.SendMessageAsync("", false, builder.Build());
         }
 
         private async Task<EmbedBuilder> GetWikiItem(string item)
@@ -106,7 +105,7 @@ namespace PoE.Bot.Plugin.Wiki
                     {
                         if (endstring.IndexOf(rarityList[i]) > 0 && (endstring.IndexOf(rarityList[i]) < 60))
                         {
-                            builder.Color = rarityColors[i];
+                            builder.WithColor(rarityColors[i]);
                             itemType = i;
                         }
                     }
@@ -147,8 +146,8 @@ namespace PoE.Bot.Plugin.Wiki
                         var reward = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-reward\"]").InnerText;
                         image = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"divicard-art\"]//img");
 
-                        builder.AddField("Stack", stackNumber);
-                        builder.AddField("Reward", AddSpacesToSentence(reward));
+                        builder.AddField("Stack", stackNumber)
+                            .AddField("Reward", AddSpacesToSentence(reward));
 
                         var jsonParseSections = await httpClient.GetStringAsync(SectionsURL + wikiPage);
                         JObject jSectionsObj = JObject.Parse(jsonParseSections);
@@ -334,15 +333,14 @@ namespace PoE.Bot.Plugin.Wiki
                             builder.AddField("Vendor Recipes", "You can view the vendor recipes for this item here: https://pathofexile.gamepedia.com/Vendor_recipe_system", true);
                     }
 
-                    builder.Title = title;
-                    builder.Description = description;
-                    builder.WithCurrentTimestamp();
-
-                    builder.Url = itemURL;
+                    builder.WithTitle(title)
+                        .WithDescription(description)
+                        .WithCurrentTimestamp()
+                        .WithUrl(itemURL);
 
                     var imageURL = image[0].OuterHtml.Substring(0, image[0].OuterHtml.IndexOf("width") - 2);
                     imageURL = imageURL.Substring(image[0].OuterHtml.IndexOf("src") + 5);
-                    builder.ImageUrl = imageURL;
+                    builder.WithImageUrl(imageURL);
 
                     return builder;
                 }
@@ -350,10 +348,10 @@ namespace PoE.Bot.Plugin.Wiki
                 {
                     EmbedBuilder builder = new EmbedBuilder();
 
-                    builder.Title = "Oops! No items were found.";
-                    builder.Description = "Please make sure you type in the name correctly, and try again.";
-                    builder.Color = new Color(255, 127, 0);
-                    builder.WithCurrentTimestamp();
+                    builder.WithTitle("Oops! No items were found.")
+                        .WithDescription("Please make sure you type in the name correctly, and try again.")
+                        .WithColor(new Color(255, 127, 0))
+                        .WithCurrentTimestamp();
 
                     return builder;
                 }
@@ -436,7 +434,7 @@ namespace PoE.Bot.Plugin.Wiki
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
 

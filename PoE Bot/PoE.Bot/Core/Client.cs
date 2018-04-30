@@ -65,8 +65,6 @@ namespace PoE.Bot.Core
             var sjo = JObject.Parse(sjson);
             this.ConfigJson = sjo;
             this.Token = (string)sjo["token"];
-            this.Game = "Use " + sjo.SelectToken("$.guild_config.*.command_prefix") + "help";
-            Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Game is set to: " + this.Game));
             Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Discord initialized"));
         }
 
@@ -233,6 +231,8 @@ namespace PoE.Bot.Core
         private void PoEBot_Tick(object _)
         {
             var gconfs = PoE_Bot.ConfigManager != null ? PoE_Bot.ConfigManager.GetGuildConfigs() : new KeyValuePair<ulong, GuildConfig>[0];
+            string botGame = null;
+
             if (gconfs.Count() > 0)
             {
                 var now = DateTime.UtcNow;
@@ -272,15 +272,16 @@ namespace PoE.Bot.Core
                     foreach (var ma in done)
                         kvp.Value.ModActions.Remove(ma);
 
+                    botGame = kvp.Value.Game;
                     PoE_Bot.ConfigManager.SetGuildConfig(kvp.Key, kvp.Value);
                 }
             }
 
             if (this.CurrentUser.Activity == null)
-                this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
+                this.DiscordClient.SetGameAsync(botGame).GetAwaiter().GetResult();
             else
-                if (this.CurrentUser.Activity.Name != this.Game)
-                    this.DiscordClient.SetGameAsync(this.Game).GetAwaiter().GetResult();
+                if (this.CurrentUser.Activity.Name != botGame)
+                    this.DiscordClient.SetGameAsync(botGame).GetAwaiter().GetResult();
 
             Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Ticked PoE.Bot"));
         }
@@ -293,10 +294,10 @@ namespace PoE.Bot.Core
             var gid = gld.Id;
 
             var cfg = PoE_Bot.ConfigManager.GetGuildConfig(gid);
-            if (cfg == null || cfg.ModLogChannel == null)
+            if (cfg == null || cfg.AllLogChannel == null)
                 return;
 
-            var chn = gld.GetTextChannel(cfg.ModLogChannel.Value);
+            var chn = gld.GetTextChannel(cfg.AllLogChannel.Value);
             if (chn == null)
                 return;
 
