@@ -117,10 +117,6 @@ namespace PoE.Bot.Plugin.RSS
                     var itl = (string)it.Element("link");
                     var itp = (string)it.Element("pubDate");
                     var des = (string)it.Element("description");
-                    var cat = (string)it.Element("category");
-
-                    if (!string.IsNullOrWhiteSpace(cat))
-                        itp = itp.Substring(0, itp.Length - 2);
 
                     if (itl.StartsWith("/"))
                         uri_root_builder.Path = itl;
@@ -129,109 +125,76 @@ namespace PoE.Bot.Plugin.RSS
                     var itu = uri_root_builder.Uri;
                     var itd = DateTime.Parse(itp, CultureInfo.InvariantCulture);
 
-                    if (cat != "archive" && cat != "highlight" && cat != "upload")
-                    {
-                        rec.Add(itu.ToString());
-
-                        if (!feed.RecentUris.Contains(itu.ToString()))
-                        {
-                            changed = true;
-
-                            var discordClient = PoE_Bot.Client._discordClient;
-                            var guilds = discordClient.Guilds;
-                            SocketGuild gld = null;
-
-                            foreach (var guild in guilds)
-                            {
-                                gld = guild;
-                                break;
-                            }
-
-                            IMessageChannel chan = gld.GetChannel(feed.ChannelId) as IMessageChannel;
-
-                            var embed = new EmbedBuilder();
-                            StringBuilder sb = new StringBuilder();
-
-                            switch (cat)
-                            {
-                                case "live":
-                                    if (itd >= DateTime.Now || itd.ToShortDateString() == DateTime.Now.ToShortDateString())
-                                    {
-                                        var desHTML = HtmlEntity.DeEntitize(des);
-                                        var doc = new HtmlDocument();
-                                        doc.LoadHtml(desHTML);
-                                        HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
-                                        var liveimage = node.Attributes["src"].Value;
-
-                                        embed.Title = itt;
-                                        embed.ImageUrl = liveimage;
-                                        embed.Url = itu.ToString();
-                                        embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                                        embed.Color = new Color(0, 127, 255);
-                                    }
-
-                                    break;
-
-                                default:
-                                    des = HtmlEntity.DeEntitize(des);
-                                    des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
-                                    if (des.StartsWith("\""))
-                                        des = des.Substring(1);
-                                    if (des.Length >= 2048)
-                                        des = des.Substring(0, 2043).Insert(2043, "[...]");
-
-                                    switch (feed.FeedUri.ToString().Contains("gggtracker"))
-                                    {
-                                        case true:
-                                            sb.AppendLine("-----------------------------------------------------------");
-                                            sb.AppendLine($":newspaper: ***{itt}***\n");
-                                            sb.AppendLine(itu.ToString());
-                                            sb.AppendLine($"```{des}```");
-
-                                            break;
-                                        default:
-                                            embed.Title = itt;
-                                            embed.Description = des;
-
-                                            var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
-                                            if (!string.IsNullOrWhiteSpace(newsimage))
-                                                embed.ImageUrl = newsimage;
-
-                                            embed.Url = itu.ToString();
-                                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                                            embed.Color = new Color(0, 127, 255);
-
-                                            break;
-                                    }
-
-                                    break;
-                            }
-
-                            if (feed.Initialized)
-                            {
-                                if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
-                                {
-                                    foreach (var rl in feed.RoleIds.Split(","))
-                                    {
-                                        IRole role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
-                                        if (role.Name.ToLower().Contains("everyone") && embed.Title.ToLower().Contains(feed.Tag.ToLower()))
-                                            PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
-                                        else if (!role.Name.ToLower().Contains("everyone"))
-                                            PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
-                                    }
-                                }
-
-                                if(!string.IsNullOrEmpty(embed.Title))
-                                    PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
-                                else if (!string.IsNullOrEmpty(sb.ToString()))
-                                    PoE_Bot.Client.SendMessage(sb.ToString(), feed.ChannelId);
-                            }
-                        }
-                    }
-                    else
+                    rec.Add(itu.ToString());
+                    if (!feed.RecentUris.Contains(itu.ToString()))
                     {
                         changed = true;
-                        rec = new List<string>();
+
+                        var discordClient = PoE_Bot.Client._discordClient;
+                        var guilds = discordClient.Guilds;
+                        SocketGuild gld = null;
+
+                        foreach (var guild in guilds)
+                        {
+                            gld = guild;
+                            break;
+                        }
+
+                        IMessageChannel chan = gld.GetChannel(feed.ChannelId) as IMessageChannel;
+
+                        var embed = new EmbedBuilder();
+                        StringBuilder sb = new StringBuilder();
+
+                        des = HtmlEntity.DeEntitize(des);
+                        des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                        if (des.StartsWith("\""))
+                            des = des.Substring(1);
+                        if (des.Length >= 2048)
+                            des = des.Substring(0, 2043).Insert(2043, "[...]");
+
+                        switch (feed.FeedUri.ToString().Contains("gggtracker"))
+                        {
+                            case true:
+                                sb.AppendLine("-----------------------------------------------------------");
+                                sb.AppendLine($":newspaper: ***{itt}***\n");
+                                sb.AppendLine(itu.ToString());
+                                sb.AppendLine($"```{des}```");
+
+                                break;
+                            default:
+                                embed.Title = itt;
+                                embed.Description = des;
+
+                                var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                                if (!string.IsNullOrWhiteSpace(newsimage))
+                                    embed.ImageUrl = newsimage;
+
+                                embed.Url = itu.ToString();
+                                embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
+                                embed.Color = new Color(0, 127, 255);
+
+                                break;
+                        }
+
+                        if (feed.Initialized)
+                        {
+                            if (!string.IsNullOrEmpty(feed.RoleIds) && feed.RoleIds != "0")
+                            {
+                                foreach (var rl in feed.RoleIds.Split(","))
+                                {
+                                    IRole role = gld.GetRole((ulong)Convert.ChangeType(rl, typeof(ulong)));
+                                    if (role.Name.ToLower().Contains("everyone") && embed.Title.ToLower().Contains(feed.Tag.ToLower()))
+                                        PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                    else if (!role.Name.ToLower().Contains("everyone"))
+                                        PoE_Bot.Client.SendMessage(role.Mention, feed.ChannelId);
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(embed.Title))
+                                PoE_Bot.Client.SendEmbed(embed, feed.ChannelId);
+                            else if (!string.IsNullOrEmpty(sb.ToString()))
+                                PoE_Bot.Client.SendMessage(sb.ToString(), feed.ChannelId);
+                        }
                     }
                 }
 

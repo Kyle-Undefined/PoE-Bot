@@ -53,7 +53,7 @@ namespace PoE.Bot.Core
             ReliabilityService rs = new ReliabilityService(this.DiscordClient, Client_Log);
 
             // modlog events
-            this.DiscordClient.MessageDeleted += DiscordClient_MessageDeleted;
+            this.DiscordClient.MessageDeleted += MessageDeleted;
 
             var a = typeof(Client).GetTypeInfo().Assembly;
             var n = a.GetName();
@@ -286,9 +286,9 @@ namespace PoE.Bot.Core
             Log.W(new LogMessage(LogSeverity.Info, "Core Client", "Ticked PoE.Bot"));
         }
 
-        private async Task DiscordClient_MessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+        private async Task MessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var msg = await arg1.GetOrDownloadAsync();
+            var msg = await message.GetOrDownloadAsync();
             var usr = msg.Author as SocketGuildUser;
             var gld = usr.Guild;
             var gid = gld.Id;
@@ -303,24 +303,11 @@ namespace PoE.Bot.Core
 
             var dChn = msg.Channel as SocketTextChannel;
             var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Error);
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "User";
-                x.Value = string.Concat(usr.Mention, " (", usr.Username, ")");
-            });
-            embed.AddField(x =>
-            {
-                x.IsInline = true;
-                x.Name = "Channel";
-                x.Value = string.Concat(dChn.Mention, " (", dChn.Name, ")");
-            });
-            embed.AddField(x =>
-            {
-                x.IsInline = false;
-                x.Name = "Message";
-                x.Value = msg.Content;
-            });
+            embed.AddField("User", $"```{usr.Username}```")
+                .AddField("Channel", $"```#{dChn.Name}```")
+                .AddField("Message", $"```{msg.Content.Replace("`", "")}```")
+                .WithAuthor(usr)
+                .WithThumbnailUrl((!string.IsNullOrEmpty(usr.GetAvatarUrl()) ? usr.GetAvatarUrl() : usr.GetDefaultAvatarUrl()));
 
             await chn.SendMessageAsync("", false, embed.Build());
         }
@@ -329,6 +316,7 @@ namespace PoE.Bot.Core
         private EmbedBuilder PrepareEmbed(EmbedType type)
         {
             var embed = new EmbedBuilder();
+            embed.WithCurrentTimestamp();
             switch (type)
             {
                 case EmbedType.Info:
@@ -359,7 +347,7 @@ namespace PoE.Bot.Core
             var embed = this.PrepareEmbed(type);
             embed.Title = title;
             embed.Description = desc;
-            embed.Timestamp = DateTime.Now;
+            embed.WithCurrentTimestamp();
             return embed;
         }
 

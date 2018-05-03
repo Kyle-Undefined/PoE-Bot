@@ -270,11 +270,12 @@ namespace PoE.Bot.Commands
         {
             var ctx = ctxe.Context;
             Log.W(new LogMessage(LogSeverity.Error, "Command Error", string.Format("User '{0}#{1}' failed to execute command '{2}' in guild '{3}'; reason: {4} ({5}; message: '{6}')", ctx.User.Username, ctx.User.Discriminator, ctx.Command != null ? ctx.Command.Name : "<unknown>", ctx.Guild.Name, ctxe.Exception != null ? ctxe.Exception.GetType().ToString() : "<unknown exception type>", ctxe.Exception != null ? ctxe.Exception.Message : "N/A", ctx.Message.ToString())));
-            
+
+            var param = ctx.Message.Content.Contains("[[") ? ctx.Message.Content : ctx.Message.Content.Remove(0, ctx.Command.Name.Length + 1).Trim();
             var embed = new EmbedBuilder
             {
                 Title = "Error executing the command"
-                , Description = $"**Command:**\n```{ctx.Command.Name}```\n**Parameter:**```{ctx.Message.Content.Remove(0, ctx.Command.Name.Length + 1).Trim()}```"
+                , Description = $"**Command:**\n```{ctx.Command.Name}```\n**Parameter:**```{param}```"
                 ,Color = new Color(255, 127, 0)
             };
 

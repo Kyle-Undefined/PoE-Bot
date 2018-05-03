@@ -146,8 +146,8 @@ namespace PoE.Bot.Plugin.Wiki
                         var reward = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-reward\"]").InnerText;
                         image = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"divicard-art\"]//img");
 
-                        builder.AddField("Stack", stackNumber)
-                            .AddField("Reward", AddSpacesToSentence(reward));
+                        builder.AddField("Stack", $"```{stackNumber.Trim()}```")
+                            .AddField("Reward", $"```{AddSpacesToSentence(reward.Trim())}```");
 
                         var jsonParseSections = await httpClient.GetStringAsync(SectionsURL + wikiPage);
                         JObject jSectionsObj = JObject.Parse(jsonParseSections);
@@ -199,7 +199,7 @@ namespace PoE.Bot.Plugin.Wiki
                                 dropSB.AppendLine(d);
                             }
 
-                            builder.AddField("Drop Restrictions", dropSB.ToString(), true);
+                            builder.AddField("Drop Restrictions", $"```{dropSB.ToString().Trim()}```");
                         }
                         else
                         {
@@ -211,7 +211,7 @@ namespace PoE.Bot.Plugin.Wiki
                                 dropSB.AppendLine(drop.InnerText);
                             }
 
-                            builder.AddField("Drop Restrictions", dropSB.ToString(), true);
+                            builder.AddField("Drop Restrictions", $"```{dropSB.ToString().Trim()}```");
                         }
                     }
                     else
@@ -247,7 +247,7 @@ namespace PoE.Bot.Plugin.Wiki
 
                                 if (s.Length > 1)
                                 {
-                                    builder.AddField(s[0], s[1].Replace("&#8211;", "-"), true);
+                                    builder.AddField(s[0], $"```{s[1].Replace("&#8211;", "-").Trim()}```");
                                 }
                                 else
                                 {
@@ -268,7 +268,7 @@ namespace PoE.Bot.Plugin.Wiki
                                 sb.AppendLine(str);
                             }
 
-                            builder.AddField("Mods", sb.ToString(), true);
+                            builder.AddField("Mods", $"```{sb.ToString().Trim()}```");
                         }
 
                         var jsonParseSections = await httpClient.GetStringAsync(SectionsURL + wikiPage);
@@ -325,7 +325,7 @@ namespace PoE.Bot.Plugin.Wiki
                                 cardSB.AppendLine(beginningString + cardName);
                             }
 
-                            builder.AddField("Divination Cards", cardSB.ToString(), true);
+                            builder.AddField("Divination Cards", $"```{cardSB.ToString().Trim()}```");
 
                         }
 
