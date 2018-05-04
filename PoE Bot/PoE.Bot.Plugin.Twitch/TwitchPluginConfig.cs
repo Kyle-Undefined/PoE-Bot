@@ -35,9 +35,9 @@ namespace PoE.Bot.Plugin.Twitch
 
                 var name = (string)xjo["name"];
                 var userid = (string)xjo["userid"];
-                var live = xjo["islive"] != null ? (bool)xjo["islive"] : false;
+                var live = (bool)xjo["islive"];
                 var channel = (ulong)xjo["channel"];
-                this.Streams.Add(new Twitch(name, userid, channel));
+                this.Streams.Add(new Twitch(name, userid, live, channel));
             }
         }
 

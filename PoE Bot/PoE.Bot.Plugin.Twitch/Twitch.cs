@@ -14,12 +14,8 @@ namespace PoE.Bot.Plugin.Twitch
         {
             this.Name = name;
             this.UserId = userId;
-            this.IsLive = false;
+            this.IsLive = isLive;
             this.ChannelId = channelId;
         }
-
-        public Twitch(string name, string userId, ulong channelId)
-            : this(name, userId, false, channelId)
-        { }
     }
 }

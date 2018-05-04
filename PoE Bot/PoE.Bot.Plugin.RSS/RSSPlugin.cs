@@ -146,15 +146,19 @@ namespace PoE.Bot.Plugin.RSS
                         StringBuilder sb = new StringBuilder();
 
                         des = HtmlEntity.DeEntitize(des);
-                        des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
+                        des = RSSPlugin.RoughStrip(des);
+                        des = RSSPlugin.StripTagsCharArray(des);
                         if (des.StartsWith("\""))
                             des = des.Substring(1);
-                        if (des.Length >= 2048)
-                            des = des.Substring(0, 2043).Insert(2043, "[...]");
+                        if (des.Length >= 2000)
+                            des = des.Substring(0, 2000).Insert(2000, "[...]");
 
                         switch (feed.FeedUri.ToString().Contains("gggtracker"))
                         {
                             case true:
+                                if (des.Length >= 2000)
+                                    des = des.Substring(0, 1800).Insert(1800, "[...]");
+
                                 sb.AppendLine("-----------------------------------------------------------");
                                 sb.AppendLine($":newspaper: ***{itt}***\n");
                                 sb.AppendLine(itu.ToString());
@@ -271,6 +275,21 @@ namespace PoE.Bot.Plugin.RSS
                 }
             }
             return new string(array, 0, arrayIndex);
+        }
+
+        public static string RoughStrip(string source)
+        {
+            var val = source.Replace("<ul>", "")
+                .Replace("</ul><br/>", "</ul>")
+                .Replace("</ul>", "")
+                .Replace("<li>", " * ")
+                .Replace("</li>", "\n")
+                .Replace("<br/>\n<br/>\n", "\n\n");
+
+            if (val.StartsWith("<style>"))
+                val = val.Substring(val.IndexOf("</style>") + 8);
+
+            return val;
         }
     }
 }

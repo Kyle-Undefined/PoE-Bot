@@ -130,10 +130,6 @@ namespace PoE.Bot.Plugin.RSS
                     var itl = (string)it.Element("link");
                     var itp = (string)it.Element("pubDate");
                     var des = (string)it.Element("description");
-                    var cat = (string)it.Element("category");
-
-                    if (!string.IsNullOrWhiteSpace(cat))
-                        itp = itp.Substring(0, itp.Length - 2);
 
                     if (itl.StartsWith("/"))
                         uri_root_builder.Path = itl;
@@ -147,59 +143,37 @@ namespace PoE.Bot.Plugin.RSS
                     var embed = this.PrepareEmbed(EmbedType.Info);
                     StringBuilder sb = new StringBuilder();
 
-                    switch (cat)
+                    des = HtmlEntity.DeEntitize(des);
+                    des = RSSPlugin.RoughStrip(des);
+                    des = RSSPlugin.StripTagsCharArray(des);
+
+                    if (des.StartsWith("\""))
+                        des = des.Substring(1);
+                    if (des.Length >= 2000)
+                        des = des.Substring(0, 2000).Insert(2000, "[...]");
+
+                    switch (feed.FeedUri.ToString().Contains("gggtracker"))
                     {
-                        case "live":
-                            if (itd >= DateTime.Now || itd.ToShortDateString() == DateTime.Now.ToShortDateString())
-                            {
-                                var desHTML = HtmlEntity.DeEntitize(des);
-                                var doc = new HtmlDocument();
-                                doc.LoadHtml(desHTML);
-                                HtmlNode node = doc.DocumentNode.SelectSingleNode("//img");
-                                var liveimage = node.Attributes["src"].Value;
+                        case true:
+                            if (des.Length >= 2000)
+                                des = des.Substring(0, 1800).Insert(1800, "[...]");
 
-                                embed.Title = itt;
-                                embed.ImageUrl = liveimage;
-                                embed.Url = itu.ToString();
-                                embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-                                embed.Color = new Color(0, 127, 255);
-                            }
+                            sb.AppendLine("-----------------------------------------------------------");
+                            sb.AppendLine($":newspaper: ***{itt}***\n");
+                            sb.AppendLine(itu.ToString());
+                            sb.AppendLine($"```{des}```");
 
-                            break;
-                        case "archive":
-                        case "highlight":
-                        case "upload":
                             break;
                         default:
-                            des = HtmlEntity.DeEntitize(des);
-                            des = RSSPlugin.StripTagsCharArray(des.Replace("<br/>", "\n"));
-                            if (des.StartsWith("\""))
-                                des = des.Substring(1);
-                            if (des.Length >= 2048)
-                                des = des.Substring(0, 2043).Insert(2043, "[...]");
+                            embed.Title = itt;
+                            embed.Description = des;
 
-                            switch (feed.FeedUri.ToString().Contains("gggtracker"))
-                            {
-                                case true:
-                                    sb.AppendLine("-----------------------------------------------------------");
-                                    sb.AppendLine($":newspaper: ***{itt}***\n");
-                                    sb.AppendLine(itu.ToString());
-                                    sb.AppendLine($"```{des}```");
+                            var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
+                            if (!string.IsNullOrWhiteSpace(newsimage))
+                                embed.ImageUrl = newsimage;
 
-                                    break;
-                                default:
-                                    embed.Title = itt;
-                                    embed.Description = des;
-
-                                    var newsimage = RSSPlugin.GetAnnouncementImage(itu.ToString());
-                                    if (!string.IsNullOrWhiteSpace(newsimage))
-                                        embed.ImageUrl = newsimage;
-
-                                    embed.Url = itu.ToString();
-                                    embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
-
-                                    break;
-                            }
+                            embed.Url = itu.ToString();
+                            embed.Timestamp = new DateTimeOffset(itd.ToUniversalTime());
 
                             break;
                     }

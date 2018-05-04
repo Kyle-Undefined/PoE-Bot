@@ -60,7 +60,7 @@ namespace PoE.Bot.Plugin.Twitch
 
         public void AddStream(string name, string userid, ulong channel)
         {
-            this.conf.Streams.Add(new Twitch(name, userid, channel));
+            this.conf.Streams.Add(new Twitch(name, userid, false, channel));
             Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", string.Format("Added Twitch stream for {0}: {1}", name, channel)));
 
             UpdateConfig();
@@ -99,6 +99,7 @@ namespace PoE.Bot.Plugin.Twitch
                 var sjo = JObject.Parse(sjson);
                 var clientID = (string)sjo["twitchClientID"];
                 var accessToken = (string)sjo["twitchAccessToken"];
+                var streamWasLive = stream.IsLive;
 
                 twitchAPI = new TwitchAPI();
                 twitchAPI.Settings.ClientId = clientID;
@@ -125,11 +126,12 @@ namespace PoE.Bot.Plugin.Twitch
                         PoE_Bot.Client.SendEmbed(embed, stream.ChannelId);
 
                         stream.IsLive = true;
+                        UpdateConfig();
                         await Task.Delay(15000);
                     }
                 }
-
-                UpdateConfig();
+                if (streamWasLive && stream.IsLive == false)
+                    UpdateConfig();
             }
 
             Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", "Ticked Twitch"));
