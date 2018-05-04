@@ -77,7 +77,7 @@ namespace PoE.Bot.Plugin.Leaderboard
 
         private void Leaderboard_Tick(object _)
         {
-            var baseURL = "https://www.pathofexile.com/ladder/export-csv/league/{0}/index/";
+            var baseURL = "https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{0}_league_export.csv";
 
             foreach (var lb in this.conf.Leaderboards)
             {
@@ -86,35 +86,32 @@ namespace PoE.Bot.Plugin.Leaderboard
                     var fullURL = string.Format(baseURL, lb.Variant);
                     List<LeaderboardData> racers = new List<LeaderboardData>();
 
-                    for(int i = 1; i <= 8; i++)
+                    using (HttpClient client = new HttpClient())
                     {
-                        using(HttpClient client = new HttpClient())
+                        using (HttpResponseMessage response = client.GetAsync(fullURL, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
                         {
-                            using (HttpResponseMessage response = client.GetAsync(fullURL + i.ToString(), HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
+                            if (response.IsSuccessStatusCode)
                             {
-                                if (response.IsSuccessStatusCode)
+                                using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                                 {
-                                    using(Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                                    using (TextReader reader = new StreamReader(stream))
                                     {
-                                        using(TextReader reader = new StreamReader(stream))
+                                        using (CsvReader csv = new CsvReader(reader))
                                         {
-                                            using(CsvReader csv = new CsvReader(reader))
-                                            {
-                                                csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
-                                                csv.ReadAsync();
-                                                csv.ReadHeader();
+                                            csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
+                                            csv.ReadAsync();
+                                            csv.ReadHeader();
 
-                                                while (csv.ReadAsync().GetAwaiter().GetResult())
-                                                    racers.Add(csv.GetRecord<LeaderboardData>());
-                                            }
+                                            while (csv.ReadAsync().GetAwaiter().GetResult())
+                                                racers.Add(csv.GetRecord<LeaderboardData>());
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    
-                    if(racers != null)
+
+                    if (racers.Count > 0)
                     {
                         var sb = new StringBuilder();
                         var rSlayers = racers.FindAll(x => x.Class == AscendancyClass.Slayer);
@@ -198,7 +195,7 @@ namespace PoE.Bot.Plugin.Leaderboard
                             sb.AppendLine($"Scions       : {rScions.Count().ToString("##,##0")}");
 
                         var embed = new EmbedBuilder();
-                        embed.WithTitle($"{WebUtility.UrlDecode(lb.Variant)} Leaderboard")
+                        embed.WithTitle($"{WebUtility.UrlDecode(lb.Variant).Replace("_", " ")} Leaderboard")
                             .WithDescription($"Retrieved {racers.Count().ToString("##,##0")} records, Rank is overall and not by Ascendancy, below is the total of Ascendancy classes:\n```{sb.ToString()}```")
                             .WithColor(new Color(0, 127, 255))
                             .WithCurrentTimestamp();

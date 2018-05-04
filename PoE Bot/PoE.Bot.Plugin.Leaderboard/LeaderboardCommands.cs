@@ -94,7 +94,7 @@ namespace PoE.Bot.Plugin.Leaderboard
         [Command("getleaderboard", "Gets and posts all active Leaderboards, only doing the first index.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.AddReactions)]
         public async Task GetLeaderboard(CommandContext ctx)
         {
-            var baseURL = "https://www.pathofexile.com/ladder/export-csv/league/{0}/index/1";
+            var baseURL = "https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{0}_league_export.csv";
             var gld = ctx.Guild as SocketGuild;
             var lbs = LeaderboardPlugin.Instance.GetLeaderboards(gld.Channels.Select(xch => xch.Id).ToArray());
 
@@ -130,7 +130,7 @@ namespace PoE.Bot.Plugin.Leaderboard
                         }
                     }
 
-                    if (racers != null)
+                    if (racers.Count > 0)
                     {
                         var sb = new StringBuilder();
                         var rSlayers = racers.FindAll(x => x.Class == AscendancyClass.Slayer);
@@ -214,7 +214,7 @@ namespace PoE.Bot.Plugin.Leaderboard
                             sb.AppendLine($"Scions       : {rScions.Count().ToString("##,##0")}");
 
                         var embed = new EmbedBuilder();
-                        embed.WithTitle($"{WebUtility.UrlDecode(lb.Variant)} Leaderboard")
+                        embed.WithTitle($"{WebUtility.UrlDecode(lb.Variant).Replace("_", " ")} Leaderboard")
                             .WithDescription($"Retrieved {racers.Count().ToString("##,##0")} records, Rank is overall and not by Ascendancy, below is the total of Ascendancy classes:\n```{sb.ToString()}```")
                             .WithColor(new Color(0, 127, 255))
                             .WithCurrentTimestamp();
