@@ -125,6 +125,24 @@ namespace PoE.Bot.Core
             this.SendMessage(message, ch);
         }
 
+        public void PurgeChannel(ulong channel)
+        {
+            var chan = null as ITextChannel;
+            var tg = DateTime.Now;
+            while (chan == null && (DateTime.Now - tg).TotalSeconds < 10)
+                chan = this.DiscordClient.GetChannel(channel) as ITextChannel;
+            if (chan == null)
+                return;
+            var messages = chan.GetMessagesAsync();
+            var deleteMessages = new List<IMessage>(100);
+            messages.ForEach(m =>
+            {
+                foreach(var msg in m)
+                    deleteMessages.Add(msg);
+            });
+            this.PurgeChannel(chan, deleteMessages);
+        }
+
         /// <summary>
         /// Sends a message to a specified channel
         /// </summary>
@@ -138,6 +156,11 @@ namespace PoE.Bot.Core
         internal void SendEmbed(EmbedBuilder embed, SocketTextChannel channel)
         {
             channel.SendMessageAsync("", false, embed.Build()).GetAwaiter().GetResult();
+        }
+
+        internal void PurgeChannel(ITextChannel channel, IEnumerable<IMessage> messages)
+        {
+            channel.DeleteMessagesAsync(messages).GetAwaiter().GetResult();
         }
 
         internal void WriteConfig()

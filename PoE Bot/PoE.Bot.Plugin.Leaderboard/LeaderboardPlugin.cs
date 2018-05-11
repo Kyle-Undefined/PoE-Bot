@@ -562,6 +562,8 @@ namespace PoE.Bot.Plugin.Leaderboard
                             embedAscendancyCont.AddField("Ascendants", $"```{sb.ToString()}```");
                         }
 
+                        PoE_Bot.Client.PurgeChannel(lb.ChannelId);
+
                         PoE_Bot.Client.SendEmbed(embed, lb.ChannelId);
 
                         if (embedClasses.Fields.Count > 0)
