@@ -323,16 +323,20 @@ namespace PoE.Bot.Core
             var chn = gld.GetTextChannel(cfg.AllLogChannel.Value);
             if (chn == null)
                 return;
+            
+            if(msg.Embeds.Count() == 0)
+            {
+                var dChn = msg.Channel as SocketTextChannel;
+                var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Error);
+                embed.AddField("User", $"```{usr.Username}```")
+                    .AddField("Channel", $"```#{dChn.Name}```")
+                    .AddField("Message", $"```{msg.Content.Replace("`", "")}```")
+                    .WithAuthor(usr)
+                    .WithThumbnailUrl((!string.IsNullOrEmpty(usr.GetAvatarUrl()) ? usr.GetAvatarUrl() : usr.GetDefaultAvatarUrl()));
 
-            var dChn = msg.Channel as SocketTextChannel;
-            var embed = this.PrepareEmbed("Message Deleted", "", EmbedType.Error);
-            embed.AddField("User", $"```{usr.Username}```")
-                .AddField("Channel", $"```#{dChn.Name}```")
-                .AddField("Message", $"```{msg.Content.Replace("`", "")}```")
-                .WithAuthor(usr)
-                .WithThumbnailUrl((!string.IsNullOrEmpty(usr.GetAvatarUrl()) ? usr.GetAvatarUrl() : usr.GetDefaultAvatarUrl()));
-
-            await chn.SendMessageAsync("", false, embed.Build());
+                await chn.SendMessageAsync("", false, embed.Build());
+            }
+            
         }
 
         #region Embeds
