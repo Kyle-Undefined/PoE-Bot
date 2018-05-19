@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>PoE.Bot.Plugin.Twitch</AssemblyName>
-    <PackageId>PoE.Bot.Plugin.Twitch</PackageId>
+    <AssemblyName>PoE.Bot.Plugin.Mixer</AssemblyName>
+    <PackageId>PoE.Bot.Plugin.Mixer</PackageId>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.1.2" />
-    <PackageReference Include="TwitchLib.Api" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup>

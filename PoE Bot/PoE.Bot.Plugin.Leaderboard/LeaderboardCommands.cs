@@ -91,7 +91,7 @@ namespace PoE.Bot.Plugin.Leaderboard
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("getleaderboard", "Gets and posts all active Leaderboards, only doing the first index.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.AddReactions)]
+        [Command("getleaderboard", "Gets and posts all active Leaderboards, only doing the first index.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task GetLeaderboard(CommandContext ctx)
         {
             var baseURL = "https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{0}_league_export.csv";

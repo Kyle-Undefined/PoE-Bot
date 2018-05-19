@@ -24,8 +24,8 @@ namespace PoE.Bot.Plugin.Twitch
         public string Name { get { return "PoE.Bot.Plugin.Twitch Module"; } }
         private static TwitchAPI twitchAPI;
 
-        [Command("addstream", "Adds an Twitch stream to a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
-        public async Task AddStream(CommandContext ctx,
+        [Command("addtwitch", "Adds an Twitch stream to a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task AddTwitch(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to add the stream to.", true)] ITextChannel channel,
             [ArgumentParameter("Name of the Twitch User.", true)] string user)
         {
@@ -59,8 +59,8 @@ namespace PoE.Bot.Plugin.Twitch
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("rmstream", "Removes an Twitch stream from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
-        public async Task RemoveStream(CommandContext ctx,
+        [Command("rmtwitch", "Removes an Twitch stream from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task RemoveTwitch(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to remove the stream from.", true)] ITextChannel channel,
             [ArgumentParameter("Name of the Twitch User.", true)] string user)
         {
@@ -79,8 +79,8 @@ namespace PoE.Bot.Plugin.Twitch
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("liststreams", "Lists Twitch streams active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
-        public async Task ListStreams(CommandContext ctx)
+        [Command("listtwitch", "Lists Twitch streams active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        public async Task ListTwitch(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
             var streams = TwitchPlugin.Instance.GetStreams(gld.Channels.Select(xch => xch.Id).ToArray());
@@ -102,7 +102,7 @@ namespace PoE.Bot.Plugin.Twitch
             }
         }
 
-        [Command("teststreams", "Tests the Twitch feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("testtwitch", "Tests the Twitch feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
         public async Task TestTwitch(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
