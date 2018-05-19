@@ -50,7 +50,7 @@ namespace PoE.Bot.Core
             _commands.Log += Client_Log;
 
             // Reliability Service, to work with auto reconnects with the Daemon script
-            ReliabilityService rs = new ReliabilityService(this.DiscordClient, Client_Log);
+            //ReliabilityService rs = new ReliabilityService(this.DiscordClient, Client_Log);
 
             // modlog events
             this.DiscordClient.MessageDeleted += MessageDeleted;

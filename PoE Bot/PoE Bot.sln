@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Leaderboard"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Twitch", "PoE.Bot.Plugin.Twitch\PoE.Bot.Plugin.Twitch.csproj", "{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoE.Bot.Plugin.Mixer", "PoE.Bot.Plugin.Mixer\PoE.Bot.Plugin.Mixer.csproj", "{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Mixer", "PoE.Bot.Plugin.Mixer\PoE.Bot.Plugin.Mixer.csproj", "{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
