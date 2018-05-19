@@ -108,7 +108,10 @@ namespace PoE.Bot.Plugin.Mixer
         public string GetChannelThumbnail(string json)
         {
             var jo = JObject.Parse(json);
-            return (string)jo["thumbnail"]["url"];
+            if (jo["thumbnail"].HasValues)
+                return (string)jo["thumbnail"]["url"];
+            else
+                return (string)jo["bannerUrl"];
         }
 
         public string GetChannelGame(string json)
