@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Config;
 using PoE.Bot.Plugins;
 using Newtonsoft.Json.Linq;
@@ -61,7 +57,7 @@ namespace PoE.Bot.Plugin.Twitch
         public void AddStream(string name, string userid, ulong channel)
         {
             this.conf.Streams.Add(new Twitch(name, userid, false, channel));
-            Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", string.Format("Added Twitch stream for {0}: {1}", name, channel)));
+            Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", $"Added Twitch stream for {name}: {channel}"));
 
             UpdateConfig();
         }
@@ -70,7 +66,7 @@ namespace PoE.Bot.Plugin.Twitch
         {
             var feed = this.conf.Streams.FirstOrDefault(xf => xf.Name == name && xf.ChannelId == channel);
             this.conf.Streams.Remove(feed);
-            Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", string.Format("Removed Twitch stream for {0}: {1}", name, channel)));
+            Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", $"Removed Twitch stream for {name}: {channel}"));
 
             UpdateConfig();
         }

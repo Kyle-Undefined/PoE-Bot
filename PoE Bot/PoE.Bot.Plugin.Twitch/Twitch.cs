@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PoE.Bot.Plugin.Twitch
+﻿namespace PoE.Bot.Plugin.Twitch
 {
     internal class Twitch
     {

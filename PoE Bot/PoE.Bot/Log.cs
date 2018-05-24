@@ -336,7 +336,7 @@ namespace PoE.Bot
             var u = T(t);
             var d = DateTime.Now;
             foreach (var xl in l)
-                yield return string.Format("[{0:yyyy-MM-ddTHH:mm:ss}] [{1}] {2}", d, u, xl);
+                yield return $"[{d:yyyy-MM-ddTHH:mm:ss}] [{u}] {xl}";
         }
 
         private static IEnumerable<string> C(LogMessage message)

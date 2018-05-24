@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
-using System.Xml.Linq;
-using System.Globalization;
 using System.IO;
 using Discord;
 using Discord.WebSocket;
@@ -14,7 +12,6 @@ using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
 using PoE.Bot.Commands.Permissions;
 using CsvHelper;
-using CsvHelper.Configuration;
 
 namespace PoE.Bot.Plugin.Leaderboard
 {
@@ -22,7 +19,7 @@ namespace PoE.Bot.Plugin.Leaderboard
     {
         public string Name { get { return "PoE.Bot.Plugin.Leaderboard Module"; } }
 
-        [Command("addleaderboard", "Adds an Leaderboard variant to a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("addleaderboard", "Adds an Leaderboard variant to a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task AddRss(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to add the Leaderboard to.", true)] ITextChannel channel,
             [ArgumentParameter("Leaderboard variant.", true)] string variant,
@@ -38,14 +35,14 @@ namespace PoE.Bot.Plugin.Leaderboard
 
             LeaderboardPlugin.Instance.AddLeaderboard(variant, chf.Id, enabled);
             var embed = this.PrepareEmbed("Success", "Leaderboard was added successfully.", EmbedType.Success);
-            embed.AddField("Details", string.Concat("Leaderboard pointing to <", variant, ">", " was added to ", chf.Mention, " and is ", (enabled ? "" : "not "), "Enabled."))
+            embed.AddField("Details", $"Leaderboard pointing to <{variant}> was added to {chf.Mention} and is {(enabled ? "" : "not ")}Enabled.")
                 .WithAuthor(ctx.User)
                 .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("rmleaderboard", "Removes an Leaderboard variant from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("rmleaderboard", "Removes an Leaderboard variant from a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task RemoveRss(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to remove the Leaderboard from.", true)] ITextChannel channel,
             [ArgumentParameter("Leaderboard variant.", true)] string variant)
@@ -60,14 +57,14 @@ namespace PoE.Bot.Plugin.Leaderboard
 
             LeaderboardPlugin.Instance.RemoveLeaderboard(variant, chf.Id);
             var embed = this.PrepareEmbed("Success", "Leaderboard was removed successfully.", EmbedType.Success);
-            embed.AddField("Details", string.Concat("Leaderboard pointing to <", variant, ">", " was removed from ", chf.Mention, "."))
+            embed.AddField("Details", $"Leaderboard pointing to <{variant}> was removed from {chf.Mention}.")
                .WithAuthor(ctx.User)
                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("listleaderboards", "Lists Leaderboards active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("listleaderboards", "Lists Leaderboards active in the current guild.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task ListRss(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
@@ -91,7 +88,7 @@ namespace PoE.Bot.Plugin.Leaderboard
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("getleaderboard", "Gets and posts all active Leaderboards, only doing the first index.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("getleaderboard", "Gets and posts all active Leaderboards", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task GetLeaderboard(CommandContext ctx)
         {
             var baseURL = "https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{0}_league_export.csv";

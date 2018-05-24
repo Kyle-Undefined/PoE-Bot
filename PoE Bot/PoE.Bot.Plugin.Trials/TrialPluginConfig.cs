@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using PoE.Bot.Config;
+﻿using PoE.Bot.Config;
 using Newtonsoft.Json.Linq;
 
 namespace PoE.Bot.Plugin.Trials

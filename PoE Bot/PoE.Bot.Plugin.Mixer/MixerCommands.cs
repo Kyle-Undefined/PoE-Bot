@@ -2,11 +2,8 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
-using System.Xml.Linq;
-using System.Globalization;
 using Discord;
 using Discord.WebSocket;
 using PoE.Bot.Attributes;
@@ -19,7 +16,7 @@ namespace PoE.Bot.Plugin.Mixer
     {
         public string Name { get { return "PoE.Bot.Plugin.Mixer Module"; } }
 
-        [Command("addmixer", "Adds a Mixer stream to a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("addmixer", "Adds a Mixer stream to a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task AddMixer(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to add the stream to.", true)] ITextChannel channel,
             [ArgumentParameter("Name of the Mixer User.", true)] string user)
@@ -48,7 +45,7 @@ namespace PoE.Bot.Plugin.Mixer
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("rmmixer", "Removes a Mixer stream from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("rmmixer", "Removes a Mixer stream from a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task RemoveMixer(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to remove the stream from.", true)] ITextChannel channel,
             [ArgumentParameter("Name of the Mixer User.", true)] string user)
@@ -68,7 +65,7 @@ namespace PoE.Bot.Plugin.Mixer
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("listmixer", "Lists Mixer streams active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("listmixer", "Lists Mixer streams active in the current guild.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task ListMixer(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
@@ -91,7 +88,7 @@ namespace PoE.Bot.Plugin.Mixer
             }
         }
 
-        [Command("testmixer", "Tests the Mixer feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("testmixer", "Tests the Mixer feeds active in the current guild.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task TestMixer(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;

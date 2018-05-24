@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Audio;
 using Discord.WebSocket;
 using Discord.Commands;
 using PoE.Bot.Config;

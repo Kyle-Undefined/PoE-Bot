@@ -1,15 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Net;
-using System.IO;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Config;
 using PoE.Bot.Plugins;
 
@@ -42,7 +34,7 @@ namespace PoE.Bot.Plugin.Price
         public void AddCurrency(string Name, string Alias, Double Quantity, Double Price, DateTime LastUpdated)
         {
             this.conf.Currency.Add(new Currency(Name, Alias, Quantity, Price, DateTime.Now));
-            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", string.Format("Added Price for {0} with a ratio of {1} to {2} Chaos", Name, Quantity, Price)));
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", $"Added Price for {Name} with a ratio of {Quantity} to {Price} Chaos"));
 
             UpdateConfig();
         }
@@ -51,7 +43,7 @@ namespace PoE.Bot.Plugin.Price
         {
             var curr = this.conf.Currency.FirstOrDefault(xf => xf.Name == Name && xf.Alias.Contains(Alias));
             this.conf.Currency.Remove(curr);
-            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", string.Format("Removed Price for {0}", Name)));
+            Log.W(new LogMessage(LogSeverity.Info, "Price Plugin", $"Removed Price for {Name}"));
 
             UpdateConfig();
         }

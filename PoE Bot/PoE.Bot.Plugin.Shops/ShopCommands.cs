@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
 using PoE.Bot.Commands.Permissions;
-using System.Collections.Generic;
 
 namespace PoE.Bot.Plugin.Shops
 {
@@ -69,7 +66,7 @@ namespace PoE.Bot.Plugin.Shops
             }
         }
 
-        [Command("shopspurge", "Purges all channels under the Shops category", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("shopspurge", "Purges all channels under the Shops category", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task ShopsPurge(CommandContext ctx)
         {
             var chans = await ctx.Guild.GetChannelsAsync();

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Text;
 using Discord;
@@ -50,7 +49,7 @@ namespace PoE.Bot.Plugin.RSS
         public void AddFeed(Uri uri, ulong channel, string roles, string tag)
         {
             this.conf.Feeds.Add(new Feed(uri, channel, roles, tag));
-            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", string.Format("Added RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag)));
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", $"Added RSS feed for {channel}: {uri} with tag [{(tag == null ? "<null>" : tag)}]"));
 
             UpdateConfig();
         }
@@ -64,7 +63,7 @@ namespace PoE.Bot.Plugin.RSS
         {
             var feed = this.conf.Feeds.FirstOrDefault(xf => xf.FeedUri == uri && xf.ChannelId == channel && xf.Tag == tag);
             this.conf.Feeds.Remove(feed);
-            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", string.Format("Removed RSS feed for {0}: {1} with tag [{2}]", channel, uri, tag == null ? "<null>" : tag)));
+            Log.W(new LogMessage(LogSeverity.Info, "RSS Plugin", $"Removed RSS feed for {channel}: {uri} with tag [{(tag == null ? "<null>" : tag)}]"));
 
             UpdateConfig();
         }

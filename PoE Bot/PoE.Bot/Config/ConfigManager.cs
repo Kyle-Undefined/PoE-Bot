@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using PoE.Bot.Plugins;
 using Newtonsoft.Json.Linq;
 using Discord;
@@ -108,7 +107,7 @@ namespace PoE.Bot.Config
                 if (!pt.IsAssignableFrom(t.AsType()) || !t.IsClass || t.IsAbstract)
                     continue;
 
-                Log.W(new LogMessage(LogSeverity.Info, "Config Manager Plugin", string.Format("Type {0} is a plugin config", t.ToString())));
+                Log.W(new LogMessage(LogSeverity.Info, "Config Manager Plugin", $"Type {t.ToString()} is a plugin config"));
                 var iplg = Activator.CreateInstance(t.AsType()) as IPluginConfig;
                 var icfg = iplg.DefaultConfig;
                 if (confs.ContainsKey(t.ToString()))

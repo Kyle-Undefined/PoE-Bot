@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
-using PoE.Bot.Commands.Permissions;
 
 namespace PoE.Bot.Plugin.Price
 {

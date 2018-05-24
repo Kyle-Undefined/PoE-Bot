@@ -21,6 +21,9 @@ namespace PoE.Bot
 
         internal static void Main(string[] args)
         {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+
             // initialize self
             Log.R(Console.Out);
             Log.D(Debugger.IsAttached);
@@ -65,6 +68,12 @@ namespace PoE.Bot
             Client.Deinitialize();
             Log.W(new LogMessage(LogSeverity.Info, "PoE_Bot", "Disposing logger"));
             Log.Q();
+        }
+
+        static void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception e = (Exception)args.ExceptionObject;
+            Log.W(new LogMessage(LogSeverity.Critical, "PoE_Bot", $"Unhandled Exception: {e.Message}\nSource: {e.Source}"));
         }
     }
 }

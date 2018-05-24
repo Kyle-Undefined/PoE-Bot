@@ -78,9 +78,9 @@ namespace PoE.Bot.Commands
 
                 var ipc = Activator.CreateInstance(t.AsType()) as IPermissionChecker;
                 this.RegisteredCheckers.Add(ipc.Id, ipc);
-                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Registered checker '{0}' for type {1}", ipc.Id, t.ToString())));
+                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Registered checker '{ipc.Id}' for type {t.ToString()}"));
             }
-            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Registered {0:#,##0} checkers", this.RegisteredCheckers.Count)));
+            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Registered {this.RegisteredCheckers.Count:#,##0} checkers"));
         }
 
         private void RegisterCommands()
@@ -98,7 +98,7 @@ namespace PoE.Bot.Commands
                     continue;
 
                 var ch = Activator.CreateInstance(t.AsType()) as ICommandModule;
-                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Found module handler '{0}' in type {1}", ch.Name, t.ToString())));
+                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Found module handler '{ch.Name}' in type {t.ToString()}"));
                 foreach (var m in t.GetMethods(BindingFlags.Instance | BindingFlags.Public))
                 {
                     var xct = m.GetCustomAttribute<PoE.Bot.Attributes.CommandAttribute>();
@@ -109,7 +109,7 @@ namespace PoE.Bot.Commands
                     var xps = m.GetCustomAttributes<MethodParameterAttribute>().ToArray();
                     if (prs.Length > 1 && xps.Length > 0)
                     {
-                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Command '{0}' has invalid parameter specification, skipping", xct.Name)));
+                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Command '{xct.Name}' has invalid parameter specification, skipping"));
                         continue;
                     }
 
@@ -158,16 +158,16 @@ namespace PoE.Bot.Commands
                             if (!this.RegisteredCommands.ContainsKey(name))
                                 this.RegisteredCommands.Add(name, cmd);
                             else
-                                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Alias '{0}' for command '{1}' already taken, skipping", name, cmd.Name)));
+                                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Alias '{name}' for command '{cmd.Name}' already taken, skipping"));
                         }
-                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Registered command '{0}' for module '{1}'", cmd.Name, ch.Name)));
+                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Registered command '{cmd.Name}' for module '{ch.Name}'"));
                     }
                     else
-                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Command name '{0}' is already registered, skipping", cmd.Name)));
+                        Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Command name '{cmd.Name}' is already registered, skipping"));
                 }
-                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Registered command module '{0}' for type {1}", ch.Name, t.ToString())));
+                Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Registered command module '{ch.Name}' for type {t.ToString()}"));
             }
-            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("Registered {0:#,##0} commands", this.RegisteredCommands.GroupBy(xkvp => xkvp.Value).Count())));
+            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"Registered {this.RegisteredCommands.GroupBy(xkvp => xkvp.Value).Count():#,##0} commands"));
         }
 
         private void InitCommands()
@@ -269,7 +269,7 @@ namespace PoE.Bot.Commands
         private void CommandError(CommandErrorContext ctxe)
         {
             var ctx = ctxe.Context;
-            Log.W(new LogMessage(LogSeverity.Error, "Command Error", string.Format("User '{0}#{1}' failed to execute command '{2}' in guild '{3}'; reason: {4} ({5}; message: '{6}')", ctx.User.Username, ctx.User.Discriminator, ctx.Command != null ? ctx.Command.Name : "<unknown>", ctx.Guild.Name, ctxe.Exception != null ? ctxe.Exception.GetType().ToString() : "<unknown exception type>", ctxe.Exception != null ? ctxe.Exception.Message : "N/A", ctx.Message.ToString())));
+            Log.W(new LogMessage(LogSeverity.Error, "Command Error", $"User '{ctx.User.Username}#{ctx.User.Discriminator}' failed to execute command '{(ctx.Command != null ? ctx.Command.Name : "<unknown>")}' in guild '{ctx.Guild.Name}'; reason: {(ctxe.Exception != null ? ctxe.Exception.GetType().ToString() : "<unknown exception type>")} ({5}; message: '{(ctxe.Exception != null ? ctxe.Exception.Message : "N/A", ctx.Message.ToString())}')"));
 
             var param = ctx.Message.Content.Contains("[[") ? ctx.Message.Content : ctx.Message.Content.Remove(0, ctx.Command.Name.Length + 1).Trim();
             var embed = new EmbedBuilder
@@ -289,7 +289,7 @@ namespace PoE.Bot.Commands
 
         private void CommandExecuted(CommandContext ctx)
         {
-            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", string.Format("User '{0}#{1}' executed command '{2}' on server '{3}' ({4})", ctx.User.Username, ctx.User.Discriminator, ctx.Command.Name, ctx.Guild.Name, ctx.Guild.Id)));
+            Log.W(new LogMessage(LogSeverity.Info, "Command Manager", $"User '{ctx.User.Username}#{ctx.User.Discriminator}' executed command '{ctx.Command.Name}' on server '{ctx.Guild.Name}' ({ctx.Guild.Id})"));
         }
 
         private IReadOnlyList<string> ParseArgumentList(string argstring)

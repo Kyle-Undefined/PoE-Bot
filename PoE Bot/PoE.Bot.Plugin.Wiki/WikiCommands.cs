@@ -6,13 +6,11 @@ using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
 using Discord;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using HtmlAgilityPack;
 using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
-using PoE.Bot.Commands.Permissions;
 
 namespace PoE.Bot.Plugin.Wiki
 {

@@ -1,15 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Net;
-using System.IO;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Config;
 using PoE.Bot.Plugins;
 

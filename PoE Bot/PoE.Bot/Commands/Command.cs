@@ -116,7 +116,7 @@ namespace PoE.Bot.Commands
                         throw new InvalidOperationException("Parameter is not catchall but an array.");
 
                     if (prm.IsRequired && ctx.RawArguments.Count < prm.Order + 1)
-                        throw new ArgumentException(string.Concat("Parameter ", prm.Name, " is required."));
+                        throw new ArgumentException($"Parameter {prm.Name} is required.");
                     else if (!prm.IsRequired && ctx.RawArguments.Count < prm.Order + 1)
                         break;
 

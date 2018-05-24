@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Net;
-using System.Net.Http;
-using System.Collections.Generic;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Attributes;
 using PoE.Bot.Commands;
-using PoE.Bot.Commands.Permissions;
 
 namespace PoE.Bot.Plugin.Trials
 {

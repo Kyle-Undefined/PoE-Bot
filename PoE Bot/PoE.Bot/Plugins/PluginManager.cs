@@ -39,7 +39,7 @@ namespace PoE.Bot.Plugins
                 var x = Directory.GetFiles(r, "*.dll", SearchOption.TopDirectoryOnly);
                 foreach (var xx in x)
                 {
-                    Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Loaded reference file '{0}'", xx)));
+                    Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Loaded reference file '{xx}'"));
                     var xa = FrameworkAssemblyLoader.LoadFile(xx);
                     this.LoadedAssemblies.Add(xa.GetName().Name, xa);
                 }
@@ -51,7 +51,7 @@ namespace PoE.Bot.Plugins
                 var x = Directory.GetFiles(l, "*.dll", SearchOption.TopDirectoryOnly);
                 foreach (var xx in x)
                 {
-                    Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Loaded file '{0}'", xx)));
+                    Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Loaded file '{xx}'"));
                     var xa = FrameworkAssemblyLoader.LoadFile(xx);
                     this.LoadedAssemblies.Add(xa.GetName().Name, xa);
                 }
@@ -72,17 +72,17 @@ namespace PoE.Bot.Plugins
                 if (!pt.IsAssignableFrom(t.AsType()) || !t.IsClass || t.IsAbstract)
                     continue;
 
-                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Type {0} is a plugin", t.ToString())));
+                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Type {t.ToString()} is a plugin"));
                 var iplg = Activator.CreateInstance(t.AsType()) as IPlugin;
                 var plg = new Plugin { _Plugin = iplg };
                 this.RegisteredPlugins.Add(plg.Name, plg);
-                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Registered plugin '{0}'", plg.Name)));
+                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Registered plugin '{plg.Name}'"));
                 plg._Plugin.Initialize();
                 plg._Plugin.LoadConfig(PoE_Bot.ConfigManager.GetConfig(iplg));
-                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Plugin '{0}' initialized", plg.Name)));
+                Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Plugin '{plg.Name}' initialized"));
             }
             this.UpdateAllConfigs();
-            Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", string.Format("Registered and initialized {0:#,##0} plugins", this.RegisteredPlugins.Count)));
+            Log.W(new LogMessage(LogSeverity.Info, "Plugin Manager", $"Registered and initialized {this.RegisteredPlugins.Count:#,##0} plugins"));
         }
 
         internal void UpdateAllConfigs()

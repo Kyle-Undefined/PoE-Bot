@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Xml.Linq;
@@ -20,7 +19,7 @@ namespace PoE.Bot.Plugin.RSS
     {
         public string Name { get { return "PoE.Bot.Plugin.RSS Module"; } }
 
-        [Command("addrss", "Adds an RSS feed to a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("addrss", "Adds an RSS feed to a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task AddRss(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to add the feed to.", true)] ITextChannel channel,
             [ArgumentParameter("URL of the RSS feed.", true)] string url,
@@ -42,14 +41,14 @@ namespace PoE.Bot.Plugin.RSS
 
             RSSPlugin.Instance.AddFeed(new Uri(url), chf.Id, rles, tag);
             var embed = this.PrepareEmbed("Success", "Feed was added successfully.", EmbedType.Success);
-            embed.AddField("Details", string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was added to ", chf.Mention, sb != null ? string.Concat(" and will mention the ", sb.ToString(), " role(s).") : "."))
+            embed.AddField("Details", $"Feed pointing to <{url}>{(tag != null ? " and **" + tag + "** tag" : "")} was added to {chf.Mention}{(sb != null ? " and will mention the " + sb.ToString() + " role(s)" : "")}.")
                 .WithAuthor(ctx.User)
                 .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("rmrss", "Removes an RSS feed from a specified channel.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("rmrss", "Removes an RSS feed from a specified channel.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task RemoveRss(CommandContext ctx,
             [ArgumentParameter("Mention of the channel to remove the feed from.", true)] ITextChannel channel,
             [ArgumentParameter("URL of the RSS feed.", true)] string url,
@@ -61,14 +60,14 @@ namespace PoE.Bot.Plugin.RSS
 
             RSSPlugin.Instance.RemoveFeed(new Uri(url), chf.Id, tag);
             var embed = this.PrepareEmbed("Success", "Feed was removed successfully.", EmbedType.Success);
-            embed.AddField("Details", string.Concat("Feed pointing to <", url, ">", tag != null ? string.Concat(" and **", tag, "** tag") : "", " was removed from ", chf.Mention, "."))
+            embed.AddField("Details", $"Feed pointing to <{url}>{(tag != null ? " and **" + tag + "** tag" : "")} was removed from {chf.Mention}")
                .WithAuthor(ctx.User)
                .WithThumbnailUrl(string.IsNullOrEmpty(ctx.User.GetAvatarUrl()) ? ctx.User.GetDefaultAvatarUrl() : ctx.User.GetAvatarUrl());
 
             await ctx.Channel.SendMessageAsync("", false, embed.Build());
         }
 
-        [Command("listrss", "Lists RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("listrss", "Lists RSS feeds active in the current guild.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task ListRss(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;
@@ -106,7 +105,7 @@ namespace PoE.Bot.Plugin.RSS
             }
         }
 
-        [Command("testrss", "Tests the RSS feeds active in the current guild.", CheckerId = "CoreAdminChecker", CheckPermissions = true, RequiredPermission = Permission.Administrator)]
+        [Command("testrss", "Tests the RSS feeds active in the current guild.", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task TestRss(CommandContext ctx)
         {
             var gld = ctx.Guild as SocketGuild;

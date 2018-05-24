@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PoE.Bot.Plugin.Leaderboard
+﻿namespace PoE.Bot.Plugin.Leaderboard
 {
     internal class Leaderboard
     {

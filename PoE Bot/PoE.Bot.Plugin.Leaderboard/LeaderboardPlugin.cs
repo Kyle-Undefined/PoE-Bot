@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using System.Text;
 using System.IO;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Config;
 using PoE.Bot.Plugins;
 using CsvHelper;
@@ -47,7 +43,7 @@ namespace PoE.Bot.Plugin.Leaderboard
         public void AddLeaderboard(string variant, ulong channel, bool enabled)
         {
             this.conf.Leaderboards.Add(new Leaderboard(variant, channel, enabled));
-            Log.W(new LogMessage(LogSeverity.Info, "Leaderboard Plugin", string.Format("Added Leaderboard for variant: {0} in channel: {1} and is {2}Enabled.", variant, channel, (enabled ? "" : "not "))));
+            Log.W(new LogMessage(LogSeverity.Info, "Leaderboard Plugin", $"Added Leaderboard for variant: {variant} in channel: {channel} and is {(enabled ? "" : "not ")}Enabled."));
 
             UpdateConfig();
         }
@@ -56,7 +52,7 @@ namespace PoE.Bot.Plugin.Leaderboard
         {
             var lb = this.conf.Leaderboards.FirstOrDefault(xf => xf.Variant == variant && xf.ChannelId == channel);
             this.conf.Leaderboards.Remove(lb);
-            Log.W(new LogMessage(LogSeverity.Info, "Leaderboard Plugin", string.Format("Removed Leaderboard for variant: {0} in channel: {1}", variant, channel)));
+            Log.W(new LogMessage(LogSeverity.Info, "Leaderboard Plugin", $"Removed Leaderboard for variant: {variant} in channel: {channel}"));
 
             UpdateConfig();
         }

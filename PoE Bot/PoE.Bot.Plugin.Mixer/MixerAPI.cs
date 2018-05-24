@@ -1,12 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
+﻿using System.Threading.Tasks;
 using System.Net.Http;
-using System.Collections.Generic;
-using System.Xml.Linq;
-using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace PoE.Bot.Plugin.Mixer

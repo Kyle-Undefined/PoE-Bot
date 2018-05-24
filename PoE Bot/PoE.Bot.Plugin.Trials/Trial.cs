@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PoE.Bot.Plugin.Trials
+﻿namespace PoE.Bot.Plugin.Trials
 {
     internal class Trial
     {

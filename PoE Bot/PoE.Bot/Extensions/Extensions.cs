@@ -14,7 +14,7 @@ namespace PoE.Bot.Extensions
                 d /= 1024D;
                 i++;
             }
-            return string.Format("{0:#,##0.00} {1}B", d, u[i]);
+            return $"{d:#,##0.00} {u[i]}B";
         }
 
         public static string ToSizeString(this int l)
@@ -27,7 +27,7 @@ namespace PoE.Bot.Extensions
                 d /= 1024D;
                 i++;
             }
-            return string.Format("{0:#,##0.00} {1}B", d, u[i]);
+            return $"{d:#,##0.00} {u[i]}B";
         }
 
         public static string ToPointerString(this IntPtr ptr)
@@ -37,9 +37,9 @@ namespace PoE.Bot.Extensions
             var pst = null as string;
             //if (Environment.Is64BitOperatingSystem)
             if (IntPtr.Size == 8)
-                pst = string.Concat("0x", i64.ToString("X16"));
+                pst = $"0x{i64.ToString("X16")}";
             else
-                pst = string.Concat("0x", i32.ToString("X8"));
+                pst = $"0x{i32.ToString("X8")}";
             return pst;
         }
     }

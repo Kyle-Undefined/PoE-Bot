@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Text;
 using Discord;
-using Discord.WebSocket;
 using PoE.Bot.Config;
 using PoE.Bot.Plugins;
 
@@ -43,7 +38,7 @@ namespace PoE.Bot.Plugin.Mixer
         public void AddStream(string name, uint userid, uint mixerChannelId, ulong channel)
         {
             this.conf.Streams.Add(new Mixer(name, userid, mixerChannelId, false, channel));
-            Log.W(new LogMessage(LogSeverity.Info, "Mixer Plugin", string.Format("Added Mixer stream for {0}: {1}", name, channel)));
+            Log.W(new LogMessage(LogSeverity.Info, "Mixer Plugin", $"Added Mixer stream for {name}: {channel}"));
 
             UpdateConfig();
         }
@@ -52,7 +47,7 @@ namespace PoE.Bot.Plugin.Mixer
         {
             var feed = this.conf.Streams.FirstOrDefault(xf => xf.Name == name && xf.ChannelId == channel);
             this.conf.Streams.Remove(feed);
-            Log.W(new LogMessage(LogSeverity.Info, "Mixer Plugin", string.Format("Removed Mixer stream for {0}: {1}", name, channel)));
+            Log.W(new LogMessage(LogSeverity.Info, "Mixer Plugin", $"Removed Mixer stream for {name}: {channel}"));
 
             UpdateConfig();
         }
