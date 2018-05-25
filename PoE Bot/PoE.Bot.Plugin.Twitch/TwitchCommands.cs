@@ -123,9 +123,9 @@ namespace PoE.Bot.Plugin.Twitch
                 var twitchGame = await twitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
                 var embed = this.PrepareEmbed(EmbedType.Info);
                 embed.WithTitle(stream.Title)
-                    .WithDescription($"\n**{twitchUser.Users[0].DisplayName}** is playing **{twitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{twitchUser.Users[0].DisplayName}**")
-                    .WithAuthor(twitchUser.Users[0].DisplayName, twitchUser.Users[0].ProfileImageUrl, $"http://www.twitch.tv/{twitchUser.Users[0].DisplayName}")
-                    .WithThumbnailUrl(twitchGame.Games[0].BoxArtUrl.Replace("{width}x{height}", "285x380"))
+                    .WithDescription($"\n**{TwitchPlugin.Instance.GetTwitchDisplayName(twitchUser.Users)}** is playing **{TwitchPlugin.Instance.GetTwitchGameName(twitchGame.Games)}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{TwitchPlugin.Instance.GetTwitchDisplayName(twitchUser.Users)}**")
+                    .WithAuthor(TwitchPlugin.Instance.GetTwitchDisplayName(twitchUser.Users), TwitchPlugin.Instance.GetTwitchProfileImage(twitchUser.Users), $"http://www.twitch.tv/{TwitchPlugin.Instance.GetTwitchDisplayName(twitchUser.Users)}")
+                    .WithThumbnailUrl(TwitchPlugin.Instance.GetTwitchGameBoxArt(twitchGame.Games))
                     .WithImageUrl(stream.ThumbnailUrl.Replace("{width}x{height}", "640x360"));
 
                 var channel = twitches.Find(x => x.UserId == stream.UserId).ChannelId;

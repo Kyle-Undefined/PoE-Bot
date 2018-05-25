@@ -109,13 +109,13 @@ namespace PoE.Bot.Plugin.Twitch
                 {
                     if (!stream.IsLive)
                     {
-                        var twitchUser = await twitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
+                        var twitchUser = await twitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { s.UserId }));
                         var twitchGame = await twitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { s.GameId }));
                         var embed = new EmbedBuilder();
                         embed.WithTitle(s.Title)
-                            .WithDescription($"\n**{twitchUser.Users[0].DisplayName}** is playing **{twitchGame.Games[0].Name}** for {s.ViewerCount} viewers!\n\n**http://www.twitch.tv/{twitchUser.Users[0].DisplayName}**")
-                            .WithAuthor(twitchUser.Users[0].DisplayName, twitchUser.Users[0].ProfileImageUrl, $"http://www.twitch.tv/{twitchUser.Users[0].DisplayName}")
-                            .WithThumbnailUrl(twitchGame.Games[0].BoxArtUrl.Replace("{width}x{height}", "285x380"))
+                            .WithDescription($"\n**{GetTwitchDisplayName(twitchUser.Users)}** is playing **{GetTwitchGameName(twitchGame.Games)}** for {s.ViewerCount} viewers!\n\n**http://www.twitch.tv/{GetTwitchDisplayName(twitchUser.Users)}**")
+                            .WithAuthor(GetTwitchDisplayName(twitchUser.Users), GetTwitchProfileImage(twitchUser.Users), $"http://www.twitch.tv/{GetTwitchDisplayName(twitchUser.Users)}")
+                            .WithThumbnailUrl(GetTwitchGameBoxArt(twitchGame.Games))
                             .WithImageUrl(s.ThumbnailUrl.Replace("{width}x{height}", "640x360"))
                             .WithColor(new Color(0, 127, 255));
 
@@ -131,6 +131,38 @@ namespace PoE.Bot.Plugin.Twitch
             }
 
             Log.W(new LogMessage(LogSeverity.Info, "Twitch Plugin", "Ticked Twitch"));
+        }
+
+        public string GetTwitchDisplayName(TwitchLib.Api.Models.Helix.Users.GetUsers.User[] user)
+        {
+            if (user.Count() == 0)
+                return "Invalid_User";
+
+            return user[0].DisplayName;
+        }
+
+        public string GetTwitchProfileImage(TwitchLib.Api.Models.Helix.Users.GetUsers.User[] user)
+        {
+            if (user.Count() == 0)
+                return "https://static-cdn.jtvnw.net/user-default-pictures/0ecbb6c3-fecb-4016-8115-aa467b7c36ed-profile_image-600x600.jpg";
+
+            return user[0].ProfileImageUrl;
+        }
+
+        public string GetTwitchGameName(TwitchLib.Api.Models.Helix.Games.GetGames.Game[] game)
+        {
+            if (game.Count() == 0)
+                return "Invalid_Game";
+
+            return game[0].Name;
+        }
+
+        public string GetTwitchGameBoxArt(TwitchLib.Api.Models.Helix.Games.GetGames.Game[] game)
+        {
+            if (game.Count() == 0)
+                return "https://static-cdn.jtvnw.net/ttv-static/404_boxart-285x380.jpg";
+
+            return game[0].BoxArtUrl.Replace("{width}x{height}", "285x380");
         }
     }
 }

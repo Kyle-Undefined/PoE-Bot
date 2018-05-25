@@ -74,7 +74,7 @@ namespace PoE.Bot
         {
             Exception e = (Exception)args.ExceptionObject;
             Log.W(new LogMessage(LogSeverity.Critical, "PoE_Bot", $"Unhandled Exception: {e.Message}"));
-            System.IO.File.WriteAllText(@"C:\Users\Public\Documents\Log.txt", $"{DateTime.Now,-19} {e.Source}: {e.Message} {Environment.NewLine}");
+            System.IO.File.WriteAllText(@"C:\Users\Public\Documents\Log.txt", $"{DateTime.Now,-19} {e.Source}: {e.Message} | {e.Source} {Environment.NewLine}");
         }
     }
 }
