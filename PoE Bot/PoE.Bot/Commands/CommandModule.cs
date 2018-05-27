@@ -168,7 +168,7 @@ namespace PoE.Bot.Commands
                 perms.Add("Can mute members");
             if (grl.Permissions.ReadMessageHistory)
                 perms.Add("Can read message history");
-            if (grl.Permissions.ReadMessages)
+            if (grl.Permissions.ViewChannel)
                 perms.Add("Can read messages");
             if (grl.Permissions.SendMessages)
                 perms.Add("Can send messages");
