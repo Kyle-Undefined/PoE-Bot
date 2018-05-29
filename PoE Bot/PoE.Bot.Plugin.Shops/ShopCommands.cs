@@ -39,7 +39,7 @@ namespace PoE.Bot.Plugin.Shops
 
                     var nChn = await ctx.Guild.CreateTextChannelAsync(usrChnN);
 
-                    await nChn.ModifyAsync(x => x.CategoryId = (ctx.Channel as IGuildChannel).CategoryId);
+                    await nChn.ModifyAsync(x => x.CategoryId = (ctx.Channel as ITextChannel).CategoryId);
                     await nChn.AddPermissionOverwriteAsync(ctx.User, new OverwritePermissions(manageMessages: PermValue.Allow));
 
                     embed.WithTitle("Your personal shop has been created!")
@@ -69,8 +69,8 @@ namespace PoE.Bot.Plugin.Shops
         [Command("shopspurge", "Purges all channels under the Shops category", CheckerId = "CoreModerator", CheckPermissions = true)]
         public async Task ShopsPurge(CommandContext ctx)
         {
-            var chans = await ctx.Guild.GetChannelsAsync();
-            var catChans = chans.Where(x => x.CategoryId == (ctx.Channel as IGuildChannel).CategoryId);
+            var chans = await ctx.Guild.GetTextChannelsAsync();
+            var catChans = chans.Where(x => x.CategoryId == (ctx.Channel as ITextChannel).CategoryId);
 
             foreach (var chan in catChans)
             {
