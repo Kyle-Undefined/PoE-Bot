@@ -1,0 +1,32 @@
+﻿using System;
+using Discord;
+using PoE.Bot.Config;
+using PoE.Bot.Plugins;
+
+namespace PoE.Bot.Plugin.Shops
+{
+    public class ShopPlugin : IPlugin
+    {
+        public IPluginConfig Config { get { return this.conf; } }
+        public Type ConfigType { get { return typeof(ShopPluginConfig); } }
+        public string Name { get { return "Shop Plugin"; } }
+        private ShopPluginConfig conf;
+
+        public static ShopPlugin Instance { get; private set; }
+
+        public void Initialize()
+        {
+            Log.W(new LogMessage(LogSeverity.Info, "Shop Plugin", "Initializing Shop"));
+            Instance = this;
+            this.conf = new ShopPluginConfig();
+            Log.W(new LogMessage(LogSeverity.Info, "Shop Plugin", "Shop Initialized"));
+        }
+
+        public void LoadConfig(IPluginConfig config)
+        {
+            //var cfg = config as ShopPluginConfig;
+            //if (cfg != null)
+            //    this.conf = cfg;
+        }
+    }
+}
