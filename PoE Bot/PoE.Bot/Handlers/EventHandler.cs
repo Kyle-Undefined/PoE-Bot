@@ -94,21 +94,28 @@
             if (Config.Blacklist.Contains(Message.Author.Id) || Message.Author.IsBot || Message.Author.IsWebhook) return;
             EventHelper.RunTasks(Message, Context.Server);
 
-            // look into doing inline wiki search here
-
-            if (!(Message.HasStringPrefix(Config.Prefix, ref argPos) || Message.HasCharPrefix(Context.Server.Prefix, ref argPos))) return;
-            var Result = await CommandService.ExecuteAsync(Context, argPos, Provider, MultiMatchHandling.Best);
-            switch (Result.Error)
+            // Inline Wiki command, just because the users want it so bad
+            if (Message.Content.Contains("[["))
             {
-                case CommandError.UnmetPrecondition:
-                    var Permissions = (Message.Channel as SocketGuildChannel).Guild.CurrentUser.GuildPermissions;
-                    if (!string.IsNullOrWhiteSpace(Result.ErrorReason) && Permissions.SendMessages && Permissions.ViewChannel)
-                        await Message.Channel.SendMessageAsync(Result?.ErrorReason); break;
-                case CommandError.MultipleMatches: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
-                case CommandError.ObjectNotFound: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
-                case CommandError.Unsuccessful:
-                    await Message.Channel.SendMessageAsync($"Is it a {Extras.Bug} that you found?! Please report this error to my owner Kyle Undefined#1745 or use {Context.Server.Prefix}Feedback");
-                    break;
+                var Item = Message.Content.Split('[',']')[2];
+                var Result = await CommandService.ExecuteAsync(Context, $"Wiki {Item}", Provider, MultiMatchHandling.Best);
+            }
+            else
+            {
+                if (!(Message.HasStringPrefix(Config.Prefix, ref argPos) || Message.HasCharPrefix(Context.Server.Prefix, ref argPos))) return;
+                var Result = await CommandService.ExecuteAsync(Context, argPos, Provider, MultiMatchHandling.Best);
+                switch (Result.Error)
+                {
+                    case CommandError.UnmetPrecondition:
+                        var Permissions = (Message.Channel as SocketGuildChannel).Guild.CurrentUser.GuildPermissions;
+                        if (!string.IsNullOrWhiteSpace(Result.ErrorReason) && Permissions.SendMessages && Permissions.ViewChannel)
+                            await Message.Channel.SendMessageAsync(Result?.ErrorReason); break;
+                    case CommandError.MultipleMatches: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
+                    case CommandError.ObjectNotFound: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
+                    case CommandError.Unsuccessful:
+                        await Message.Channel.SendMessageAsync($"Is it a {Extras.Bug} that you found?! Please report this error to my owner Kyle Undefined#1745 or use {Context.Server.Prefix}Feedback");
+                        break;
+                }
             }
         }
 
