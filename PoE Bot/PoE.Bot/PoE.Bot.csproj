@@ -10,31 +10,18 @@
     <OutputType>Exe</OutputType>
     <PackageId>PoE.Bot</PackageId>
     <RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <ApplicationIcon></ApplicationIcon>
+    <Authors>Kyle Undefined</Authors>
+    <Company>PoE Xbox Discord</Company>
+	<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+	<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+	<GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <ProjectReference Include="..\PoE.Bot.AssemblyResolver\PoE.Bot.AssemblyResolver.csproj" />
-    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="MarkovCore" Version="1.2.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.9" />
     <PackageReference Include="CsvHelper" Version="7.1.0" />
-    <PackageReference Include="Discord.Addons.EmbedTool" Version="1.0.0" />
-    <PackageReference Include="Discord.Addons.Interactive" Version="1.0.1" />
-    <PackageReference Include="Discord.Addons.Preconditions" Version="1.2.0-alpha2" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00964" />
-    <PackageReference Include="Discord.Net.Commands" Version="2.0.0-beta2-00964" />
-    <PackageReference Include="Discord.Net.Core" Version="2.0.0-beta2-00964" />
-    <PackageReference Include="Discord.Net.Rest" Version="2.0.0-beta2-00964" />
-    <PackageReference Include="Discord.Net.Rpc" Version="2.0.0-beta-00860" />
-    <PackageReference Include="Discord.Net.Webhook" Version="2.0.0-beta2-00964" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0-beta2-00964" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00965" />
+    <PackageReference Include="FluentScheduler" Version="5.3.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.8.4" />
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.8.2" />
@@ -45,13 +32,4 @@
     <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
     <PackageReference Include="TwitchLib.Api" Version="2.1.2" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PoE.Bot.AssemblyResolver\PoE.Bot.AssemblyResolver.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
-  </ItemGroup>
-
 </Project>

@@ -1,1 +1,0 @@
-powershell.exe -windowstyle hidden -file Path\To\Daemon\DiscordDaemon.ps1
