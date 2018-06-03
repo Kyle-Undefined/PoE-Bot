@@ -1,7 +1,0 @@
-{
-  "token": "discord bot token",
-  "twitchClientID": "twitch client id",
-  "twitchAccessToken": "twitch access token",
-  "guild_config": {},
-  "conf_manager": []
-}

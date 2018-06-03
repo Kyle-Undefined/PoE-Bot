@@ -4,29 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot", "PoE.Bot\PoE.Bot.csproj", "{784A671A-574E-45F3-BC12-714B74E0241D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{9A0A2689-71BA-4025-B025-BBB8B5E820A8} = {9A0A2689-71BA-4025-B025-BBB8B5E820A8}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.AssemblyResolver", "PoE.Bot.AssemblyResolver\PoE.Bot.AssemblyResolver.csproj", "{9A0A2689-71BA-4025-B025-BBB8B5E820A8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Wiki", "PoE.Bot.Plugin.Wiki\PoE.Bot.Plugin.Wiki.csproj", "{61DFC5A5-F39A-42FB-9DB4-FF7068AB6455}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Price", "PoE.Bot.Plugin.Price\PoE.Bot.Plugin.Price.csproj", "{90BA3BB0-4316-42CF-9584-5F3119BF2A4D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.RSS", "PoE.Bot.Plugin.RSS\PoE.Bot.Plugin.RSS.csproj", "{BC7B076B-A89A-43AF-AE47-D92C32550E76}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Shops", "PoE.Bot.Plugin.Shops\PoE.Bot.Plugin.Shops.csproj", "{EC43A877-37FD-4324-924C-CE8D7FA159CC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Trials", "PoE.Bot.Plugin.Trials\PoE.Bot.Plugin.Trials.csproj", "{9ED54240-3D41-497E-A370-DAF03A0E540A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Leaderboard", "PoE.Bot.Plugin.Leaderboard\PoE.Bot.Plugin.Leaderboard.csproj", "{FD992157-967E-4B87-920B-1FD40D8B63E6}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Twitch", "PoE.Bot.Plugin.Twitch\PoE.Bot.Plugin.Twitch.csproj", "{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot.Plugin.Mixer", "PoE.Bot.Plugin.Mixer\PoE.Bot.Plugin.Mixer.csproj", "{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoE.Bot.Plugin.PathOfBuilding", "PoE.Bot.Plugin.PathOfBuilding\PoE.Bot.Plugin.PathOfBuilding.csproj", "{5A114E45-9C0C-4C7D-9C61-56E79230D369}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,46 +15,6 @@ Global
 		{784A671A-574E-45F3-BC12-714B74E0241D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{784A671A-574E-45F3-BC12-714B74E0241D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{784A671A-574E-45F3-BC12-714B74E0241D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A0A2689-71BA-4025-B025-BBB8B5E820A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61DFC5A5-F39A-42FB-9DB4-FF7068AB6455}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61DFC5A5-F39A-42FB-9DB4-FF7068AB6455}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61DFC5A5-F39A-42FB-9DB4-FF7068AB6455}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61DFC5A5-F39A-42FB-9DB4-FF7068AB6455}.Release|Any CPU.Build.0 = Release|Any CPU
-		{90BA3BB0-4316-42CF-9584-5F3119BF2A4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90BA3BB0-4316-42CF-9584-5F3119BF2A4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90BA3BB0-4316-42CF-9584-5F3119BF2A4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90BA3BB0-4316-42CF-9584-5F3119BF2A4D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC7B076B-A89A-43AF-AE47-D92C32550E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC7B076B-A89A-43AF-AE47-D92C32550E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC7B076B-A89A-43AF-AE47-D92C32550E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC7B076B-A89A-43AF-AE47-D92C32550E76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EC43A877-37FD-4324-924C-CE8D7FA159CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9ED54240-3D41-497E-A370-DAF03A0E540A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD992157-967E-4B87-920B-1FD40D8B63E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD992157-967E-4B87-920B-1FD40D8B63E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD992157-967E-4B87-920B-1FD40D8B63E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD992157-967E-4B87-920B-1FD40D8B63E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42B9DB6D-2235-4CF0-8A97-68AC50D94E91}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EB4D9FF-221F-4245-9664-C431B2BEF4BB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5A114E45-9C0C-4C7D-9C61-56E79230D369}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A114E45-9C0C-4C7D-9C61-56E79230D369}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A114E45-9C0C-4C7D-9C61-56E79230D369}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A114E45-9C0C-4C7D-9C61-56E79230D369}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
