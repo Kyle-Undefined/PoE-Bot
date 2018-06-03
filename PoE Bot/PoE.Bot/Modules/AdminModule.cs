@@ -203,25 +203,23 @@
             return ReplyAsync($"`{RSS}` has been added to server's Rss Feed {Extras.OkHand}", Save: 's');
         }
 
-        [Command("RssAdd"), Remarks("Add RSS. You will get live feed from specified RSS feeds."), Summary("RssAdd <RSS> <#Channel> <Tag> <@Role1> <@Role2> ...")]
-        public Task RssAddAsync(string RSS, SocketTextChannel Channel, string Tag = null, params IRole[] Roles)
+        [Command("RssRoles"), Remarks("Adds Role(s) to an Rss Feed."), Summary("RssRoles <RSS> <#Channel> <@Role1> <@Role2> ...")]
+        public Task RssRolesAsync(string RSS, SocketTextChannel Channel, params IRole[] Roles)
         {
-            if (Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` already exists {Extras.Cross}");
-            Context.Server.RssFeeds.Add(new RssObject
-            {
-                FeedUri = new Uri(RSS),
-                ChannelId = Channel.Id,
-                Tag = Tag,
-                RoleIds = Roles.Select(r => r.Id).ToList()
-            });
-            return ReplyAsync($"`{RSS}` has been added to server's Rss Feed {Extras.OkHand}", Save: 's');
+            if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` doesn't exist {Extras.Cross}");
+            var Rss = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id);
+            Context.Server.RssFeeds.Remove(Rss);
+            Rss.RoleIds = Roles.Select(r => r.Id).ToList();
+            Context.Server.RssFeeds.Add(Rss);
+            return ReplyAsync($"{String.Join(", ", Roles.Select(r => r.Name))} have been added to the `{RSS}` feed {Extras.OkHand}", Save: 's');
         }
 
         [Command("RssRemove"), Remarks("Remove RSS."), Summary("RssRemove <RSS> <#Channel>")]
         public Task RssRemoveAsync(string RSS, SocketTextChannel Channel)
         {
             if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` doesn't exist {Extras.Cross}");
-            Context.Server.RssFeeds.Remove(new RssObject() { FeedUri = new Uri(RSS), ChannelId = Channel.Id });
+            var Rss = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id);
+            Context.Server.RssFeeds.Remove(Rss);
             return ReplyAsync($"`{RSS}` has been removed from server's Rss Feed {Extras.OkHand}", Save: 's');
         }
 
