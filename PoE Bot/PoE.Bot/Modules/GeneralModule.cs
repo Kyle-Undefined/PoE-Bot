@@ -237,7 +237,7 @@
         public Task TrialAsync([Remainder] string Trial)
             => ReplyAsync($"{Context.User.Mention} has found the {Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault().Mention}");
 
-        [Command("Price"), Summary("Price <Name: Any Alias> [League: Defaults to Challenge | Standard, Hardcore, Challenge, ChallengeHC]"), Remarks("Pulls the price for the requested currency, in the chosen league, all values based on Chaos.")]
+        [Command("Price"), Summary("Price <Name: Any Alias> [League: Defaults to Challenge | Standard, Hardcore, Challenge, ChallengeHC]"), Remarks("Pulls the price for the requested currency, in the chosen league, all values based on Chaos."), BanChannel("price-checkers")]
         public Task PriceAsync(string Name, Leagues League = Leagues.Challenge)
         {
             if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any()) return ReplyAsync($"`{Name}` is not in the `{League}` list {Extras.Cross}");
