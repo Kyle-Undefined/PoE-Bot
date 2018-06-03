@@ -1,20 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <Description>A bot for the Path Of Exile Xbox Discord server. Integrates with PoE Wiki, Price API, Moderation, RSS and more!</Description>
-    <Copyright>2018 Kyle Undefined</Copyright>
-    <AssemblyTitle>PoE Bot</AssemblyTitle>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>PoE.Bot</AssemblyName>
     <OutputType>Exe</OutputType>
-    <PackageId>PoE.Bot</PackageId>
-    <RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
-    <Authors>Kyle Undefined</Authors>
-    <Company>PoE Xbox Discord</Company>
-	<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-	<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-	<GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,11 +21,9 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.8.4" />
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.8.2" />
-    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="RavenDB.Client" Version="4.0.4-patch-40038" />
     <PackageReference Include="SkiaSharp" Version="1.60.1" />
-    <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
     <PackageReference Include="TwitchLib.Api" Version="2.1.2" />
   </ItemGroup>
 </Project>

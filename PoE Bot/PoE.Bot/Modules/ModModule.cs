@@ -127,7 +127,7 @@
             (Context.Channel as SocketTextChannel).DeleteMessagesAsync(
                  MethodHelper.RunSync(Context.Channel.GetMessagesAsync(Amount + 1).FlattenAsync()))
                 .ContinueWith(x => ReplyAndDeleteAsync($"Deleted `{Amount}` messages {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-            return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} Messages.");
+            return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} Messages in #{Context.Channel.Name}");
         }
 
         [Command("Purge"), Remarks("Deletes User Messages"), Summary("Purge <@User> [Amount]"), BotPermission(GuildPermission.ManageMessages),
@@ -137,7 +137,7 @@
             (Context.Channel as SocketTextChannel).DeleteMessagesAsync(
                  MethodHelper.RunSync(Context.Channel.GetMessagesAsync(Amount + 1).FlattenAsync()).Where(x => x.Author.Id == User.Id))
                 .ContinueWith(x => ReplyAndDeleteAsync($"Deleted `{Amount}` of `{User}`'s messages {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-            return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} of {User}'s Messages.");
+            return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} of {User}'s Messages #{Context.Channel.Name}");
         }
 
         [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user."), Summary("Mute <@User> [Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes] [Reason]"), BotPermission(GuildPermission.ManageRoles),
@@ -147,6 +147,16 @@
                 x =>
                 {
                     Context.Server.Muted.TryAdd(User.Id, DateTime.UtcNow.Add((TimeSpan)(Time.HasValue ? Time : TimeSpan.FromMinutes(5))).ToUniversalTime());
+                    SaveDocument('s');
+                });
+
+        [Command("SoftMute", RunMode = RunMode.Async), Remarks("Mutes a user."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
+        UserPermission(GuildPermission.ManageRoles, "Oh man, you don't have the permission to manage roles.")]
+        public Task SoftMuteAsync(IGuildUser User, [Remainder] string Reason = null)
+            => MuteCommandAsync(User, TimeSpan.FromMinutes(5), (!string.IsNullOrEmpty(Reason) ? Reason : "No Reason specified.")).ContinueWith(
+                x =>
+                {
+                    Context.Server.Muted.TryAdd(User.Id, DateTime.UtcNow.Add(TimeSpan.FromMinutes(5)).ToUniversalTime());
                     SaveDocument('s');
                 });
 
