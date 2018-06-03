@@ -14,9 +14,7 @@
 
     class PoE_Bot
     {
-        static void Main(string[] args) => new PoE_Bot().InitializeAsync().GetAwaiter().GetResult();
-
-        async Task InitializeAsync()
+        static async Task Main(string[] args)
         {
             var Services = new ServiceCollection()
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
@@ -48,7 +46,7 @@
             await Provider.GetRequiredService<MainHandler>().InitializeAsync();
             await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
             Provider.GetRequiredService<JobHandler>().Initialize();
-            Provider.GetRequiredService<JobHandler>().RunJob(LogHandler.ForceGC, "garbage collector", 3);
+            Provider.GetRequiredService<JobHandler>().RunJob(LogHandler.ForceGC, "garbage collector", 10);
             await Task.Delay(-1);
         }
     }
