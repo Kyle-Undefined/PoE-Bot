@@ -17,7 +17,7 @@
         [Command("Command"), Summary("Display how you can use a command.")]
         public Task CommandAsync([Remainder] string CommandName)
         {
-            var Command = CommandService.Search(Context, CommandName).Commands?.FirstOrDefault().Command;
+            var Command = CommandService.Search(Context, CommandName).Commands?.FirstOrDefault(x => x.CheckPreconditionsAsync(Context, Provider).GetAwaiter().GetResult().IsSuccess).Command;
             if (Command == null) return ReplyAsync($"`{CommandName}` command doesn't exist.");
             string Name = Command.Name.Contains("Async") ? Command.Module.Group : Command.Name;
             var Embed = Extras.Embed(Drawing.Aqua)
