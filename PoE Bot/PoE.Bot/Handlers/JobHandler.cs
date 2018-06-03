@@ -87,7 +87,7 @@
                         if (Server.MixerStreams.Count != 0)
                             foreach (var Mixer in Server.MixerStreams)
                                 MixerHelper.BuildAndSend(Mixer, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB);
-            }).WithName("mixer streams").ToRunEvery(10).Minutes().DelayFor(5).Seconds();
+            }).WithName("mixer streams").ToRunEvery(10).Minutes().DelayFor(20).Seconds();
 
             Schedule(() =>
             {
@@ -97,7 +97,7 @@
                         if (Server.TwitchStreams.Count != 0)
                             foreach (var Twitch in Server.TwitchStreams)
                                 TwitchHelper.BuildAndSend(Twitch, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB);
-            }).WithName("twitch streams").ToRunEvery(10).Minutes().DelayFor(3).Seconds();
+            }).WithName("twitch streams").ToRunEvery(10).Minutes().DelayFor(10).Seconds();
 
             Schedule(() =>
             {
