@@ -16,6 +16,7 @@
         public static Emoji Bug { get => new Emoji("\uD83D\uDC1B"); }
         public static Emoji Cross { get => new Emoji("\u274C"); }
         public static Emoji OkHand { get => new Emoji("\uD83D\uDC4C"); }
+        public static Emoji Check { get => new Emoji("\u2705"); }
 
         public static EmbedBuilder Embed(Drawing Drawing)
             => new EmbedBuilder { Color = new Color(Drawing.R, Drawing.G, Drawing.B) };

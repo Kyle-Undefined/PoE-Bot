@@ -24,6 +24,8 @@
                 $"All Log Channel    : {StringHelper.ValidateChannel(Context.Guild , Context.Server.AllLog)}\n" +
                 $"Report Channel     : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RepLog)}\n" +
                 $"Rules Channel      : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RulesChannel)}\n" +
+                $"Bot Change Channel : {StringHelper.ValidateChannel(Context.Guild , Context.Server.BotChangeChannel)}\n" +
+                $"Developer Channel  : {StringHelper.ValidateChannel(Context.Guild , Context.Server.DevChannel)}\n" +
                 $"AFK Users          : {Context.Server.AFK.Count}\n" +
                 $"```",
 
@@ -164,6 +166,8 @@
                 case "alllog": Context.Server.AllLog = Context.GuildHelper.ParseUlong(Value); SettingName = "All Log Channel";  break;
                 case "rptlog": Context.Server.RepLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Report Log Channel";  break;
                 case "rulechan": Context.Server.RulesChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Rule Channel";  break;
+                case "botchan": Context.Server.BotChangeChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Bot Change Channel"; break;
+                case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
                 case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role";  break;
                 case "maxwarnkick":
                     if (!int.TryParse(Value, out int ParsedK) || ParsedK > 10) return ReplyAsync($"Value provided in incorrect format. Must be an number no greater than 10.");
@@ -182,6 +186,8 @@
                $"`ALLLOG` Changes log channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`RPTLOG` Changes reports channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`RULECHAN` Changes reports channel (Mention Channel. Leave empty to set it to null)\n" +
+               $"`BOTCHAN` Changes bot change channel (Mention Channel. Leave empty to set it to null)\n" +
+               $"`DEVCHAN` Changes developer channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`MUTEROLE` Changes mute role (Mention Role)\n" +
                $"`PRICEROLE` Changes price checker role (Mention Role)\n" +
                $"`MAXWARNKICK` Changes max number of warnings before Kick (0 = Disabled)\n" +

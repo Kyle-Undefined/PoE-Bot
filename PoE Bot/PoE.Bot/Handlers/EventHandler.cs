@@ -142,41 +142,50 @@
             await mod.SendMessageAsync(embed: Embed);
         }
 
-        internal async Task ReactionHandlerAsync(ISocketMessageChannel channel, SocketReaction reaction, bool ReactionAdded)
+        internal async Task ReactionHandlerAsync(Cacheable<IUserMessage, ulong> Cache, SocketReaction Reaction, bool ReactionAdded)
         {
-            var guild = (channel as IGuildChannel).Guild;
-            var userId = reaction.UserId;
-            var user = await guild.GetUserAsync(userId);
-            var roles = guild.Roles;
-            IRole role = null;
+            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: (Reaction.Channel as SocketGuildChannel).Guild.Id);
+            if (Server.RulesChannel == Reaction.Channel.Id)
+            {
+                var Guild = (Reaction.Channel as IGuildChannel).Guild;
+                var User = await Guild.GetUserAsync(Reaction.UserId);
+                var Roles = Guild.Roles;
+                IRole Role = null;
 
-            if (reaction.Emote == Extras.Newspaper) role = roles.Where(r => r.Name == "News").First();
-            if (reaction.Emote == Extras.Standard) role = roles.Where(r => r.Name == "Standard").First();
-            if (reaction.Emote == Extras.Hardcore) role = roles.Where(r => r.Name == "Hardcore").First();
-            if (reaction.Emote == Extras.Challenge) role = roles.Where(r => r.Name == "Challenge").First();
+                if (Reaction.Emote.Name == Extras.Newspaper.Name) Role = Roles.Where(r => r.Name == "News").First();
+                if (Reaction.Emote.Name == Extras.Standard.Name) Role = Roles.Where(r => r.Name == "Standard").First();
+                if (Reaction.Emote.Name == Extras.Hardcore.Name) Role = Roles.Where(r => r.Name == "Hardcore").First();
+                if (Reaction.Emote.Name == Extras.Challenge.Name) Role = Roles.Where(r => r.Name == "Challenge").First();
 
-            if (ReactionAdded)
-                await user.AddRoleAsync(role);
-            else
-                await user.RemoveRoleAsync(role);
+                if (Role != null)
+                    if (ReactionAdded)
+                        await User.AddRoleAsync(Role);
+                    else
+                        await User.RemoveRoleAsync(Role);
+            }
+            else if (Server.DevChannel == Reaction.Channel.Id)
+            {
+                if (Reaction.Emote.Name == Extras.Check.Name && (Reaction.UserId == MethodHelper.RunSync(Client.GetApplicationInfoAsync()).Owner.Id))
+                {
+                    var Guild = (Reaction.Channel as SocketGuildChannel).Guild;
+                    if (!(Guild.GetTextChannel(Server.BotChangeChannel) is IMessageChannel BotChangeChannel)) return;
+                    var Message = Cache.HasValue ? Cache.Value : await Cache.GetOrDownloadAsync();
+                    if(ReactionAdded)
+                        await BotChangeChannel.SendMessageAsync(Message.Content);
+                    else
+                    {
+                        var BotChanMessages = await BotChangeChannel.GetMessagesAsync().FlattenAsync();
+                        var BotMessage = await BotChangeChannel.GetMessageAsync(BotChanMessages.FirstOrDefault(m => m.Content == Message.Content).Id, CacheMode.AllowDownload) as IUserMessage;
+                        await BotMessage.DeleteAsync();
+                    }
+                }
+            }
         }
 
         internal async Task ReactionAddedAsync(Cacheable<IUserMessage, ulong> Cache, ISocketMessageChannel Channel, SocketReaction Reaction)
-        {
-            var Guild = (Reaction.Channel as SocketGuildChannel).Guild;
-            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
-            if (Server.RulesChannel != Channel.Id) return;
-            await ReactionHandlerAsync(Channel, Reaction, true);
-            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
-        }
+            => await ReactionHandlerAsync(Cache, Reaction, true);
 
         internal async Task ReactionRemovedAsync(Cacheable<IUserMessage, ulong> Cache, ISocketMessageChannel Channel, SocketReaction Reaction)
-        {
-            var Guild = (Reaction.Channel as SocketGuildChannel).Guild;
-            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
-            if (Server.RulesChannel != Channel.Id) return;
-            await ReactionHandlerAsync(Channel, Reaction, false);
-            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
-        }
+            => await ReactionHandlerAsync(Cache, Reaction, false);
     }
 }

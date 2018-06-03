@@ -19,6 +19,8 @@
         public bool IsConfigured { get; set; }        
         public int MaxWarningsToMute { get; set; }
         public int MaxWarningsToKick { get; set; }
+        public ulong BotChangeChannel { get; set; }
+        public ulong DevChannel { get; set; }
         public ulong MuteRole { get; set; }
         public ulong ModLog { get; set; }
         public ulong RepLog { get; set; }
