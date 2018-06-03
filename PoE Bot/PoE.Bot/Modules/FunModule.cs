@@ -45,7 +45,6 @@
         [Command("Mock"), Remarks("Turns text into Spongebob Mocking Meme."), Summary("Mock <Text>")]
         public Task MockAsync([Remainder]string Text)
         {
-            Context.Message.DeleteAsync();
             Context.Channel.TriggerTypingAsync();
 
             var meme = string.Concat(Text.ToLower().AsEnumerable().Select((c, i) => i % 2 == 0 ? c : char.ToUpper(c)));
