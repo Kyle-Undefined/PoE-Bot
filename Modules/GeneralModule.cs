@@ -141,7 +141,7 @@
             var Client = Context.Client as DiscordSocketClient;
             var Servers = Context.DBHandler.Servers();
             var Embed = Extras.Embed(Drawing.Aqua)
-                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🔰", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription((await Client.GetApplicationInfoAsync()).Description)
                 .AddField("Channels",
                 $"Text: {Client.Guilds.Sum(x => x.TextChannels.Count)}\n" +
