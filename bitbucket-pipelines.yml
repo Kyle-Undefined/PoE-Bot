@@ -1,0 +1,11 @@
+image: microsoft/dotnet:sdk
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - dotnetcore
+        script:
+          - export PROJECT_NAME=PoE.Bot.csproj
+          - dotnet restore
+          - dotnet build $PROJECT_NAME
