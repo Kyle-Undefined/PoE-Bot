@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using System.Linq;
     using System.Net.Http;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Text;
     using System.Xml.Serialization;
@@ -26,8 +25,7 @@
             var CheckRss = RssAsync(Feed.FeedUri).ConfigureAwait(false).GetAwaiter().GetResult();
             if (CheckRss == null) return Task.CompletedTask;
 
-            CheckRss.Data.Items.Reverse();
-            foreach (RssItem Item in CheckRss.Data.Items)
+            foreach (RssItem Item in CheckRss.Data.Items.Take(10).Reverse())
             {
                 if (PostUrls.Contains(Item.Link)) return Task.CompletedTask;
 
@@ -60,25 +58,36 @@
                         break;
                 }
 
+                IRole RoleToMention = null;
                 if (Feed.RoleIds.Any())
                 {
                     foreach (ulong RoleId in Feed.RoleIds)
                     {
                         IRole Role = Guild.GetRole(RoleId);
-                        if (Role.Name.ToLower().Contains("everyone") && Embed.Title.ToLower().Contains(Feed.Tag.ToLower()))
-                            Channel.SendMessageAsync(Role.Mention);
+                        if (Role.Name.ToLower().Contains("everyone") && !string.IsNullOrEmpty(Feed.Tag))
+                        {
+                            if (Embed.Title.ToLower().Contains(Feed.Tag.ToLower()))
+                            {
+                                RoleToMention = Role;
+                                break;
+                            }
+                        }
                         else if (!Role.Name.ToLower().Contains("everyone"))
-                            Channel.SendMessageAsync(Role.Mention);
+                        {
+                            RoleToMention = Role;
+                            break;
+                        }
                     }
                 }
 
-
                 if (!string.IsNullOrEmpty(Embed.Title))
-                    Channel.SendMessageAsync(embed: Embed.Build());
+                    Channel.SendMessageAsync(RoleToMention.Mention, embed: Embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
                     Channel.SendMessageAsync(sb.ToString());
 
                 PostUrls.Add(Item.Link);
+
+                Task.Delay(900);
             }
 
             Feed.RecentUris = PostUrls;

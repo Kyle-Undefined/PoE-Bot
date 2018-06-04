@@ -232,6 +232,6 @@
         [Command("Rss"), Remarks("Shows all the RSS feeds this server is subbed to.")]
         public Task RssAsync()
             => ReplyAsync(!Context.Server.RssFeeds.Any() ? $"This server isn't subscribed to any feeds {Extras.Cross}" :
-                $"**Subbed To Following RSS Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(f => $"Feed: {f.FeedUri} | Channel: {Context.Guild.GetTextChannelAsync(f.ChannelId).GetAwaiter().GetResult().Mention}{(f.Tag != null ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | Role(s): " + String.Join(", ", f.RoleIds) : "")}").ToList())}");
+                $"**Subbed To Following RSS Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(f => $"Feed: {f.FeedUri} | Channel: {Context.Guild.GetTextChannelAsync(f.ChannelId).GetAwaiter().GetResult().Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");
     }
 }
