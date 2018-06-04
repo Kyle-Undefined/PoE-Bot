@@ -81,7 +81,7 @@
                 }
 
                 if (!string.IsNullOrEmpty(Embed.Title))
-                    Channel.SendMessageAsync(RoleToMention.Mention, embed: Embed.Build());
+                    Channel.SendMessageAsync((RoleToMention != null ? RoleToMention.Mention : null), embed: Embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
                     Channel.SendMessageAsync(sb.ToString());
 
