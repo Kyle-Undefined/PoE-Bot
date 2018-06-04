@@ -7,5 +7,6 @@ pipelines:
           - dotnetcore
         script:
           - export PROJECT_NAME=PoE.Bot.csproj
+          - export TEST_NAME=PoE.Bot.Tests.csproj
           - dotnet restore
           - dotnet build $PROJECT_NAME
