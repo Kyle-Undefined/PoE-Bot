@@ -8,6 +8,7 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
+    using System.Diagnostics;
     using PoE.Bot.Handlers.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
@@ -157,7 +158,7 @@
             Embed.AddField("Mixer", $"Streams: {Context.Server.MixerStreams.Count}", true);
             Embed.AddField("Twitch", $"Streams: {Context.Server.TwitchStreams.Count}", true);
             Embed.AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true);
-            Embed.AddField("Servers", $"{Client.Guilds.Count}", true);
+            Embed.AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true);
             Embed.AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true);
             Embed.AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true);
             await ReplyAsync(Embed: Embed.Build());
