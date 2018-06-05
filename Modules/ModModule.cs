@@ -359,7 +359,7 @@
                 $"**Twitch Streams Followed**:\n{String.Join("\n", Context.Server.TwitchStreams.Select(s => $"Streamer: {s.Name} | Channel: {Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention}").ToList())}");
 
         [Command("LeaderboardAdd"), Summary("LeaderboardAdd <Variant> <#Channel> <Enabled: True, False>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
-        public async Task LeaderboardAddAsync(string Variant, SocketTextChannel Channel, bool Enabled)
+        public async Task LeaderboardAddAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
             if (Context.Server.Leaderboards.Where(f => f.Variant == Variant && f.ChannelId == Channel.Id).Any()) await ReplyAsync($"`{Variant}` is already in the list {Extras.Cross}");
@@ -373,7 +373,7 @@
         }
 
         [Command("LeaderboardUpdate"), Summary("LeaderboardUpdate <Variant> <#Channel> <Enabled: True, False>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
-        public Task LeaderboardUpdateAsync(string Variant, SocketTextChannel Channel, bool Enabled)
+        public Task LeaderboardUpdateAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
             if (!Context.Server.Leaderboards.Where(f => f.Variant == Variant).Any()) return ReplyAsync($"Can't find the Variant `{Variant}` {Extras.Cross}");
@@ -388,7 +388,7 @@
         }
 
         [Command("LeaderboardRemove"), Summary("LeaderboardRemove <Variant> <#Channel>"), Remarks("Remove Leaderboard Variant.")]
-        public Task LeaderboardRemove(string Variant, SocketTextChannel Channel)
+        public Task LeaderboardRemove(SocketTextChannel Channel, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
             if (!Context.Server.Leaderboards.Select(l => l.Variant == Variant && l.ChannelId == Channel.Id).Any()) return ReplyAsync($"Can't find the Variant: `{Variant}` {Extras.Cross}");
