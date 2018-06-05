@@ -39,6 +39,6 @@
         public IList<MessageObject> DeletedMessages { get; set; } = new List<MessageObject>();
         public Dictionary<ulong, ProfileObject> Profiles { get; set; } = new Dictionary<ulong, ProfileObject>();
         public ConcurrentDictionary<ulong, DateTime> Muted { get; set; } = new ConcurrentDictionary<ulong, DateTime>();
-        public ConcurrentDictionary<ulong, RemindObject> Reminders { get; set; } = new ConcurrentDictionary<ulong, RemindObject>();
+        public ConcurrentDictionary<ulong, List<RemindObject>> Reminders { get; set; } = new ConcurrentDictionary<ulong, List<RemindObject>>();
     }
 }

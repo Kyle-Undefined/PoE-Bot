@@ -9,6 +9,7 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
     using System.Diagnostics;
+    using System.Collections.Generic;
     using PoE.Bot.Handlers.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
@@ -167,14 +168,43 @@
         [Command("Remind"), Remarks("Set a reminder for later."), Summary("Remind <Time: Number(d/h/m/s) Example: 5h for 5 Hours> <Message>")]
         public async Task RemindAsync(TimeSpan Time, [Remainder] string Message)
         {
-            Context.Server.Reminders.TryAdd(Context.User.Id, new RemindObject
-            {
+            var Reminders = new List<RemindObject>();
+            if (Context.Server.Reminders.ContainsKey(Context.User.Id))
+                Context.Server.Reminders.TryGetValue(Context.User.Id, out Reminders);
+            Reminders.Add(new RemindObject{
                 Message = Message,
                 TextChannel = Context.Channel.Id,
                 RequestedDate = DateTime.UtcNow,
                 ExpiryDate = DateTime.UtcNow.Add(Time)
             });
+            Context.Server.Reminders.AddOrUpdate(Context.User.Id, Reminders, (key, value) => value = Reminders);
             await ReplyAsync($"Alright {Context.User.Mention}, I'll remind you in {StringHelper.FormatTimeSpan(Time)}.", Save: 's');
+        }
+
+        [Command("Reminders"), Remarks("Shows all of your reminders."), Summary("Reminders")]
+        public Task RemindersAsync()
+        {
+            if (!Context.Server.Reminders.Any(x => x.Key == Context.User.Id))
+                return ReplyAsync($"Uhm, you don't have reminders {Extras.Cross}");
+            var Reminder = Context.Server.Reminders.First(x => x.Key == Context.User.Id);
+            var Reminders = new List<string>();
+            for (int i = 0; i < Reminder.Value.Count; i++)
+                Reminders.Add($"Reminder #**{i}** | Expires on: **{Reminder.Value[i].ExpiryDate.ToUniversalTime()}**\n**Message:** {Reminder.Value[i].Message}");
+            return PagedReplyAsync(Reminders, "Your Current Reminders");
+        }
+
+        [Command("Reminder Remove"), Remarks("Removes a reminder."), Summary("Reminder Remove <Number>")]
+        public Task ReminderRemove(int Number)
+        {
+            if (!Context.Server.Reminders.Any(x => x.Key == Context.User.Id))
+                return ReplyAsync($"Uhm, you don't have reminders {Extras.Cross}");
+            var Reminders = new List<RemindObject>();
+            Context.Server.Reminders.TryGetValue(Context.User.Id, out Reminders);
+            try { Reminders.RemoveAt(Number); } catch { return ReplyAsync($"{Extras.Cross} Invalid reminder number was provided."); }
+            if (Reminders.Any()) Context.Server.Reminders.TryRemove(Context.User.Id, out _);
+            else
+                Context.Server.Reminders.TryUpdate(Context.User.Id, Reminders, Context.Server.Reminders.FirstOrDefault(x => x.Key == Context.User.Id).Value);
+            return ReplyAsync($"Reminder #{Number} deleted 🗑️", Save: 's');
         }
 
         [Command("PoB"), Remarks("Parses the PasteBin export from Path of Building and shows the information about the build."), Summary("PoB <PasteBinURL>")]

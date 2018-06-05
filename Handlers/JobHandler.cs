@@ -1,6 +1,8 @@
 ﻿namespace PoE.Bot.Handlers
 {
     using System;
+    using System.Linq;
+    using System.Collections.Generic;
     using PoE.Bot.Helpers;
     using FluentScheduler;
     using Discord.WebSocket;
@@ -41,33 +43,44 @@
             Schedule(() =>
             {
                 foreach (var Server in DB.Servers())
-                    if (!Server.Reminders.IsEmpty || Server.Reminders.Count != 0)
-                        foreach (var Reminder in Server.Reminders)
+                {
+                    if (Server.Reminders.IsEmpty)
+                        continue;
+                    foreach (var Reminder in Server.Reminders)
+                    {
+                        if (!Reminder.Value.Any())
+                            continue;
+                        var Reminders = new List<RemindObject>();
+                        Server.Reminders.TryGetValue(Reminder.Key, out Reminders);
+                        for (int i = 0; i < Reminders.Count; i++)
                         {
-                            if (Reminder.Value.ExpiryDate < DateTime.UtcNow)
+                            if (!(Reminders[i].ExpiryDate <= DateTime.UtcNow))
+                                continue;
+                            var Guild = Client.GetGuild(Convert.ToUInt64(Server.Id));
+                            var User = Guild.GetUser(Reminder.Key) ?? Client.GetUser(Reminder.Key);
+                            if (Guild is null && User is null)
+                                Server.Reminders.TryRemove(Reminder.Key, out _);
+                            else if(Guild is null && !(User is null))
                             {
-                                var Guild = Client.GetGuild(Convert.ToUInt64(Server.Id));
-                                var User = Client.GetUser(Reminder.Key);
-                                if (User == null && Guild == null) Server.Reminders.TryRemove(Reminder.Key, out _);
-                                else if (Guild == null && User != null)
-                                {
-                                    MethodHelper.RunSync(User.GetOrCreateDMChannelAsync())
-                                .SendMessageAsync(Reminder.Value.Message);
-                                    Server.Reminders.TryRemove(Reminder.Key, out _);
-                                }
-                                else
-                                {
-                                    var Channel = Guild.GetChannel(Reminder.Value.TextChannel);
-                                    if (Channel == null)
-                                        MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync(
-                                        $"{StringHelper.FormatTimeSpan(DateTime.UtcNow - Reminder.Value.RequestedDate)} ago you asked me to remind you about {Reminder.Value.Message}");
-                                    else (Channel as SocketTextChannel).SendMessageAsync($"{User.Mention}, " +
-                                        $"{StringHelper.FormatTimeSpan(DateTime.UtcNow - Reminder.Value.RequestedDate)} ago you asked me to remind you about {Reminder.Value.Message}");
-                                    Server.Reminders.TryRemove(Reminder.Key, out _);
-                                }
-                                DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                                MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)}) {Reminders[i].Message}");
+                                Reminders.Remove(Reminders[i]);
+                                Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
                             }
+                            else
+                            {
+                                var Channel = Guild.GetTextChannel(Reminders[i].TextChannel);
+                                if(Channel is null)
+                                    MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)}) {Reminders[i].Message}");
+                                else
+                                    Channel.SendMessageAsync($"{User.Mention}, {StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)} ago you asked me to remind you about {Reminders[i].Message}");
+                                Reminders.Remove(Reminders[i]);
+                                Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
+                            }
+
                         }
+                        DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                    }
+                }
             }).WithName("reminders").ToRunEvery(1).Minutes();
 
             Schedule(() =>
