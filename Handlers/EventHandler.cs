@@ -109,11 +109,17 @@
                     case CommandError.UnmetPrecondition:
                         var Permissions = (Message.Channel as SocketGuildChannel).Guild.CurrentUser.GuildPermissions;
                         if (!string.IsNullOrWhiteSpace(Result.ErrorReason) && Permissions.SendMessages && Permissions.ViewChannel)
-                            await Message.Channel.SendMessageAsync(Result?.ErrorReason); break;
+                        {
+                            var Msg = await Message.Channel.SendMessageAsync(Result?.ErrorReason).ConfigureAwait(false);
+                            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ => Msg.DeleteAsync()).ConfigureAwait(false);
+                            break;
+                        }
+                        else
+                            break;
                     case CommandError.MultipleMatches: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
                     case CommandError.ObjectNotFound: LogHandler.Write(Source.EXC, Result?.ErrorReason); break;
                     case CommandError.Unsuccessful:
-                        await Message.Channel.SendMessageAsync($"Is it a {Extras.Bug} that you found?! Please report this error to my owner Kyle Undefined#1745 or use {Context.Server.Prefix}Feedback");
+                        await Message.Channel.SendMessageAsync($"Is it a {Extras.Bug} that you found?! Please report this error to my owner @Kyle Undefined#1745 or use {Context.Server.Prefix}Feedback");
                         break;
                 }
             }
