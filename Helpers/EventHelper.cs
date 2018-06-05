@@ -61,8 +61,6 @@
         {
             if (GuildHelper.ProfanityMatch(Message.Content) && Server.AntiProfanity)
                 return WarnUserAsync(Message, Server, $"{Message.Author.Mention}, Refrain from using profanity. You've been warned.");
-            else if (GuildHelper.InviteMatch(Message.Content) && Server.AntiInvite)
-                return WarnUserAsync(Message, Server, $"{Message.Author.Mention}, No invite links allowed. You've been warned.");
             return Task.CompletedTask;
         }
 

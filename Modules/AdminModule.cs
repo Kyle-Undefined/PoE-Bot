@@ -33,7 +33,6 @@
                 $"+ Mute Role             : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
                 $"+ Log Messages          : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
                 $"+ Profanity Check       : {(Context.Server.AntiProfanity ? "Enabled" : "Disabled")}\n" +
-                $"+ Invite Check          : {(Context.Server.AntiInvite ? "Enabled" : "Disabled")}\n" +
                 $"+ RSS Feed              : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Mixer                 : {(Context.Server.MixerFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Twitch                : {(Context.Server.TwitchFeed ? "Enabled" : "Disabled")}\n" +
@@ -108,11 +107,6 @@
             string State, ToggleName = null;
             switch (ToggleType.ToLower())
             {
-                case "invite":
-                    Context.Server.AntiInvite = !Context.Server.AntiInvite;
-                    State = Context.Server.AntiInvite ? "enabled" : "disabled";
-                    ToggleName = "Anti Discord invite";
-                    break;
                 case "profanity":
                     Context.Server.AntiProfanity = !Context.Server.AntiProfanity;
                     State = Context.Server.AntiProfanity ? "enabled" : "disabled";

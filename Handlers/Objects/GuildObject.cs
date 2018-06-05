@@ -9,7 +9,6 @@
         public string Id { get; set; }
         public string Rules { get; set; }
         public char Prefix { get; set; }
-        public bool AntiInvite { get; set; }
         public bool AntiProfanity { get; set; }
         public bool LogDeleted { get; set; }
         public bool RssFeed { get; set; }
