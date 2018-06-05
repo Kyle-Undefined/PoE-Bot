@@ -101,7 +101,7 @@
             await SetupMessage.ModifyAsync(x => x.Content = "Configuration completed.");
         }
 
-        [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <ToggleType: INVITE, PROFANITY, LOG, RSSFEED, MIXERFEED, TWITCHFEED, LEADERBOARD>")]
+        [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <ToggleType: PROFANITY, LOG, RSSFEED, MIXERFEED, TWITCHFEED, LEADERBOARD>")]
         public Task SetAsync(string ToggleType)
         {
             string State, ToggleName = null;
@@ -138,8 +138,7 @@
                     ToggleName = "Live Leaderboard Feed";
                     break;
                 default:
-                    return ReplyAsync($"Current Toggle Types Are:\nINVITE` Toggles anti discord invite policy\n" +
-               $"`PROFANITY` Toggles profanity filter\n`LOG` Logs deleted messages\n`RSSFEED` Toggles RSS live feed\n`MIXERFEED` Toggles Mixer live announcements\n"+
+                    return ReplyAsync($"Current Toggle Types Are:\n`PROFANITY` Toggles profanity filter\n`LOG` Logs deleted messages\n`RSSFEED` Toggles RSS live feed\n`MIXERFEED` Toggles Mixer live announcements\n"+
                $"`TWITCHFEED` Toggles Twitch live announcements\n`LEADERBOARD` Toggles Leaderboard tracking");
             }
             return ReplyAsync($"{ToggleName} has been {State} {Extras.OkHand}", Save: 's');
@@ -190,7 +189,7 @@
             return ReplyAsync($"{SettingName} has been updated {Extras.OkHand}", Save: 's');
         }
 
-        [Command("RssAdd"), Remarks("Add RSS. You will get live feed from specified RSS feeds."), Summary("RssAdd <RSS> <#Channel> [Tag]")]
+        [Command("Rss Add"), Remarks("Add RSS. You will get live feed from specified RSS feeds."), Summary("Rss Add <RSS> <#Channel> [Tag]")]
         public Task RssAddAsync(string RSS, SocketTextChannel Channel, string Tag = null)
         {
             if (Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` already exists {Extras.Cross}");
@@ -203,7 +202,7 @@
             return ReplyAsync($"`{RSS}` has been added to server's Rss Feed {Extras.OkHand}", Save: 's');
         }
 
-        [Command("RssRoles"), Remarks("Adds Role(s) to an Rss Feed."), Summary("RssRoles <RSS> <#Channel> <@Role1> <@Role2> ...")]
+        [Command("Rss Roles"), Remarks("Adds Role(s) to an Rss Feed."), Summary("Rss Roles <RSS> <#Channel> <@Role1> <@Role2> ...")]
         public Task RssRolesAsync(string RSS, SocketTextChannel Channel, params IRole[] Roles)
         {
             if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` doesn't exist {Extras.Cross}");
@@ -214,7 +213,7 @@
             return ReplyAsync($"{String.Join(", ", Roles.Select(r => r.Name))} have been added to the `{RSS}` feed {Extras.OkHand}", Save: 's');
         }
 
-        [Command("RssRemove"), Remarks("Remove RSS."), Summary("RssRemove <RSS> <#Channel>")]
+        [Command("Rss Remove"), Remarks("Remove RSS."), Summary("Rss Remove <RSS> <#Channel>")]
         public Task RssRemoveAsync(string RSS, SocketTextChannel Channel)
         {
             if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any()) return ReplyAsync($"`{RSS}` for `{Channel.Name}` doesn't exist {Extras.Cross}");
@@ -223,7 +222,7 @@
             return ReplyAsync($"`{RSS}` has been removed from server's Rss Feed {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Rss"), Remarks("Shows all the RSS feeds this server is subbed to.")]
+        [Command("Rss List"), Remarks("Shows all the RSS feeds this server is subbed to."), Summary("Rss List")]
         public Task RssAsync()
             => ReplyAsync(!Context.Server.RssFeeds.Any() ? $"This server isn't subscribed to any feeds {Extras.Cross}" :
                 $"**Subbed To Following RSS Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(f => $"Feed: {f.FeedUri} | Channel: {Context.Guild.GetTextChannelAsync(f.ChannelId).GetAwaiter().GetResult().Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");

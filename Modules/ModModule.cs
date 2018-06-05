@@ -67,11 +67,11 @@
             await ReplyAsync($"{string.Join(", ", Users.Select(x => $"*{x.Username}*"))} were banned {Extras.Hammer}");
         }
 
-        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <UserId> [Reason]"), BotPermission(GuildPermission.BanMembers),
+        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <UserId> [Reason]"), BotPermission(GuildPermission.BanMembers),
             UserPermission(GuildPermission.BanMembers, "Woops, it seems you lack banning permissions.")]
         public async Task BanAsync(ulong UserId, [Remainder] string Reason = null)
         {
-            await Context.Guild.AddBanAsync(UserId, 7, Reason ?? "Secret Ban.");
+            await Context.Guild.AddBanAsync(UserId, 7, Reason ?? "User ID Ban.");
             await ReplyAsync($"***{UserId} was banned*** {Extras.Hammer}");
         }
 
@@ -289,7 +289,7 @@
             await ReplyAsync($"Rules have been edited {Extras.OkHand}");
         }
 
-        [Command("MixerAdd", RunMode = RunMode.Async), Summary("MixerAdd <MixerUser> [#Channel: Defaults to #streams]"), Remarks("Add Mixer stream. You will get live feed from specified Mixer stream.")]
+        [Command("Mixer Add", RunMode = RunMode.Async), Summary("Mixer Add <MixerUser> [#Channel: Defaults to #streams]"), Remarks("Add Mixer stream. You will get live feed from specified Mixer stream.")]
         public async Task MixerAddAsync(string MixerUser, SocketTextChannel Channel = null)
         {
             if (Context.Server.MixerStreams.Where(f => f.Name == MixerUser && f.ChannelId == Channel.Id).Any()) await ReplyAsync($"`{MixerUser}` is already in the list {Extras.Cross}");
@@ -309,7 +309,7 @@
             await ReplyAsync($"`{MixerUser}` has been added to server's Mixer streams {Extras.OkHand}", Save: 's');
         }
 
-        [Command("MixerRemove"), Remarks("Remove Mixer stream."), Summary("MixerRemove <MixerUser> [#Channel: Defaults to #streams]")]
+        [Command("Mixer Remove"), Remarks("Remove Mixer stream."), Summary("Mixer Remove <MixerUser> [#Channel: Defaults to #streams]")]
         public Task MixerRemoveAsync(string MixerUser, SocketTextChannel Channel = null)
         {
             if (!Context.Server.MixerStreams.Select(s => s.Name == MixerUser && s.ChannelId == (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any()) return ReplyAsync($"You aren't following `{MixerUser}`");
@@ -317,12 +317,12 @@
             return ReplyAsync($"`{MixerUser}` has been removed from the server's Mixer streams {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Mixer"), Remarks("Shows all the Mixer streams this server is following."), Summary("Mixer")]
+        [Command("Mixer List"), Remarks("Shows all the Mixer streams this server is following."), Summary("Mixer List")]
         public Task MixerAsync()
             => ReplyAsync(!Context.Server.MixerStreams.Any() ? $"This server isn't following any streams {Extras.Cross}" :
                 $"**Mixer Streams Followed**:\n{String.Join("\n", Context.Server.MixerStreams.Select(s => $"Streamer: {s.Name} | Channel: {Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention}").ToList())}");
 
-        [Command("TwitchAdd", RunMode = RunMode.Async), Summary("TwitchAdd <TwitchUser> [#Channel: Defaults to #streams]"), Remarks("Add Twitch stream. You will get live feed from specified Twitch stream.")]
+        [Command("Twitch Add", RunMode = RunMode.Async), Summary("Twitch Add <TwitchUser> [#Channel: Defaults to #streams]"), Remarks("Add Twitch stream. You will get live feed from specified Twitch stream.")]
         public async Task TwitchAddAsync(string TwitchUser, SocketTextChannel Channel = null)
         {
             if (Context.Server.TwitchStreams.Where(f => f.Name == TwitchUser && f.ChannelId == Channel.Id).Any()) await ReplyAsync($"`{TwitchUser}` is already in the list {Extras.Cross}");
@@ -345,7 +345,7 @@
             await ReplyAsync($"`{TwitchUser}` has been added to server's Twitch streams {Extras.OkHand}", Save: 's');
         }
 
-        [Command("TwitchRemove"), Remarks("Remove Twitch stream."), Summary("TwitchRemove <TwitchUser> [#Channel: Defaults to #streams]")]
+        [Command("Twitch Remove"), Remarks("Remove Twitch stream."), Summary("Twitch Remove <TwitchUser> [#Channel: Defaults to #streams]")]
         public Task TwitchRemoveAsync(string TwitchUser, SocketTextChannel Channel = null)
         {
             if (!Context.Server.TwitchStreams.Select(s => s.Name == TwitchUser && s.ChannelId == (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any()) return ReplyAsync($"You aren't following `{TwitchUser}`");
@@ -353,12 +353,12 @@
             return ReplyAsync($"`{TwitchUser}` has been removed from the server's Twitch streams {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Twitch"), Remarks("Shows all the Twitch streams this server is following."), Summary("Twitch")]
+        [Command("Twitch List"), Remarks("Shows all the Twitch streams this server is following."), Summary("Twitch List")]
         public Task TwitchAsync()
             => ReplyAsync(!Context.Server.TwitchStreams.Any() ? $"This server isn't following any streams {Extras.Cross}" :
                 $"**Twitch Streams Followed**:\n{String.Join("\n", Context.Server.TwitchStreams.Select(s => $"Streamer: {s.Name} | Channel: {Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention}").ToList())}");
 
-        [Command("LeaderboardAdd"), Summary("LeaderboardAdd <Variant> <#Channel> <Enabled: True, False>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
+        [Command("Leaderboard Add"), Summary("Leaderboard Add <Variant> <#Channel> <Enabled: True, False>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
         public async Task LeaderboardAddAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
@@ -372,7 +372,7 @@
             await ReplyAsync($"`{Variant}` has been added to server's Leaderboard list {Extras.OkHand}", Save: 's');
         }
 
-        [Command("LeaderboardUpdate"), Summary("LeaderboardUpdate <Variant> <#Channel> <Enabled: True, False>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
+        [Command("Leaderboard Update"), Summary("Leaderboard Update <Variant> <#Channel> <Enabled: True, False>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
         public Task LeaderboardUpdateAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
@@ -387,7 +387,7 @@
             return ReplyAsync($"Updated Leaderboard Variant: `{Variant}` {Extras.OkHand}", Save: 's');
         }
 
-        [Command("LeaderboardRemove"), Summary("LeaderboardRemove <Variant> <#Channel>"), Remarks("Remove Leaderboard Variant.")]
+        [Command("Leaderboard Remove"), Summary("Leaderboard Remove <Variant> <#Channel>"), Remarks("Remove Leaderboard Variant.")]
         public Task LeaderboardRemove(SocketTextChannel Channel, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
@@ -396,7 +396,7 @@
             return ReplyAsync($"Removed `{Variant}` from server's Leaderboards", Save: 's');
         }
 
-        [Command("Leaderboard"), Summary("Leaderboard"), Remarks("Shows all the Leaderboard Variants this server is watching.")]
+        [Command("Leaderboard List"), Summary("Leaderboard List"), Remarks("Shows all the Leaderboard Variants this server is watching.")]
         public Task LeaderboardAsync()
             => ReplyAsync(!Context.Server.Leaderboards.Any() ? $"This server isn't watching any Leaderboards {Extras.Cross}" :
                 $"**Leaderboard Variants**:\n{String.Join("\n", Context.Server.Leaderboards.Select(l => $"Variant: {l.Variant} | Channel: {Context.Guild.GetTextChannelAsync(l.ChannelId).GetAwaiter().GetResult().Mention} | Enabled: {l.Enabled.ToString()}").ToList())}");

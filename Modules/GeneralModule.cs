@@ -248,7 +248,7 @@
         public async Task WikiAsync([Remainder] string Item)
             => await ReplyAsync(string.Empty, await WikiHelper.WikiGetItemAsync(Item));
 
-        [Command("TrialAdd"), Summary("TrialAdd <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
+        [Command("Trials Add"), Summary("Trials Add <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
         public Task TrialAddAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() == "all") { (Context.User as SocketGuildUser).AddRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of"))); }
@@ -256,7 +256,7 @@
             return ReplyAsync($"Trial{(Trial.ToLower() == "all" ? "s were" : " was")} added to your list {Extras.OkHand}");
         }
 
-        [Command("TrialDelete"), Summary("TrialDelete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
+        [Command("Trials Delete"), Summary("Trials Delete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
         public Task TrialDeleteAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() == "all") { (Context.User as SocketGuildUser).RemoveRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of"))); }

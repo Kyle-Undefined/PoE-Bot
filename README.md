@@ -35,7 +35,7 @@ Here is just an overview of some of the features:
 * Twitch/Mixer Integraion
 * RSS Feeds
 * Moderation
-    * Mute, Kick, Ban, Warn, Purge, AutoMod, Profanity Filter, Invite Filter, Rule Setup, Cases, etc
+    * Mute, Kick, Ban, Warn, Purge, AutoMod, Profanity Filter, Rule Setup, Cases, etc
 	
 And many more!
 	 
