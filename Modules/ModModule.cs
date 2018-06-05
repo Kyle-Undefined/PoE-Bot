@@ -37,7 +37,7 @@
             {
                 if (Context.GuildHelper.HierarchyCheck(Context.Guild, User)) continue;
                 await User.KickAsync("Multiple kicks.").ConfigureAwait(false);
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.KICK, "Multiple kicks.");
+                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.KICKS, "Multiple kicks.");
             }
             await ReplyAsync($"{string.Join(", ", Users.Select(x => $"*{x.Username}*"))} were kicked {Extras.Hammer}").ConfigureAwait(false);
         }
@@ -62,7 +62,7 @@
             {
                 if (Context.GuildHelper.HierarchyCheck(Context.Guild, User)) continue;
                 await Context.Guild.AddBanAsync(User, 7, "Mass Ban.");
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.KICK, "Multiple bans.");
+                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.BANS, "Multiple bans.");
             }
             await ReplyAsync($"{string.Join(", ", Users.Select(x => $"*{x.Username}*"))} were banned {Extras.Hammer}");
         }
@@ -117,7 +117,7 @@
                 await Message.ModifyAsync(
                   x => x.Content = $"**{Case.CaseType}** | Case {Case.Number}\n**User:** {Case.Username} ({Case.UserId})" +
                              $"\n**Reason:** {Reason}\n**Responsible Moderator:** {Case.Moderator} ({Case.ModeratorId})");
-            await ReplyAsync($"Case #{Number} has been updated {Extras.OkHand}", Save: 's');
+            await ReplyAsync($"Case #{Case.Number} has been updated {Extras.OkHand}", Save: 's');
         }
 
         [Command("Purge"), Remarks("Deletes Messages"), Summary("Purge [Amount]"), BotPermission(GuildPermission.ManageMessages),
