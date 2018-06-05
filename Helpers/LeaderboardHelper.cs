@@ -485,6 +485,70 @@
                     embedAscendancyCont.AddField("Ascendants", $"```{sb.ToString()}```");
                 }
 
+                var Discordians = new EmbedBuilder();
+                Discordians.WithTitle($"Discordians Only {Leaderboard.Variant.Replace("_", " ")} Leaderboard")
+                    .WithDescription($"Retrieved {racers.Where(r => r.Character.ToLower().Contains("discord")).Count().ToString("##,##0")} users with Discord in their name.")
+                    .WithColor(new Color(0, 127, 255))
+                    .WithCurrentTimestamp();
+
+                Discordians.AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
+
+                if (cDuelists.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cDuelists.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Duelists, Slayers, Champions, Gladiators", $"```{sb.ToString()}```");
+                }
+
+                if (cShadows.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cShadows.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Shadows, Saboteurs, Assassins, Tricksters", $"```{sb.ToString()}```");
+                }
+
+                if (cMarauders.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cMarauders.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Marauders, Juggernauts, Chieftains, Berserkers", $"```{sb.ToString()}```");
+                }
+
+                if (cWitchs.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cWitchs.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Witches, Necromancers, Occultists, Elemantalists", $"```{sb.ToString()}```");
+                }
+
+                if (cRangers.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cRangers.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Rangers, Pathfinders, Raiders, Deadeyes", $"```{sb.ToString()}```");
+                }
+
+                if (cTemplars.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cTemplars.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Templars, Guardians, Inquisitors, Hierophants", $"```{sb.ToString()}```");
+                }
+
+                if (cScions.Any())
+                {
+                    sb = new StringBuilder();
+                    foreach (var racer in cScions.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
+                        sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
+                    Discordians.AddField("Scions, Ascendants", $"```{sb.ToString()}```");
+                }
+
                 var Channel = Guild.GetTextChannel(Leaderboard.ChannelId);
                 var Messages = Channel.GetMessagesAsync().FlattenAsync().GetAwaiter().GetResult();
                 foreach (var Msg in Messages)
@@ -498,6 +562,8 @@
                     await Channel.SendMessageAsync(embed: embedAscendancy.Build());
                 if (embedAscendancyCont.Fields.Any())
                     await Channel.SendMessageAsync(embed: embedAscendancyCont.Build());
+                if (Discordians.Fields.Any())
+                    await Channel.SendMessageAsync(embed: Discordians.Build());
 
                 await Task.Delay(30000);
             }
