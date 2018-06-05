@@ -40,7 +40,7 @@
         public async Task LogAsync(DBHandler DB, IGuild Guild, IUser User, IUser Mod, CaseType CaseType, string Reason)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
-            Reason = Reason ?? $"*Responsible moderator, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*";
+            Reason = string.IsNullOrWhiteSpace(Reason) ? $"*Responsible moderator, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*" : Reason;
             var ModChannel = await Guild.GetTextChannelAsync(Server.ModLog);
             IUserMessage Message = null;
             if (ModChannel != null)
