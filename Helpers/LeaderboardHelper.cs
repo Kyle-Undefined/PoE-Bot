@@ -15,7 +15,7 @@
 
     public class LeaderboardHelper
     {
-        public static Task BuildAndSend(LeaderboardObject Leaderboard, SocketGuild Guild)
+        public static async Task BuildAndSend(LeaderboardObject Leaderboard, SocketGuild Guild)
         {
             List<LeaderboardData> racers = new List<LeaderboardData>();
 
@@ -27,10 +27,10 @@
                                 using (CsvReader csv = new CsvReader(reader))
                                 {
                                     csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
-                                    csv.ReadAsync();
+                                    await csv.ReadAsync();
                                     csv.ReadHeader();
 
-                                    while (csv.ReadAsync().GetAwaiter().GetResult())
+                                    while (await csv.ReadAsync())
                                         racers.Add(csv.GetRecord<LeaderboardData>());
                                 }
 
@@ -488,16 +488,19 @@
                 var Channel = Guild.GetTextChannel(Leaderboard.ChannelId);
                 var Messages = Channel.GetMessagesAsync().FlattenAsync().GetAwaiter().GetResult();
                 foreach (var Msg in Messages)
-                    Msg.DeleteAsync();
+                    await Msg.DeleteAsync();
 
-                Channel.SendMessageAsync(embed: embed.Build());
+                await Channel.SendMessageAsync(embed: embed.Build());
 
-                if (embedClasses.Fields.Any()) Channel.SendMessageAsync(embed: embedClasses.Build());
-                if (embedAscendancy.Fields.Any()) Channel.SendMessageAsync(embed: embedAscendancy.Build());
-                if (embedAscendancyCont.Fields.Any()) Channel.SendMessageAsync(embed: embedAscendancyCont.Build());
+                if (embedClasses.Fields.Any())
+                    await Channel.SendMessageAsync(embed: embedClasses.Build());
+                if (embedAscendancy.Fields.Any())
+                    await Channel.SendMessageAsync(embed: embedAscendancy.Build());
+                if (embedAscendancyCont.Fields.Any())
+                    await Channel.SendMessageAsync(embed: embedAscendancyCont.Build());
+
+                await Task.Delay(30000);
             }
-
-            return Task.CompletedTask;
         }
     }
 

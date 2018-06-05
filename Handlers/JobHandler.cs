@@ -34,7 +34,7 @@
                             if (Mute.Value < DateTime.UtcNow)
                             {
                                 Server.Muted.TryRemove(Mute.Key, out _);
-                                JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server);
+                                MethodHelper.RunSync(JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
                                 DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
                             }
                         }
@@ -72,7 +72,7 @@
                                 if(Channel is null)
                                     MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)}) {Reminders[i].Message}");
                                 else
-                                    Channel.SendMessageAsync($"{User.Mention}, {StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)} ago you asked me to remind you about {Reminders[i].Message}");
+                                    MethodHelper.RunSync(Channel.SendMessageAsync($"{User.Mention}, {StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)} ago you asked me to remind you about {Reminders[i].Message}"));
                                 Reminders.Remove(Reminders[i]);
                                 Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
                             }
@@ -90,7 +90,7 @@
                         if (Server.Leaderboards.Count != 0)
                             foreach (var Leaderboard in Server.Leaderboards)
                                 if (Leaderboard.Enabled)
-                                    LeaderboardHelper.BuildAndSend(Leaderboard, Client.GetGuild(Convert.ToUInt64(Server.Id)));
+                                    MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(Leaderboard, Client.GetGuild(Convert.ToUInt64(Server.Id))));
             }).WithName("leaderboards").ToRunEvery(1).Hours();
 
             Schedule(() =>
@@ -99,7 +99,7 @@
                     if (Server.MixerFeed)
                         if (Server.MixerStreams.Count != 0)
                             foreach (var Mixer in Server.MixerStreams)
-                                MixerHelper.BuildAndSend(Mixer, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB);
+                                MethodHelper.RunSync(MixerHelper.BuildAndSend(Mixer, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
             }).WithName("mixer streams").ToRunEvery(10).Minutes().DelayFor(20).Seconds();
 
             Schedule(() =>
@@ -109,7 +109,7 @@
                     if (Server.TwitchFeed)
                         if (Server.TwitchStreams.Count != 0)
                             foreach (var Twitch in Server.TwitchStreams)
-                                TwitchHelper.BuildAndSend(Twitch, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB);
+                                MethodHelper.RunSync(TwitchHelper.BuildAndSend(Twitch, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
             }).WithName("twitch streams").ToRunEvery(10).Minutes().DelayFor(10).Seconds();
 
             Schedule(() =>
@@ -118,7 +118,7 @@
                     if (Server.RssFeed)
                         if (Server.RssFeeds.Count != 0)
                             foreach (var Feed in Server.RssFeeds)
-                                RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB);
+                                MethodHelper.RunSync(RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
             }).WithName("rss feeds").ToRunEvery(10).Minutes();
 
             JobManager.Initialize(this);

@@ -12,7 +12,7 @@
 
     public class TwitchHelper
     {
-        public static Task BuildAndSend(TwitchObject Stream, SocketGuild Guild, GuildObject Server, ConfigObject Config, DBHandler DB)
+        public static async Task BuildAndSend(TwitchObject Stream, SocketGuild Guild, GuildObject Server, ConfigObject Config, DBHandler DB)
         {
             var streamWasLive = Stream.IsLive;
 
@@ -20,7 +20,7 @@
             TwitchAPI.Settings.ClientId = Config.APIKeys["TC"];
             TwitchAPI.Settings.AccessToken = Config.APIKeys["TA"];
 
-            var StreamData = TwitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { Stream.UserId }), null).GetAwaiter().GetResult();
+            var StreamData = await TwitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { Stream.UserId }), null);
             if (!StreamData.Streams.Any()) Stream.IsLive = false;
 
             if (StreamData.Streams.Any())
@@ -29,8 +29,8 @@
                 {
                     if (!Stream.IsLive)
                     {
-                        var TwitchUser = TwitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId })).GetAwaiter().GetResult();
-                        var TwitchGame = TwitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId })).GetAwaiter().GetResult();
+                        var TwitchUser = await TwitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
+                        var TwitchGame = await TwitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
                         var Embed = Extras.Embed(Drawing.Aqua)
                             .WithTitle(stream.Title)
                             .WithDescription($"\n**{TwitchUser.Users[0].DisplayName}** is playing **{TwitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{TwitchUser.Users[0].DisplayName}**")
@@ -40,7 +40,7 @@
                             .Build();
 
                         var Channel = Guild.GetChannel(Stream.ChannelId) as SocketTextChannel;
-                        Channel.SendMessageAsync(embed: Embed);
+                        await Channel.SendMessageAsync(embed: Embed);
 
                         Stream.IsLive = true;
                         DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
@@ -49,8 +49,6 @@
             }
 
             if (streamWasLive && !Stream.IsLive) DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
-
-            return Task.CompletedTask;
         }
     }
 }

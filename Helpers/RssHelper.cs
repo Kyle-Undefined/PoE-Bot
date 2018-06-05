@@ -19,15 +19,17 @@
 
     public class RssHelper
     {
-        public static Task BuildAndSend(RssObject Feed, SocketGuild Guild, GuildObject Server, DBHandler DB)
+        public static async Task BuildAndSend(RssObject Feed, SocketGuild Guild, GuildObject Server, DBHandler DB)
         {
             var PostUrls = Feed.RecentUris.Any() ? Feed.RecentUris : new List<string>();
-            var CheckRss = RssAsync(Feed.FeedUri).ConfigureAwait(false).GetAwaiter().GetResult();
-            if (CheckRss == null) return Task.CompletedTask;
+            var CheckRss = await RssAsync(Feed.FeedUri).ConfigureAwait(false);
+            if (CheckRss == null)
+                return;
 
             foreach (RssItem Item in CheckRss.Data.Items.Take(10).Reverse())
             {
-                if (PostUrls.Contains(Item.Link)) return Task.CompletedTask;
+                if (PostUrls.Contains(Item.Link))
+                    return;
 
                 var Channel = Guild.GetChannel(Feed.ChannelId) as SocketTextChannel;
                 var Embed = Extras.Embed(Drawing.Aqua);
@@ -81,18 +83,17 @@
                 }
 
                 if (!string.IsNullOrEmpty(Embed.Title))
-                    Channel.SendMessageAsync((RoleToMention != null ? RoleToMention.Mention : null), embed: Embed.Build());
+                    await Channel.SendMessageAsync((RoleToMention != null ? RoleToMention.Mention : null), embed: Embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
-                    Channel.SendMessageAsync(sb.ToString());
+                    await Channel.SendMessageAsync(sb.ToString());
 
                 PostUrls.Add(Item.Link);
 
-                Task.Delay(900);
+                await Task.Delay(900);
             }
 
             Feed.RecentUris = PostUrls;
             DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
-            return Task.CompletedTask;
         }
 
         private static async Task<RssDataObject> RssAsync(Uri RssFeed)

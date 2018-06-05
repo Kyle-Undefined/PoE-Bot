@@ -15,12 +15,12 @@
 
         private const string MIXER_API_URL = "https://mixer.com/api/v1/";
 
-        public static Task BuildAndSend(MixerObject Stream, SocketGuild Guild, GuildObject Server, DBHandler DB)
+        public static async Task BuildAndSend(MixerObject Stream, SocketGuild Guild, GuildObject Server, DBHandler DB)
         {
             var streamWasLive = Stream.IsLive;
 
             MixerHelper Mixer = new MixerHelper();
-            string chanJson = Mixer.GetChannel(Stream.MixerChannelId).GetAwaiter().GetResult();
+            string chanJson = await Mixer.GetChannel(Stream.MixerChannelId);
             bool chanIsLive = Mixer.IsChannelLive(chanJson);
             if (!chanIsLive) Stream.IsLive = false;
 
@@ -34,15 +34,13 @@
                     .WithImageUrl(Mixer.GetChannelThumbnail(chanJson)).Build();
 
                 var Channel = Guild.GetChannel(Stream.ChannelId) as SocketTextChannel;
-                Channel.SendMessageAsync(embed: Embed);
+                await Channel.SendMessageAsync(embed: Embed);
 
                 Stream.IsLive = true;
                 DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
             }
 
             if (streamWasLive && !Stream.IsLive) DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
-
-            return Task.CompletedTask;
         }
 
         public async Task<uint> GetUserId(string username)
