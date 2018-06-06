@@ -32,7 +32,7 @@
 
         public Task<SocketMessage> WaitAsync(string Message, bool User = true, bool Channel = true, TimeSpan? Timeout = null)
         {
-            _ = ReplyAsync(Message);
+            _ = ReplyAsync($"{Message}\n**To cancel**, type `c`.");
             var Criteria = new Criteria<SocketMessage>();
             if (User) Criteria.AddCriteria(new SourceUser());
             if (Channel) Criteria.AddCriteria(new SourceChannel());

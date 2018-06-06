@@ -27,7 +27,7 @@
         [Command("Create", RunMode = RunMode.Async), Alias("new", "Make"), Priority(10), Remarks("Initiates Tag Creation wizard."), Summary("Tag Create")]
         public async Task CreateAsync()
         {
-            var Name = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the name of your tag? (c to cancel)"));
+            var Name = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the name of your tag?"));
             if (!Name.Item1) { await ReplyAsync(Name.Item2); return; }
             Name.Item2 = Name.Item2.Replace(" ", "-");
             if (Exists(Name.Item2)) return;
@@ -36,7 +36,7 @@
                 await ReplyAsync($"`{Name.Item2}` is a reserved name. Try something else?");
                 return;
             }
-            var Content = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the content of your tag? (c to cancel)",
+            var Content = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the content of your tag?",
                 Timeout: TimeSpan.FromMinutes(2)));
             if (!Content.Item1) { await ReplyAsync(Content.Item2); return; }
             Context.Server.Tags.Add(new TagObject

@@ -44,8 +44,7 @@
         [Command("Feedback", RunMode = RunMode.Async), Remarks("Give feedback on my performance or suggest new features!"), Summary("Feedback")]
         public async Task FeedbackAsync()
         {
-            var Wait = await WaitAsync("Please provide your feedback in couple sentences. (c to cancel)", Timeout: TimeSpan.FromMinutes(1));
-            var Message = Context.GuildHelper.CalculateResponse(Wait);
+            var Message = Context.GuildHelper.CalculateResponse(await WaitAsync("Please provide your feedback in a couple sentences.", Timeout: TimeSpan.FromMinutes(1)));
             if (!Message.Item1) { await ReplyAsync(Message.Item2); return; }
             var Channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.ReportChannel) as IMessageChannel;
             await Channel.SendMessageAsync(Message.Item2);
