@@ -46,6 +46,7 @@
                 {
                     if (Server.Reminders.IsEmpty)
                         continue;
+                    var RemindersCount = Server.Reminders.Count;
                     foreach (var Reminder in Server.Reminders)
                     {
                         if (!Reminder.Value.Any())
@@ -76,9 +77,12 @@
                                 Reminders.Remove(Reminders[i]);
                                 Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
                             }
+                            if(!Reminder.Value.Any())
+                                Server.Reminders.TryRemove(Reminder.Key, out _);
 
                         }
-                        DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                        if (RemindersCount != Server.Reminders.Count)
+                            DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
                     }
                 }
             }).WithName("reminders").ToRunEvery(1).Minutes();
