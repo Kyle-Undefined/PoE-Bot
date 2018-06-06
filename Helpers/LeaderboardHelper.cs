@@ -493,7 +493,7 @@
 
                 Discordians.AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
 
-                if (cDuelists.Any())
+                if (cDuelists.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cDuelists.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -501,7 +501,7 @@
                     Discordians.AddField("Duelists, Slayers, Champions, Gladiators", $"```{sb.ToString()}```");
                 }
 
-                if (cShadows.Any())
+                if (cShadows.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cShadows.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -509,7 +509,7 @@
                     Discordians.AddField("Shadows, Saboteurs, Assassins, Tricksters", $"```{sb.ToString()}```");
                 }
 
-                if (cMarauders.Any())
+                if (cMarauders.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cMarauders.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -517,7 +517,7 @@
                     Discordians.AddField("Marauders, Juggernauts, Chieftains, Berserkers", $"```{sb.ToString()}```");
                 }
 
-                if (cWitchs.Any())
+                if (cWitchs.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cWitchs.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -525,7 +525,7 @@
                     Discordians.AddField("Witches, Necromancers, Occultists, Elemantalists", $"```{sb.ToString()}```");
                 }
 
-                if (cRangers.Any())
+                if (cRangers.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cRangers.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -533,7 +533,7 @@
                     Discordians.AddField("Rangers, Pathfinders, Raiders, Deadeyes", $"```{sb.ToString()}```");
                 }
 
-                if (cTemplars.Any())
+                if (cTemplars.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cTemplars.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
@@ -541,7 +541,7 @@
                     Discordians.AddField("Templars, Guardians, Inquisitors, Hierophants", $"```{sb.ToString()}```");
                 }
 
-                if (cScions.Any())
+                if (cScions.Any(r => r.Character.ToLower().Contains("discord")))
                 {
                     sb = new StringBuilder();
                     foreach (var racer in cScions.Where(r => r.Character.ToLower().Contains("discord")).Take(10))
