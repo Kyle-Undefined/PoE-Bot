@@ -29,7 +29,7 @@
             foreach (RssItem Item in CheckRss.Data.Items.Take(10).Reverse())
             {
                 if (PostUrls.Contains(Item.Link))
-                    continue;
+                    return;
 
                 var Channel = Guild.GetChannel(Feed.ChannelId) as SocketTextChannel;
                 var Embed = Extras.Embed(Drawing.Aqua);
