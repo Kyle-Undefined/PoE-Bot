@@ -57,7 +57,7 @@
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
             if (Context.User.Id != Tag.Owner) { await ReplyAsync($"You aren't the owner of `{Name}` {Extras.Cross}"); return; }
             Tag.Content = Content;
-            await ReplyAsync($"Tag `{Name}`'s contant has been updated.");
+            await ReplyAsync($"Tag `{Name}`'s contant has been updated.", Save: 's');
         }
 
         [Command("Remove"), Alias("Delete"), Priority(10), Remarks("Deletes a tag."), Summary("Tag Delete <Name>")]
@@ -67,7 +67,7 @@
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
             if (Context.User.Id != Tag.Owner) return ReplyAsync($"You aren't the owner of `{Name}` {Extras.Cross}");
             Context.Server.Tags.Remove(Tag);
-            return ReplyAsync($"Tag `{Name}` has been deleted {Extras.OkHand}");
+            return ReplyAsync($"Tag `{Name}` has been deleted {Extras.OkHand}", Save: 's');
         }
 
         [Command("User"), Priority(10), Remarks("Shows all tags owned by you or a given user."), Summary("Tag User [@User]")]
@@ -87,7 +87,7 @@
             if ((Context.Guild as SocketGuild).Users.Where(x => x.Id == Tag.Owner).Any())
                 return ReplyAsync($"Tag owner is still in this guild.");
             Tag.Owner = Context.User.Id;
-            return ReplyAsync($"You are now the owner of `{Tag.Name}` tag {Extras.OkHand}");
+            return ReplyAsync($"You are now the owner of `{Tag.Name}` tag {Extras.OkHand}", Save: 's');
         }
 
         [Command("Info"), Priority(10), Remarks("Displays information about a given tag."), Summary("Tag Info <Name>")]
