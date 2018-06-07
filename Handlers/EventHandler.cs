@@ -135,7 +135,7 @@
             {
                 MessageId = Message.Id,
                 ChannelId = Channel.Id,
-                DateTime = DateTime.UtcNow,
+                DateTime = DateTime.Now,
                 AuthorId = Message.Author.Id,
                 Content = Message.Content ?? Message.Attachments.FirstOrDefault().Url
             });

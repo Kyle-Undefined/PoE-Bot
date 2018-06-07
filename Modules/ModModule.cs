@@ -146,7 +146,7 @@
             => MuteCommandAsync(User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!string.IsNullOrEmpty(Reason) ? Reason : "No Reason specified.")).ContinueWith(
                 x =>
                 {
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.UtcNow.Add((TimeSpan)(Time.HasValue ? Time : TimeSpan.FromMinutes(5))).ToUniversalTime());
+                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)(Time.HasValue ? Time : TimeSpan.FromMinutes(5))).ToUniversalTime());
                     SaveDocument('s');
                 });
 
@@ -156,7 +156,7 @@
             => MuteCommandAsync(User, TimeSpan.FromMinutes(5), (!string.IsNullOrEmpty(Reason) ? Reason : "No Reason specified.")).ContinueWith(
                 x =>
                 {
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.UtcNow.Add(TimeSpan.FromMinutes(5)).ToUniversalTime());
+                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add(TimeSpan.FromMinutes(5)).ToUniversalTime());
                     SaveDocument('s');
                 });
 

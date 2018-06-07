@@ -14,19 +14,19 @@
             PreconditionResult Result;
             if (!Timeout.ContainsKey(context.User.Id))
             {
-                Timeout.TryAdd(context.User.Id, DateTime.UtcNow);
+                Timeout.TryAdd(context.User.Id, DateTime.Now);
                 Result = PreconditionResult.FromSuccess();
             }
-            else if (Timeout[context.User.Id].AddSeconds(3) > DateTime.UtcNow)
+            else if (Timeout[context.User.Id].AddSeconds(3) > DateTime.Now)
                 Result = PreconditionResult.FromError(string.Empty);
             else
             {
-                Timeout.AddOrUpdate(context.User.Id, DateTime.UtcNow, (key, value) => value = DateTime.UtcNow);
+                Timeout.AddOrUpdate(context.User.Id, DateTime.Now, (key, value) => value = DateTime.Now);
                 Result = PreconditionResult.FromSuccess();
             }
             Task.Run(() =>
             {
-                foreach (var User in Timeout.OrderByDescending(x => x.Value).Where(x => !(x.Value.AddSeconds(3) > DateTime.UtcNow)))
+                foreach (var User in Timeout.OrderByDescending(x => x.Value).Where(x => !(x.Value.AddSeconds(3) > DateTime.Now)))
                     Timeout.TryRemove(User.Key, out _);
             });
             return Task.FromResult(Result);

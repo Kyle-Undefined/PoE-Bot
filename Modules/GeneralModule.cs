@@ -121,8 +121,8 @@
             Reminders.Add(new RemindObject{
                 Message = Message,
                 TextChannel = Context.Channel.Id,
-                RequestedDate = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.Add(Time)
+                RequestedDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.Add(Time)
             });
             Context.Server.Reminders.AddOrUpdate(Context.User.Id, Reminders, (key, value) => value = Reminders);
             await ReplyAsync($"Alright {Context.User.Mention}, I'll remind you in {StringHelper.FormatTimeSpan(Time)}.", Save: 's');

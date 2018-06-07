@@ -26,7 +26,7 @@
             catch { }
         });
 
-        public static DateTime UnixDateTime(double Unix) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Unix).ToLocalTime();
+        public static DateTime UnixDateTime(double Unix) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Local).AddSeconds(Unix);
 
         public static IEnumerable<Assembly> Assemblies
         {

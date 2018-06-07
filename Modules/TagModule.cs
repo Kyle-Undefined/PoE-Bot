@@ -45,7 +45,7 @@
                 Name = Name.Item2,
                 Owner = Context.User.Id,
                 Content = Content.Item2,
-                CreationDate = DateTime.UtcNow
+                CreationDate = DateTime.Now
             });
             await ReplyAsync($"Tag `{Name.Item2}` has been created {Extras.OkHand}", Save: 's');
         }

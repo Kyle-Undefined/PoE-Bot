@@ -107,7 +107,7 @@
                 .Build();
 
             await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
-            Server.Muted.TryAdd(User.Id, DateTime.UtcNow.Add(Time).ToUniversalTime());
+            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time).ToUniversalTime());
         }
     }
 }

@@ -16,7 +16,6 @@
         {
             DB = dB;
             Client = client;
-            JobManager.UseUtcTime();
             JobManager.JobEnd += (Info)
                 => LogHandler.Write(Source.EVT, $"Finished {Info.Name} in {Info.Duration}");
             JobManager.JobException += (Info)
@@ -31,7 +30,7 @@
                     if (!Server.Muted.IsEmpty || Server.Muted.Count != 0)
                         foreach (var Mute in Server.Muted)
                         {
-                            if (Mute.Value < DateTime.UtcNow)
+                            if (Mute.Value < DateTime.Now)
                             {
                                 Server.Muted.TryRemove(Mute.Key, out _);
                                 MethodHelper.RunSync(JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
@@ -55,7 +54,7 @@
                         Server.Reminders.TryGetValue(Reminder.Key, out Reminders);
                         for (int i = 0; i < Reminders.Count; i++)
                         {
-                            if (!(Reminders[i].ExpiryDate <= DateTime.UtcNow))
+                            if (!(Reminders[i].ExpiryDate <= DateTime.Now))
                                 continue;
                             var Guild = Client.GetGuild(Convert.ToUInt64(Server.Id));
                             var User = Guild.GetUser(Reminder.Key) ?? Client.GetUser(Reminder.Key);

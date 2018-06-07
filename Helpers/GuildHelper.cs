@@ -52,7 +52,7 @@
                 Username = $"{User}",
                 Moderator = $"{Mod}",
                 ModeratorId = Mod.Id,
-                CaseDate = DateTime.UtcNow,
+                CaseDate = DateTime.Now,
                 Number = Server.UserCases.Count + 1,
                 MessageId = Message == null ? 0 : Message.Id
             });
