@@ -14,7 +14,7 @@
     using SkiaSharp;
 
     [Name("Fun Commands"), Ratelimit]
-    public class FunModule : Base
+    public class FunModule : BotBase
     {
         [Command("Clap"), Remarks("Replaces spaces in your message with a clap emoji."), Summary("Clap <Message>")]
         public Task ClapAsync([Remainder] string Message) => ReplyAsync(Message.Replace(" ", " 👏 "));

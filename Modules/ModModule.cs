@@ -8,14 +8,14 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
     using System.Collections.Generic;
     using TwitchLib.Api;
 
     [Name("Moderator Commands"), RequireRole("Moderator"), Ratelimit]
-    public class ModModule : Base
+    public class ModModule : BotBase
     {
         [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@User> [Reason]"), BotPermission(GuildPermission.KickMembers),
             UserPermission(GuildPermission.KickMembers, "Woops, it seems you lack kicking permissions.")]
@@ -352,74 +352,127 @@
             await ReplyAsync($"Rules have been edited {Extras.OkHand}");
         }
 
-        [Command("Mixer Add", RunMode = RunMode.Async), Summary("Mixer Add <MixerUser> [#Channel: Defaults to #streams]"), Remarks("Add Mixer stream. You will get live feed from specified Mixer stream.")]
-        public async Task MixerAddAsync(string MixerUser, SocketTextChannel Channel = null)
+        [Command("Streamer Add", RunMode = RunMode.Async), Summary("Streamer Add <StreamType> <UserName> [#Channel: Defaults to #streams]"), Remarks("Adds a streamer to the Stream list. You will get `Is Live` posts in the specified channel.")]
+        public async Task StreamerAddAsync(StreamType StreamType, string UserName, SocketTextChannel Channel = null)
         {
-            if (Context.Server.MixerStreams.Where(f => f.Name == MixerUser && f.ChannelId == Channel.Id).Any()) await ReplyAsync($"`{MixerUser}` is already in the list {Extras.Cross}");
+            if (Context.Server.Streams.Where(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == Channel.Id).Any())
+                await ReplyAsync($"`{UserName}` is already on the `{StreamType}` list {Extras.Cross}");
 
-            MixerHelper Mixer = new MixerHelper();
-            uint UserId = await Mixer.GetUserId(MixerUser);
-            uint ChanId = await Mixer.GetChannelId(MixerUser);
-            if (UserId == 0 || ChanId == 0) await ReplyAsync($"No User/Channel found {Extras.Cross}");
             var channel = Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel;
-            Context.Server.MixerStreams.Add(new MixerObject
+            switch (StreamType)
             {
-                Name = MixerUser,
-                ChannelId = channel.Id,
-                UserId = UserId,
-                MixerChannelId = ChanId
-            });
-            await ReplyAsync($"`{MixerUser}` has been added to server's Mixer streams {Extras.OkHand}", Save: 's');
+                case StreamType.MIXER:
+                    MixerAPI Mixer = new MixerAPI();
+                    uint UserId = await Mixer.GetUserId(UserName);
+                    uint ChanId = await Mixer.GetChannelId(UserName);
+                    if (UserId == 0 || ChanId == 0)
+                        await ReplyAsync($"No User/Channel found {Extras.Cross}");
+                    
+                    Context.Server.Streams.Add(new StreamObject
+                    {
+                        Name = UserName,
+                        ChannelId = channel.Id,
+                        MixerUserId = UserId,
+                        MixerChannelId = ChanId,
+                        StreamType = StreamType
+                    });
+
+                    break;
+
+                case StreamType.TWITCH:
+                    TwitchAPI TwitchAPI = new TwitchAPI();
+                    TwitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
+                    TwitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
+
+                    var users = await TwitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { UserName }));
+                    if (!users.Users.Any())
+                        await ReplyAsync($"Twitch user not found {Extras.Cross}");
+
+                    var User = users.Users[0];
+                    Context.Server.Streams.Add(new StreamObject
+                    {
+                        Name = UserName,
+                        TwitchUserId = User.Id,
+                        ChannelId = channel.Id,
+                        StreamType = StreamType
+                    });
+
+                    break;
+            }
+
+            await ReplyAsync($"`{UserName}` has been added to the `{StreamType}` list {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Mixer Remove"), Remarks("Remove Mixer stream."), Summary("Mixer Remove <MixerUser> [#Channel: Defaults to #streams]")]
-        public Task MixerRemoveAsync(string MixerUser, SocketTextChannel Channel = null)
+        [Command("Streamer MultiAdd", RunMode = RunMode.Async), Summary("Streamer MultiAdd <StreamType> <UserNames>"), Remarks("Adds a list of streamers to the Stream list. You will get `Is Live` posts in the specified channel.")]
+        public async Task StreamerMultiAddAsync(StreamType StreamType, params string[] UserNames)
         {
-            if (!Context.Server.MixerStreams.Select(s => s.Name == MixerUser && s.ChannelId == (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any()) return ReplyAsync($"You aren't following `{MixerUser}`");
-            Context.Server.MixerStreams.Remove(new MixerObject() { Name = MixerUser, ChannelId = (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id });
-            return ReplyAsync($"`{MixerUser}` has been removed from the server's Mixer streams {Extras.OkHand}", Save: 's');
-        }
+            var Channel = Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel;
 
-        [Command("Mixer List"), Remarks("Shows all the Mixer streams this server is following."), Summary("Mixer List")]
-        public Task MixerAsync()
-            => ReplyAsync(!Context.Server.MixerStreams.Any() ? $"This server isn't following any streams {Extras.Cross}" :
-                $"**Mixer Streams Followed**:\n{String.Join("\n", Context.Server.MixerStreams.Select(s => $"Streamer: {s.Name} | Channel: {Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention}").ToList())}");
-
-        [Command("Twitch Add", RunMode = RunMode.Async), Summary("Twitch Add <TwitchUser> [#Channel: Defaults to #streams]"), Remarks("Add Twitch stream. You will get live feed from specified Twitch stream.")]
-        public async Task TwitchAddAsync(string TwitchUser, SocketTextChannel Channel = null)
-        {
-            if (Context.Server.TwitchStreams.Where(f => f.Name == TwitchUser && f.ChannelId == Channel.Id).Any()) await ReplyAsync($"`{TwitchUser}` is already in the list {Extras.Cross}");
-
-            TwitchAPI TwitchAPI = new TwitchAPI();
-            TwitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
-            TwitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
-
-            var users = await TwitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { TwitchUser }));
-            if (!users.Users.Any()) await ReplyAsync($"Twitch user not found {Extras.Cross}");
-            var User = users.Users[0];
-            var channel = Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel;
-
-            Context.Server.TwitchStreams.Add(new TwitchObject
+            foreach(var UserName in UserNames)
             {
-                Name = TwitchUser,
-                UserId = User.Id,
-                ChannelId = channel.Id
-            });
-            await ReplyAsync($"`{TwitchUser}` has been added to server's Twitch streams {Extras.OkHand}", Save: 's');
+                if (Context.Server.Streams.Where(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == Channel.Id).Any())
+                    await ReplyAsync($"`{UserName}` is already on the `{StreamType}` list {Extras.Cross}");
+
+                switch (StreamType)
+                {
+                    case StreamType.MIXER:
+                        MixerAPI Mixer = new MixerAPI();
+                        uint UserId = await Mixer.GetUserId(UserName);
+                        uint ChanId = await Mixer.GetChannelId(UserName);
+                        if (UserId == 0 || ChanId == 0)
+                            await ReplyAsync($"No User/Channel found {Extras.Cross}");
+
+                        Context.Server.Streams.Add(new StreamObject
+                        {
+                            Name = UserName,
+                            ChannelId = Channel.Id,
+                            MixerUserId = UserId,
+                            MixerChannelId = ChanId,
+                            StreamType = StreamType
+                        });
+
+                        break;
+
+                    case StreamType.TWITCH:
+                        TwitchAPI TwitchAPI = new TwitchAPI();
+                        TwitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
+                        TwitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
+
+                        var users = await TwitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { UserName }));
+                        if (!users.Users.Any())
+                            await ReplyAsync($"Twitch user not found {Extras.Cross}");
+
+                        var User = users.Users[0];
+                        Context.Server.Streams.Add(new StreamObject
+                        {
+                            Name = UserName,
+                            TwitchUserId = User.Id,
+                            ChannelId = Channel.Id,
+                            StreamType = StreamType
+                        });
+
+                        break;
+                }
+
+                await Task.Delay(1000);
+            }
+
+            await ReplyAsync($"`{String.Join(", ", UserNames)}` has been added to the `{StreamType}` list {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Twitch Remove"), Remarks("Remove Twitch stream."), Summary("Twitch Remove <TwitchUser> [#Channel: Defaults to #streams]")]
-        public Task TwitchRemoveAsync(string TwitchUser, SocketTextChannel Channel = null)
+        [Command("Streamer Remove"), Remarks("Remove a Streamer"), Summary("Streamer Remove <StreamType> <UserName> [#Channel: Defaults to #streams]")]
+        public Task StreamerRemoveAsync(StreamType StreamType, string UserName, SocketTextChannel Channel = null)
         {
-            if (!Context.Server.TwitchStreams.Select(s => s.Name == TwitchUser && s.ChannelId == (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any()) return ReplyAsync($"You aren't following `{TwitchUser}`");
-            Context.Server.TwitchStreams.Remove(new TwitchObject() { Name = TwitchUser, ChannelId = (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id });
-            return ReplyAsync($"`{TwitchUser}` has been removed from the server's Twitch streams {Extras.OkHand}", Save: 's');
+            if (!Context.Server.Streams.Select(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any())
+                return ReplyAsync($"`{UserName}` isn't on the `{StreamType}` list {Extras.Cross}");
+            Context.Server.Streams.Remove(new StreamObject() { StreamType = StreamType, Name = UserName, ChannelId = (Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id });
+            return ReplyAsync($"`{UserName}` has been removed from the `{StreamType}` list {Extras.OkHand}");
         }
 
-        [Command("Twitch List"), Remarks("Shows all the Twitch streams this server is following."), Summary("Twitch List")]
-        public Task TwitchAsync()
-            => ReplyAsync(!Context.Server.TwitchStreams.Any() ? $"This server isn't following any streams {Extras.Cross}" :
-                $"**Twitch Streams Followed**:\n{String.Join("\n", Context.Server.TwitchStreams.Select(s => $"Streamer: {s.Name} | Channel: {Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention}").ToList())}");
+        [Command("Streamers"), Remarks("Shows a list of all Streamers"), Summary("Streamers")]
+        public Task StreamersAsync()
+            => ReplyAsync(!Context.Server.Streams.Any() ? $"This server isn't following any streams {Extras.Cross}" : 
+                $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(s => $"`{s.StreamType}`: {s.Name} {(Context.GuildHelper.DefaultStreamChannel(Context.Guild).Id == Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Id ? "" : Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention)}").ToList())}");
 
         [Command("Leaderboard Add"), Summary("Leaderboard Add <Variant> <#Channel> <Enabled: True, False>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
         public async Task LeaderboardAddAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)

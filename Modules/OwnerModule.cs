@@ -9,13 +9,13 @@
     using Discord.WebSocket;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using PoE.Bot.Modules.Objects;
+    using PoE.Bot.Objects;
     using Microsoft.CodeAnalysis.Scripting;
     using Microsoft.CodeAnalysis.CSharp.Scripting;
     using Drawing = System.Drawing.Color;
 
     [Name("Owner Commands"), RequireOwner]
-    public class OwnerModule : Base
+    public class OwnerModule : BotBase
     {
         [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information."), Summary("Update <Action: a, u, s, n, r, t, p> [Value]")]
         public async Task UpdateAsync(char Action, [Remainder] string Value = null)
@@ -139,8 +139,8 @@
                 $"Tags: {Servers.Sum(x => x.Tags.Count)}\n" +
                 $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
                 $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true);
-            Embed.AddField("Mixer", $"Streams: {Context.Server.MixerStreams.Count}", true);
-            Embed.AddField("Twitch", $"Streams: {Context.Server.TwitchStreams.Count}", true);
+            Embed.AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true);
+            Embed.AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true);
             Embed.AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true);
             Embed.AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true);
             Embed.AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true);

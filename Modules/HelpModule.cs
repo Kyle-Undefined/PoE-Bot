@@ -9,7 +9,7 @@
     using Drawing = System.Drawing.Color;
 
     [Name("Help"), Ratelimit]
-    public class HelpModule : Base
+    public class HelpModule : BotBase
     {
         IServiceProvider Provider { get; }
         public CommandService CommandService { get; set; }

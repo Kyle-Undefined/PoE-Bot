@@ -1,4 +1,4 @@
-﻿namespace PoE.Bot.Handlers.Objects
+﻿namespace PoE.Bot.Objects
 {
     using System;
     using System.Collections.Generic;
@@ -29,8 +29,7 @@
         public IList<ShopObject> Shops { get; set; } = new List<ShopObject>();
         public IList<PriceObject> Prices { get; set; } = new List<PriceObject>();
         public IList<RssObject> RssFeeds { get; set; } = new List<RssObject>();
-        public IList<MixerObject> MixerStreams { get; set; } = new List<MixerObject>();
-        public IList<TwitchObject> TwitchStreams { get; set; } = new List<TwitchObject>();
+        public IList<StreamObject> Streams { get; set; } = new List<StreamObject>();
         public IList<LeaderboardObject> Leaderboards { get; set; } = new List<LeaderboardObject>();
         public IList<TagObject> Tags { get; set; } = new List<TagObject>();
         public IList<CaseObject> UserCases { get; set; } = new List<CaseObject>();

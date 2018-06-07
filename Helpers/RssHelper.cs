@@ -11,15 +11,14 @@
     using System.Xml.Serialization;
     using System.IO;
     using PoE.Bot.Handlers;
-    using PoE.Bot.Handlers.Objects;
-    using PoE.Bot.Helpers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons;
     using Drawing = System.Drawing.Color;
     using HtmlAgilityPack;
 
     public class RssHelper
     {
-        public static async Task BuildAndSend(RssObject Feed, SocketGuild Guild, GuildObject Server, DBHandler DB)
+        public static async Task BuildAndSend(RssObject Feed, SocketGuild Guild, GuildObject Server, DatabaseHandler DB)
         {
             var PostUrls = Feed.RecentUris.Any() ? Feed.RecentUris : new List<string>();
             var CheckRss = await RssAsync(Feed.FeedUri).ConfigureAwait(false);
@@ -187,6 +186,34 @@
                 val = val.Substring(val.IndexOf("</style>") + 8);
 
             return val;
+        }
+
+        [XmlRoot("rss")]
+        private class RssDataObject
+        {
+            [XmlElement("channel")]
+            public RssData Data { get; set; }
+        }
+
+        public partial class RssData
+        {
+            [XmlElement("item")]
+            public List<RssItem> Items { get; set; }
+        }
+
+        public partial class RssItem
+        {
+            [XmlElement("title")]
+            public string Title { get; set; }
+
+            [XmlElement("link")]
+            public string Link { get; set; }
+
+            [XmlElement("description")]
+            public string Description { get; set; }
+
+            [XmlElement("pubDate")]
+            public string PubDate { get; set; }
         }
     }
 }

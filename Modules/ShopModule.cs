@@ -5,11 +5,11 @@
     using PoE.Bot.Addons;
     using Discord.Commands;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
 
     [Name("Shop Commands"), Group("Shop"), RequireChannel("shops"), Ratelimit]
-    public class ShopModule : Base
+    public class ShopModule : BotBase
     {
         [Command("Add"), Remarks("Adds the item to your shop."), Summary("Shop Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Item>")]
         public Task AddAsync(Leagues League, [Remainder] string Item)

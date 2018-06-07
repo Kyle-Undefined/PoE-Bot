@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using System.Text.RegularExpressions;
     using System.Collections.Generic;
-    using PoE.Bot.Helpers.Objects.PathOfBuilding;
+    using PoE.Bot.Objects.PathOfBuilding;
     using Newtonsoft.Json.Linq;
     using Ionic.Zlib;
 

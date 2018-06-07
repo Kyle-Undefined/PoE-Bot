@@ -6,12 +6,12 @@
     using PoE.Bot.Addons;
     using Discord.Commands;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
 
     [Name("Price Checker Commands"), Group("Price"), RequireRole("Price Checker"), RequireChannel("price-checkers"), Ratelimit]
-    public class PriceModule : Base
+    public class PriceCheckerModule : BotBase
     {
         [Command("Add"), Remarks("Adds the price for the currency."), Summary("Price Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Replace spaces with _> <Quantity> <Price> <Alias>")]
         public Task AddAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Alias)

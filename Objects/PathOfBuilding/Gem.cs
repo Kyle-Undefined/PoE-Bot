@@ -1,4 +1,4 @@
-﻿namespace PoE.Bot.Helpers.Objects.PathOfBuilding
+﻿namespace PoE.Bot.Objects.PathOfBuilding
 {
     public class Gem
     {

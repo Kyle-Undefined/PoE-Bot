@@ -3,7 +3,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Discord.WebSocket;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
 
     public class JobHelper
     {

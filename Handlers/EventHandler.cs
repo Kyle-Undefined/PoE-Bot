@@ -10,13 +10,12 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
-    using PoE.Bot.Modules;
+    using PoE.Bot.Objects;
     using Drawing = System.Drawing.Color;
 
     public class EventHandler
     {
-        DBHandler DB { get; }
+        DatabaseHandler DB { get; }
         Random Random { get; }
         ConfigObject Config { get; }
         GuildHelper GuildHelper { get; }
@@ -26,7 +25,7 @@
         bool GuildCheck = true;
         CommandService CommandService { get; }
         CancellationTokenSource CancellationToken { get; set; }
-        public EventHandler(DBHandler db, DiscordSocketClient client, ConfigObject config,
+        public EventHandler(DatabaseHandler db, DiscordSocketClient client, ConfigObject config,
             GuildHelper helper, IServiceProvider service, CommandService commandService, Random random,
             EventHelper eventHelper)
         {

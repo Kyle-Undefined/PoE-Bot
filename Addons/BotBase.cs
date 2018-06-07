@@ -6,13 +6,13 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Interactive;
     using System.Collections.Generic;
     using PoE.Bot.Addons.Interactive.Criterias;
     using PoE.Bot.Addons.Interactive.Paginator;
 
-    public class Base : ModuleBase<IContext>
+    public class BotBase : ModuleBase<IContext>
     {
         public InteractiveService Interactive { get; set; }
         public async Task<IUserMessage> ReplyAsync(string Message = null, Embed Embed = null, char Save = 'n')

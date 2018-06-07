@@ -1,8 +1,8 @@
-﻿namespace PoE.Bot.Handlers.Objects
+﻿namespace PoE.Bot.Objects
 {
     using System.IO;
 
-    public class DBObject
+    public class DatabaseObject
     {
 #if DEBUG
         public string Name = "PoE_Bot_Test";

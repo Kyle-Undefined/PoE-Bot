@@ -1,4 +1,4 @@
-﻿namespace PoE.Bot.Handlers.Objects
+﻿namespace PoE.Bot.Objects
 {
     using System;
     using System.Collections.Generic;

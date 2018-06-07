@@ -8,12 +8,12 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
 
     [Name("Tag Commands"), Group("Tag"), Ratelimit]
-    public class TagModule : Base
+    public class TagModule : BotBase
     {
         [Command, Priority(0), Summary("Executes a tag with the given name.")]
         public Task TagAsync(string Name)

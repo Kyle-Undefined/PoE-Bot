@@ -10,12 +10,12 @@
     using System.Threading.Tasks;
     using System.Diagnostics;
     using System.Collections.Generic;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
 
     [Name("General Commands"), Ratelimit]
-    public class GeneralModule : Base
+    public class GeneralModule : BotBase
     {
         IServiceProvider Provider { get; }
         public CommandService CommandService { get; set; }
@@ -101,8 +101,8 @@
                     $"Currencies: {Context.Server.Prices.Count}\n" +
                     $"Shop Items: {Context.Server.Shops.Count}", true)
                 .AddField("Streams", 
-                    $"Mixer: {Context.Server.MixerStreams.Count}\n" +
-                    $"Twitch: {Context.Server.TwitchStreams.Count}", true)
+                    $"Mixer: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}\n" +
+                    $"Twitch: {Context.Server.Streams.Count(s => s.StreamType == StreamType.TWITCH)}", true)
                 .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count(x => x.Enabled == true)}", true)
                 .AddField("Bot Info", "Info about myself:")
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)

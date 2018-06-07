@@ -6,7 +6,7 @@
     using System.Net.Http;
     using PoE.Bot.Handlers;
     using Discord.Commands;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using Microsoft.Extensions.DependencyInjection;
 
     public class IContext : ICommandContext
@@ -19,7 +19,7 @@
         public IUserMessage Message { get; }
         public IDiscordClient Client { get; }
         public HttpClient HttpClient { get; }
-        public DBHandler DBHandler { get; }
+        public DatabaseHandler DBHandler { get; }
         public GuildHelper GuildHelper { get; }
         public IMessageChannel Channel { get; }
 
@@ -33,9 +33,9 @@
             Guild = (message.Channel as IGuildChannel).Guild;
             Config = provider.GetRequiredService<ConfigObject>();
             HttpClient = provider.GetRequiredService<HttpClient>();
-            DBHandler = provider.GetRequiredService<DBHandler>();
+            DBHandler = provider.GetRequiredService<DatabaseHandler>();
             GuildHelper = provider.GetRequiredService<GuildHelper>();
-            Server = provider.GetRequiredService<DBHandler>().Execute<GuildObject>(Operation.LOAD, Id: $"{Guild.Id}");
+            Server = provider.GetRequiredService<DatabaseHandler>().Execute<GuildObject>(Operation.LOAD, Id: $"{Guild.Id}");
         }
     }
 }

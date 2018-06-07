@@ -8,15 +8,15 @@
     using System.Diagnostics;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
     using Raven.Client.Documents.Operations.Backups;
     using System.Collections.Generic;
 
-    public class DBHandler
+    public class DatabaseHandler
     {
-        DBObject Settings { get; set; }
+        DatabaseObject Settings { get; set; }
         public IDocumentStore Store { get; set; }
 
         public async Task InitializeAsync()
@@ -24,11 +24,11 @@
             LogHandler.PrintApplicationInformation();
             if (Process.GetProcesses().FirstOrDefault(x => x.ProcessName == "Raven.Server") == null)
                 await LogHandler.CriticalFail(Source.EXC, $"Please make sure RavenDB is running.");
-            if (File.Exists("DBConfig.json")) Settings = JsonConvert.DeserializeObject<DBObject>(File.ReadAllText("DBConfig.json"));
+            if (File.Exists("DBConfig.json")) Settings = JsonConvert.DeserializeObject<DatabaseObject>(File.ReadAllText("DBConfig.json"));
             else
             {
-                File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DBObject(), Formatting.Indented), Encoding.UTF8);
-                Settings = JsonConvert.DeserializeObject<DBObject>(File.ReadAllText("DBConfig.json"));
+                File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DatabaseObject(), Formatting.Indented), Encoding.UTF8);
+                Settings = JsonConvert.DeserializeObject<DatabaseObject>(File.ReadAllText("DBConfig.json"));
             }
             Store = new Lazy<IDocumentStore>(() => new DocumentStore { Database = Settings.Name, Urls = new[] { Settings.URL } }.Initialize(), true).Value;
             if (Store == null) await LogHandler.CriticalFail(Source.EXC, $"Failed to build document store.");
@@ -55,7 +55,7 @@
                 var Prefix = Console.ReadLine();
                 Execute<ConfigObject>(Operation.CREATE, new ConfigObject
                 { Prefix = Prefix, APIKeys = new Dictionary<string, string> { { "BT", Token }, { "TC", "" }, { "TA", "" } } }, "Config");
-                File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DBObject { IsConfigCreated = true }, Formatting.Indented));
+                File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DatabaseObject { IsConfigCreated = true }, Formatting.Indented));
             }
             Settings = null;
             LogHandler.ForceGC();

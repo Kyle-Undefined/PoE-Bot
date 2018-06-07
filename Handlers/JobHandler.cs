@@ -6,13 +6,13 @@
     using PoE.Bot.Helpers;
     using FluentScheduler;
     using Discord.WebSocket;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
 
     public class JobHandler : Registry
     {
-        DBHandler DB { get; }
+        DatabaseHandler DB { get; }
         DiscordSocketClient Client { get; }
-        public JobHandler(DBHandler dB, DiscordSocketClient client)
+        public JobHandler(DatabaseHandler dB, DiscordSocketClient client)
         {
             DB = dB;
             Client = client;
@@ -98,22 +98,12 @@
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers())
-                    if (Server.MixerFeed)
-                        if (Server.MixerStreams.Count != 0)
-                            foreach (var Mixer in Server.MixerStreams)
-                                MethodHelper.RunSync(MixerHelper.BuildAndSend(Mixer, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
-            }).WithName("mixer streams").ToRunEvery(5).Minutes().DelayFor(20).Seconds();
-
-            Schedule(() =>
-            {
                 var Config = DB.Execute<ConfigObject>(Operation.LOAD, Id: "Config");
-                foreach (var Server in DB.Servers())
-                    if (Server.TwitchFeed)
-                        if (Server.TwitchStreams.Count != 0)
-                            foreach (var Twitch in Server.TwitchStreams)
-                                MethodHelper.RunSync(TwitchHelper.BuildAndSend(Twitch, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
-            }).WithName("twitch streams").ToRunEvery(5).Minutes().DelayFor(10).Seconds();
+                foreach (var Server in DB.Servers().Where(s => s.TwitchFeed || s.MixerFeed))
+                    if (Server.Streams.Any())
+                        foreach (var Stream in Server.Streams)
+                            MethodHelper.RunSync(StreamHelper.BuildAndSend(Stream, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
+            }).WithName("streams").ToRunEvery(5).Minutes().DelayFor(10).Seconds();
 
             Schedule(() =>
             {

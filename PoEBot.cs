@@ -8,7 +8,7 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Interactive;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -31,7 +31,7 @@
                     CaseSensitiveCommands = false
                 }))
                 .AddSingleton<HttpClient>()
-                .AddSingleton<DBHandler>()
+                .AddSingleton<DatabaseHandler>()
                 .AddSingleton<JobHandler>()
                 .AddSingleton<GuildHelper>()
                 .AddSingleton<EventHelper>()
@@ -39,10 +39,10 @@
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<Handlers.EventHandler>()
                 .AddSingleton(new Random(Guid.NewGuid().GetHashCode()))
-                .AddSingleton(x => x.GetRequiredService<DBHandler>().Execute<ConfigObject>(Operation.LOAD, Id: "Config"));
+                .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.LOAD, Id: "Config"));
 
             var Provider = Services.BuildServiceProvider();
-            await Provider.GetRequiredService<DBHandler>().InitializeAsync();
+            await Provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
             await Provider.GetRequiredService<MainHandler>().InitializeAsync();
             await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
             Provider.GetRequiredService<JobHandler>().Initialize();

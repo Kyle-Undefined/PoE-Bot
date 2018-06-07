@@ -7,7 +7,7 @@
     using PoE.Bot.Handlers;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
 
@@ -35,7 +35,7 @@
                 x => ValidNames.Contains(x.Name)) ?? Guild.DefaultChannel;
         }
 
-        public async Task LogAsync(DBHandler DB, IGuild Guild, IUser User, IUser Mod, CaseType CaseType, string Reason)
+        public async Task LogAsync(DatabaseHandler DB, IGuild Guild, IUser User, IUser Mod, CaseType CaseType, string Reason)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
             Reason = string.IsNullOrWhiteSpace(Reason) ? $"*Responsible moderator, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*" : Reason;
@@ -66,7 +66,7 @@
             return (User as SocketGuildUser).Roles.Any(x => x.Position >= HighestRole);
         }
 
-        public ProfileObject GetProfile(DBHandler DB, ulong GuildId, ulong UserId)
+        public ProfileObject GetProfile(DatabaseHandler DB, ulong GuildId, ulong UserId)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: GuildId);
             if (!Server.Profiles.ContainsKey(UserId))
@@ -78,7 +78,7 @@
             return Server.Profiles[UserId];
         }
 
-        public void SaveProfile(DBHandler DB, ulong GuildId, ulong UserId, ProfileObject Profile)
+        public void SaveProfile(DatabaseHandler DB, ulong GuildId, ulong UserId, ProfileObject Profile)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: GuildId);
             Server.Profiles[UserId] = Profile;

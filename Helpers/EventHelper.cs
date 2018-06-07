@@ -7,7 +7,7 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
     using Raven.Client.Extensions;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using System.Collections.Concurrent;
     using Drawing = System.Drawing.Color;
     using PoE.Bot.Addons;
@@ -15,12 +15,12 @@
     public class EventHelper
     {
         int Tries = 1;
-        DBHandler DB { get; }
+        DatabaseHandler DB { get; }
         Random Random { get; }
         GuildHelper GuildHelper { get; }
         public TimeSpan GlobalTimeout { get; }
         ConcurrentDictionary<ulong, DateTime> WaitList { get; }
-        public EventHelper(DBHandler dB, Random random, GuildHelper helper)
+        public EventHelper(DatabaseHandler dB, Random random, GuildHelper helper)
         {
             DB = dB;
             Random = random;

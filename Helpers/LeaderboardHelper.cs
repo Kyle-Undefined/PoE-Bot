@@ -7,7 +7,7 @@
     using System.Linq;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using System.Collections.Generic;
     using System.Text;
     using CsvHelper;

@@ -8,11 +8,11 @@
     using PoE.Bot.Helpers;
     using Discord.Commands;
     using System.Threading.Tasks;
-    using PoE.Bot.Handlers.Objects;
+    using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
 
     [Name("Admin Commands"), UserPermission, Ratelimit]
-    public class AdminModule : Base
+    public class AdminModule : BotBase
     {
         [Command("Settings", RunMode = RunMode.Async), Remarks("Displays guilds settings."), Summary("Settings")]
         public Task SettingsAsync()
@@ -38,8 +38,8 @@
                 $"+ Twitch                : {(Context.Server.TwitchFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Leaderboard           : {(Context.Server.LeaderboardFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ RSS Feeds             : {Context.Server.RssFeeds.Count}\n" +
-                $"+ Mixer Streams         : {Context.Server.MixerStreams.Count}\n" +
-                $"+ Twitch Stream         : {Context.Server.TwitchStreams.Count}\n" +
+                $"+ Mixer Streams         : {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}\n" +
+                $"+ Twitch Stream         : {Context.Server.Streams.Count(s => s.StreamType == StreamType.TWITCH)}\n" +
                 $"+ Leaderboard Variants  : {Context.Server.Leaderboards.Count}\n" +
                 $"+ Max Warnings (Mute)   : {Context.Server.MaxWarningsToMute}\n" +
                 $"+ Max Warnings (Kick)   : {Context.Server.MaxWarningsToKick}\n" +

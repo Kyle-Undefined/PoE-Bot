@@ -1,4 +1,4 @@
-﻿namespace PoE.Bot.Modules.Objects
+﻿namespace PoE.Bot.Objects
 {
     using PoE.Bot.Addons;
     using Discord.WebSocket;

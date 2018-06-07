@@ -47,6 +47,6 @@ I wrote the bot a long time ago, even before the initial commit and it was just 
 
 Hanging around in the [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR) channel I saw examples of the "proper" and better way of building a [Discord.Net](https://github.com/RogueException/Discord.Net) bot. I didn't understand any of it, and reading the [docs](https://docs.stillu.cc) only seemed to make it worse somehow.
 
-I came across [Yucked](https://github.com/Yucked)'s bot [Valerie](https://github.com/Yucked/Valerie) and fell in love with how it was done. I was able to learn and study and well put together bot, and see how it all works. Admittedly, a huge portion of the new rework goes to him and I followed his design as it makes the most sense to me. He's a much smarter person than I. Go give him support, as he is much more deserving. Oh, and [buy him a coffee or three](https://www.buymeacoffee.com/Yucked)!
+I came across [Yucked](https://github.com/Yucked)'s bot [Valerie](https://github.com/Yucked/Valerie) and fell in love with how it was done. I was able to learn and study and well put together bot, and see how it all works. Admittedly, a huge portion of the new rework idea goes to him and I followed his design as it makes the most sense to me. He's a much smarter person than I. Go give him support, as he is much more deserving. Oh, and [buy him a coffee or three](https://www.buymeacoffee.com/Yucked)!
 
 Also, thanks `Cidna#5074` for the logo!

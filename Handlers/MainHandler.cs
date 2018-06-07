@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Threading.Tasks;
-using PoE.Bot.Handlers.Objects;
+using PoE.Bot.Objects;
 
 namespace PoE.Bot.Handlers
 {
