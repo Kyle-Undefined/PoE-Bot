@@ -88,7 +88,7 @@
 
         internal async Task MessageReceivedAsync(SocketMessage socketMessage)
         {
-            if (!(socketMessage is SocketUserMessage Message)) return;
+            if (!(socketMessage is SocketUserMessage Message) || Message.Channel is IDMChannel) return;
             int argPos = 0;
             var Context = new IContext(Client, Message, Provider);
             if (Config.Blacklist.Contains(Message.Author.Id) || Message.Author.IsBot || Message.Author.IsWebhook) return;
