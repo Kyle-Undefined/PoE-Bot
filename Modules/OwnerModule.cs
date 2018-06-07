@@ -7,10 +7,12 @@
     using PoE.Bot.Helpers;
     using Discord.Commands;
     using Discord.WebSocket;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using PoE.Bot.Modules.Objects;
     using Microsoft.CodeAnalysis.Scripting;
     using Microsoft.CodeAnalysis.CSharp.Scripting;
+    using Drawing = System.Drawing.Color;
 
     [Name("Owner Commands"), RequireOwner]
     public class OwnerModule : Base
@@ -115,6 +117,35 @@
                     return ReplyAsync($"`{Namespace}` has been removed.", Save: 'c');
                 default: return Task.CompletedTask;
             }
+        }
+
+        [Command("Stats", RunMode = RunMode.Async), Remarks("Displays information about PoE Bot and its stats."), Summary("Stats")]
+        public async Task StatsAsync()
+        {
+            var Client = Context.Client as DiscordSocketClient;
+            var Servers = Context.DBHandler.Servers();
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithDescription((await Client.GetApplicationInfoAsync()).Description)
+                .AddField("Channels",
+                $"Text: {Client.Guilds.Sum(x => x.TextChannels.Count)}\n" +
+                $"Voice: {Client.Guilds.Sum(x => x.VoiceChannels.Count)}\n" +
+                $"Total: {Client.Guilds.Sum(x => x.Channels.Count)}", true)
+                .AddField("Members",
+                $"Bot: {Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot == true).Count())}\n" +
+                $"Human: { Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot == false).Count())}\n" +
+                $"Total: {Client.Guilds.Sum(x => x.Users.Count)}", true)
+                .AddField("Database",
+                $"Tags: {Servers.Sum(x => x.Tags.Count)}\n" +
+                $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
+                $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true);
+            Embed.AddField("Mixer", $"Streams: {Context.Server.MixerStreams.Count}", true);
+            Embed.AddField("Twitch", $"Streams: {Context.Server.TwitchStreams.Count}", true);
+            Embed.AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true);
+            Embed.AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true);
+            Embed.AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true);
+            Embed.AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true);
+            await ReplyAsync(Embed: Embed.Build());
         }
     }
 }

@@ -242,6 +242,69 @@
             return ReplyAsync($"Warnings has been reset for `{User}` {Extras.OkHand}");
         }
 
+        [Command("GuildInfo"), Remarks("Displays information about guild."), Summary("GuildInfo")]
+        public Task GuildInfoAsync()
+        {
+            var Guild = Context.Guild as SocketGuild;
+            return ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
+                .WithAuthor($"{Context.Guild.Name}'s Information | {Context.Guild.Id}", Context.Guild.IconUrl)
+                .WithFooter($"Created On: {Guild.CreatedAt}")
+                .WithThumbnailUrl(Context.Guild.IconUrl)
+                .AddField("Owner", Guild.Owner, true)
+                .AddField("Default Channel", Guild.DefaultChannel.Name ?? "No Default Channel", true)
+                .AddField("Message Notifications", Guild.DefaultMessageNotifications, true)
+                .AddField("Verification Level", Guild.VerificationLevel, true)
+                .AddField("MFA Level", Guild.MfaLevel, true)
+                .AddField("Text Channels", Guild.TextChannels.Count, true)
+                .AddField("Voice Channels", Guild.VoiceChannels.Count, true)
+                .AddField("Bot Members", Guild.Users.Count(x => x.IsBot == true), true)
+                .AddField("Human Members", Guild.Users.Count(x => x.IsBot == false), true)
+                .AddField("Total Members", Guild.MemberCount, true)
+                .AddField("Roles", string.Join(", ", Guild.Roles.OrderByDescending(x => x.Position).Select(x => x.Name))).Build());
+        }
+
+        [Command("RoleInfo"), Remarks("Displays information about a role."), Summary("RoleInfo <@Role>")]
+        public Task RoleInfoAsync(IRole Role)
+            => ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
+                .WithTitle($"{Role.Name} Information")
+                .WithFooter($"Created On: {Role.CreatedAt}")
+                .AddField("ID", Role.Id, true)
+                .AddField("Color", Role.Color, true)
+                .AddField("Role Position", Role.Position, true)
+                .AddField("Shows Separately?", Role.IsHoisted ? "Yep" : "Nope", true)
+                .AddField("Managed By Discord?", Role.IsManaged ? "Yep" : "Nope", true)
+                .AddField("Can Mention?", Role.IsMentionable ? "Yep" : "Nope", true)
+                .AddField("Permissions", string.Join(", ", Role.Permissions)).Build());
+
+        [Command("UserInfo"), Remarks("Displays information about a user."), Summary("UserInfo [@User]")]
+        public Task UserInfoAsync(SocketGuildUser User = null)
+        {
+            User = User ?? Context.User as SocketGuildUser;
+            return ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
+                .WithAuthor($"{User.Username} Information | {User.Id}", User.GetAvatarUrl())
+                .WithThumbnailUrl(User.GetAvatarUrl()).
+                AddField("Muted?", User.IsMuted ? "Yep" : "Nope", true)
+                .AddField("Is Bot?", User.IsBot ? "Yep" : "Nope", true)
+                .AddField("Creation Date", User.CreatedAt, true)
+                .AddField("Join Date", User.JoinedAt, true)
+                .AddField("Status", User.Status, true)
+                .AddField("Permissions", string.Join(", ", User.GuildPermissions.ToList()), true)
+                .AddField("Roles", string.Join(", ", (User as SocketGuildUser).Roles.OrderBy(x => x.Position).Select(x => x.Name)), true).Build());
+        }
+
+        [Command("Case"), Remarks("Shows information about a specific case."), Summary("Case [CaseNumber]")]
+        public Task CaseAsync(int CaseNumber = 0)
+        {
+            if (CaseNumber == 0 && Context.Server.UserCases.Any()) CaseNumber = Context.Server.UserCases.LastOrDefault().Number;
+            var Case = Context.Server.UserCases.FirstOrDefault(x => x.Number == CaseNumber);
+            if (Case == null) return ReplyAsync($"Case #{CaseNumber} doesn't exist.");
+            return ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
+                .AddField("User", $"{Case.Username} ({Case.UserId})", true)
+                .AddField("Case Type", Case.CaseType, true)
+                .AddField("Responsible Moderator", $"{Case.Moderator} ({Case.ModeratorId})", true)
+                .AddField("Reason", Case.Reason).Build());
+        }
+
         [Command("ConfigureRules"), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("ConfigureRules <Rules>"), Alias("cr", "configrules")]
         public Task ConfigureRulesAsync([Remainder] string Rules)
         {
