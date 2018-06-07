@@ -82,7 +82,7 @@
             var Embed = Extras.Embed(Drawing.Aqua)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription((await Client.GetApplicationInfoAsync()).Description)
-                .AddField("Server Info", $"This server was created on {Context.Guild.CreatedAt.Date.ToLongDateString()} @ {Context.Guild.CreatedAt.Date.ToLongTimeString()}")
+                .AddField("Server Info", $"This server was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
                 .AddField("Discord Owner", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId)).Mention, true)
                 .AddField("Voice Region", Context.Guild.VoiceRegionId, true)
                 .AddField("Verification Level", Context.Guild.VerificationLevel.ToString(), true)
