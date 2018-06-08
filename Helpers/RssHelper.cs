@@ -151,12 +151,12 @@
             for (int i = 0; i < source.Length; i++)
             {
                 char let = source[i];
-                if (let == '<')
+                if (let is '<')
                 {
                     inside = true;
                     continue;
                 }
-                if (let == '>')
+                if (let is '>')
                 {
                     inside = false;
                     continue;

@@ -9,7 +9,7 @@
     {
         public static async Task UnmuteUser(ulong UserId, SocketGuild Guild, GuildObject Server)
         {
-            var Role = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name == "Muted");
+            var Role = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
             var User = Guild.GetUser(UserId);
             if (!(User as SocketGuildUser).Roles.Contains(Role) || Role is null)
                 return;

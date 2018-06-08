@@ -33,7 +33,7 @@
             var GetChar = Command.Parameters.Where(x => x.Type == typeof(char));
             if (GetChar.Any())
                 Embed.AddField($"{GetChar.FirstOrDefault()?.Name} Values", "a, r, m. a = Add, r = remove, m = Modify.");
-            var GetEnum = Command.Parameters.Where(x => x.Type.IsEnum == true);
+            var GetEnum = Command.Parameters.Where(x => x.Type.IsEnum is true);
             if (GetEnum.Any())
                 Embed.AddField($"{GetEnum.FirstOrDefault()?.Name} Values", string.Join(", ", GetEnum?.FirstOrDefault().Type.GetEnumNames()));
             return ReplyAsync(Embed: Embed.Build());
@@ -48,7 +48,7 @@
 
             foreach (ModuleInfo mi in CommandService.Modules.OrderBy(x => x.Name)) // list all modules by name
                 if (!mi.IsSubmodule)
-                    if (mi.Name != "Help") // we don't want to list our help command
+                    if (!(mi.Name is "Help")) // we don't want to list our help command
                     {
                         bool ok = true;
                         foreach (PreconditionAttribute precondition in mi.Preconditions) // check preconditions before showing it

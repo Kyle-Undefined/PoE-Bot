@@ -22,7 +22,7 @@
         public async Task InitializeAsync()
         {
             LogHandler.PrintApplicationInformation();
-            if (Process.GetProcesses().FirstOrDefault(x => x.ProcessName == "Raven.Server") is null)
+            if (Process.GetProcesses().FirstOrDefault(x => x.ProcessName is "Raven.Server") is null)
                 await LogHandler.CriticalFail(Source.EXC, $"Please make sure RavenDB is running.");
             if (File.Exists("DBConfig.json")) Settings = JsonConvert.DeserializeObject<DatabaseObject>(File.ReadAllText("DBConfig.json"));
             else
@@ -38,7 +38,7 @@
                 Store.Maintenance.Server.Send(new CreateDatabaseOperation(new DatabaseRecord(Settings.Name)));
 
             var Record = Store.Maintenance.Server.Send(new GetDatabaseRecordOperation(Settings.Name));
-            if (!Record.PeriodicBackups.Any(x => x.Name == "Backup"))
+            if (!Record.PeriodicBackups.Any(x => x.Name is "Backup"))
                 Store.Maintenance.Send(new UpdatePeriodicBackupOperation(new PeriodicBackupConfiguration
                 {
                     Name = "Backup",
@@ -48,7 +48,7 @@
                     LocalSettings = new LocalSettings { FolderPath = Settings.BackupFolder }
                 }));
 
-            if (Settings.IsConfigCreated == false)
+            if (Settings.IsConfigCreated is false)
             {
                 LogHandler.Write(Source.DTB, $"Enter bot's token: ");
                 var Token = Console.ReadLine();
@@ -80,14 +80,14 @@
                     case Operation.LOAD: return Session.Load<T>($"{Id}");
                     case Operation.SAVE:
                         var Load = Session.Load<T>($"{Id}");
-                        if (Session.Advanced.IsLoaded($"{Id}") == false || Load == Data)
+                        if (Session.Advanced.IsLoaded($"{Id}") is false || Load == Data)
                             break;
                         Session.Advanced.Evict(Load);
                         Session.Store((T)Data, $"{Id}");
                         Session.SaveChanges();
                         break;
                 }
-                if (Operation == Operation.CREATE || Operation == Operation.DELETE)
+                if (Operation is Operation.CREATE || Operation is Operation.DELETE)
                     Session.SaveChanges();
                 Session.Dispose();
             }

@@ -195,7 +195,7 @@
                 await ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
                 return;
             }
-            var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Muted") ??
+            var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ??
                 (!(Context.Server.MuteRole is 0) ? Context.Guild.GetRole(Context.Server.MuteRole) : await Context.Guild.CreateRoleAsync("Muted", GuildPermissions.None, Color.DarkerGrey));
             var Permissions = new OverwritePermissions(createInstantInvite: PermValue.Deny,
                 addReactions: PermValue.Deny, sendMessages: PermValue.Deny, sendTTSMessages: PermValue.Deny, attachFiles: PermValue.Deny);
@@ -272,8 +272,8 @@
                 .AddField("Text Channels", Guild.TextChannels.Count, true)
                 .AddField("Voice Channels", Guild.VoiceChannels.Count, true)
                 .AddField("Characters", Guild.MemberCount, true)
-                .AddField("Lieutenants", Guild.Users.Count(x => x.IsBot == true), true)
-                .AddField("Exiles", Guild.Users.Count(x => x.IsBot == false), true)
+                .AddField("Lieutenants", Guild.Users.Count(x => x.IsBot is true), true)
+                .AddField("Exiles", Guild.Users.Count(x => x.IsBot is false), true)
                 .AddField("Classes", string.Join(", ", Guild.Roles.OrderByDescending(x => x.Position).Select(x => x.Name))).Build());
         }
 

@@ -171,10 +171,10 @@
                 var Roles = Guild.Roles;
                 IRole Role = null;
 
-                if (Reaction.Emote.Name == Extras.Newspaper.Name) Role = Roles.Where(r => r.Name == "News").First();
-                if (Reaction.Emote.Name == Extras.Standard.Name) Role = Roles.Where(r => r.Name == "Standard").First();
-                if (Reaction.Emote.Name == Extras.Hardcore.Name) Role = Roles.Where(r => r.Name == "Hardcore").First();
-                if (Reaction.Emote.Name == Extras.Challenge.Name) Role = Roles.Where(r => r.Name == "Challenge").First();
+                if (Reaction.Emote.Name == Extras.Newspaper.Name) Role = Roles.Where(r => r.Name is "News").First();
+                if (Reaction.Emote.Name == Extras.Standard.Name) Role = Roles.Where(r => r.Name is "Standard").First();
+                if (Reaction.Emote.Name == Extras.Hardcore.Name) Role = Roles.Where(r => r.Name is "Hardcore").First();
+                if (Reaction.Emote.Name == Extras.Challenge.Name) Role = Roles.Where(r => r.Name is "Challenge").First();
 
                 if (!(Role is null))
                     if (ReactionAdded)

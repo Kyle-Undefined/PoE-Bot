@@ -31,7 +31,7 @@
 
         internal async Task CheckStateAsync(DiscordSocketClient Client)
         {
-            if (Client.ConnectionState == ConnectionState.Connected)
+            if (Client.ConnectionState is ConnectionState.Connected)
                 return;
             var Timeout = Task.Delay(GlobalTimeout);
             var Connect = Client.StartAsync();
@@ -77,7 +77,7 @@
             var Guild = (Message.Author as SocketGuildUser).Guild;
             var User = Message.Author as SocketGuildUser;
             if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToKick is 0 || Message.Author.Id == Guild.OwnerId ||
-                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.Roles.Where(r => r.Name == "Moderator").Any())
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.Roles.Where(r => r.Name is "Moderator").Any())
                 return;
             await Message.DeleteAsync();
             var Profile = GuildHelper.GetProfile(DB, Guild.Id, Message.Author.Id);

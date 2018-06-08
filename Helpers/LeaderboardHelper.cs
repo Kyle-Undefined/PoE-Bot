@@ -41,32 +41,32 @@
             if (racers.Any())
             {
                 var sb = new StringBuilder();
-                var rSlayers = racers.FindAll(x => x.Class == AscendancyClass.Slayer);
-                var rGladiators = racers.FindAll(x => x.Class == AscendancyClass.Gladiator);
-                var rChampions = racers.FindAll(x => x.Class == AscendancyClass.Champion);
-                var rAssassins = racers.FindAll(x => x.Class == AscendancyClass.Assassin);
-                var rSaboteurs = racers.FindAll(x => x.Class == AscendancyClass.Saboteur);
-                var rTricksters = racers.FindAll(x => x.Class == AscendancyClass.Trickster);
-                var rJuggernauts = racers.FindAll(x => x.Class == AscendancyClass.Juggernaut);
-                var rBerserkers = racers.FindAll(x => x.Class == AscendancyClass.Berserker);
-                var rChieftains = racers.FindAll(x => x.Class == AscendancyClass.Chieftain);
-                var rNecromancers = racers.FindAll(x => x.Class == AscendancyClass.Necromancer);
-                var rElementalists = racers.FindAll(x => x.Class == AscendancyClass.Elementalist);
-                var rOccultists = racers.FindAll(x => x.Class == AscendancyClass.Occultist);
-                var rDeadeyes = racers.FindAll(x => x.Class == AscendancyClass.Deadeye);
-                var rRaiders = racers.FindAll(x => x.Class == AscendancyClass.Raider);
-                var rPathfinders = racers.FindAll(x => x.Class == AscendancyClass.Pathfinder);
-                var rInquisitors = racers.FindAll(x => x.Class == AscendancyClass.Inquisitor);
-                var rHierophants = racers.FindAll(x => x.Class == AscendancyClass.Hierophant);
-                var rGuardians = racers.FindAll(x => x.Class == AscendancyClass.Guardian);
-                var rAscendants = racers.FindAll(x => x.Class == AscendancyClass.Ascendant);
-                var rDuelists = racers.FindAll(x => x.Class == AscendancyClass.Duelist);
-                var rShadows = racers.FindAll(x => x.Class == AscendancyClass.Shadow);
-                var rMarauders = racers.FindAll(x => x.Class == AscendancyClass.Marauder);
-                var rWitchs = racers.FindAll(x => x.Class == AscendancyClass.Witch);
-                var rRangers = racers.FindAll(x => x.Class == AscendancyClass.Ranger);
-                var rTemplars = racers.FindAll(x => x.Class == AscendancyClass.Templar);
-                var rScions = racers.FindAll(x => x.Class == AscendancyClass.Scion);
+                var rSlayers = racers.FindAll(x => x.Class is AscendancyClass.Slayer);
+                var rGladiators = racers.FindAll(x => x.Class is AscendancyClass.Gladiator);
+                var rChampions = racers.FindAll(x => x.Class is AscendancyClass.Champion);
+                var rAssassins = racers.FindAll(x => x.Class is AscendancyClass.Assassin);
+                var rSaboteurs = racers.FindAll(x => x.Class is AscendancyClass.Saboteur);
+                var rTricksters = racers.FindAll(x => x.Class is AscendancyClass.Trickster);
+                var rJuggernauts = racers.FindAll(x => x.Class is AscendancyClass.Juggernaut);
+                var rBerserkers = racers.FindAll(x => x.Class is AscendancyClass.Berserker);
+                var rChieftains = racers.FindAll(x => x.Class is AscendancyClass.Chieftain);
+                var rNecromancers = racers.FindAll(x => x.Class is AscendancyClass.Necromancer);
+                var rElementalists = racers.FindAll(x => x.Class is AscendancyClass.Elementalist);
+                var rOccultists = racers.FindAll(x => x.Class is AscendancyClass.Occultist);
+                var rDeadeyes = racers.FindAll(x => x.Class is AscendancyClass.Deadeye);
+                var rRaiders = racers.FindAll(x => x.Class is AscendancyClass.Raider);
+                var rPathfinders = racers.FindAll(x => x.Class is AscendancyClass.Pathfinder);
+                var rInquisitors = racers.FindAll(x => x.Class is AscendancyClass.Inquisitor);
+                var rHierophants = racers.FindAll(x => x.Class is AscendancyClass.Hierophant);
+                var rGuardians = racers.FindAll(x => x.Class is AscendancyClass.Guardian);
+                var rAscendants = racers.FindAll(x => x.Class is AscendancyClass.Ascendant);
+                var rDuelists = racers.FindAll(x => x.Class is AscendancyClass.Duelist);
+                var rShadows = racers.FindAll(x => x.Class is AscendancyClass.Shadow);
+                var rMarauders = racers.FindAll(x => x.Class is AscendancyClass.Marauder);
+                var rWitchs = racers.FindAll(x => x.Class is AscendancyClass.Witch);
+                var rRangers = racers.FindAll(x => x.Class is AscendancyClass.Ranger);
+                var rTemplars = racers.FindAll(x => x.Class is AscendancyClass.Templar);
+                var rScions = racers.FindAll(x => x.Class is AscendancyClass.Scion);
 
                 if (rSlayers.Any())
                     sb.AppendLine($"Slayers      : {rSlayers.Count().ToString("##,##0")}");
@@ -127,13 +127,13 @@
                     .WithCurrentTimestamp()
                     .AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
 
-                var cDuelists = racers.FindAll(x => x.Class == AscendancyClass.Duelist || x.Class == AscendancyClass.Slayer || x.Class == AscendancyClass.Gladiator || x.Class == AscendancyClass.Champion);
-                var cShadows = racers.FindAll(x => x.Class == AscendancyClass.Shadow || x.Class == AscendancyClass.Saboteur || x.Class == AscendancyClass.Assassin || x.Class == AscendancyClass.Trickster);
-                var cMarauders = racers.FindAll(x => x.Class == AscendancyClass.Marauder || x.Class == AscendancyClass.Juggernaut || x.Class == AscendancyClass.Chieftain || x.Class == AscendancyClass.Berserker);
-                var cWitchs = racers.FindAll(x => x.Class == AscendancyClass.Witch || x.Class == AscendancyClass.Necromancer || x.Class == AscendancyClass.Occultist || x.Class == AscendancyClass.Elementalist);
-                var cRangers = racers.FindAll(x => x.Class == AscendancyClass.Ranger || x.Class == AscendancyClass.Raider || x.Class == AscendancyClass.Deadeye || x.Class == AscendancyClass.Pathfinder);
-                var cTemplars = racers.FindAll(x => x.Class == AscendancyClass.Templar || x.Class == AscendancyClass.Inquisitor || x.Class == AscendancyClass.Hierophant || x.Class == AscendancyClass.Guardian);
-                var cScions = racers.FindAll(x => x.Class == AscendancyClass.Scion || x.Class == AscendancyClass.Ascendant);
+                var cDuelists = racers.FindAll(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer || x.Class is AscendancyClass.Gladiator || x.Class is AscendancyClass.Champion);
+                var cShadows = racers.FindAll(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur || x.Class is AscendancyClass.Assassin || x.Class is AscendancyClass.Trickster);
+                var cMarauders = racers.FindAll(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut || x.Class is AscendancyClass.Chieftain || x.Class is AscendancyClass.Berserker);
+                var cWitchs = racers.FindAll(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer || x.Class is AscendancyClass.Occultist || x.Class is AscendancyClass.Elementalist);
+                var cRangers = racers.FindAll(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Raider || x.Class is AscendancyClass.Deadeye || x.Class is AscendancyClass.Pathfinder);
+                var cTemplars = racers.FindAll(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Inquisitor || x.Class is AscendancyClass.Hierophant || x.Class is AscendancyClass.Guardian);
+                var cScions = racers.FindAll(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant);
 
                 cDuelists.Sort((p, q) => p.Rank.CompareTo(q.Rank));
                 cShadows.Sort((p, q) => p.Rank.CompareTo(q.Rank));

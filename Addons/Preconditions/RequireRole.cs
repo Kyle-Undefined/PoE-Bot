@@ -37,7 +37,7 @@
                 (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if ((Context.User as SocketGuildUser).Roles.Any(r => r.Name == "Moderator"))
+            if ((Context.User as SocketGuildUser).Roles.Any(r => r.Name is "Moderator"))
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `Moderator`*"));

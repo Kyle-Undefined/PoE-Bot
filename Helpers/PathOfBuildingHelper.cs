@@ -130,7 +130,7 @@
 
             for (var i = 0; i < resistenceNames.Length; i++)
             {
-                var res_val = CheckThreshold(resistenceValues[i], resistenceNames[i] == "Chaos" ? OutputThresholds.CHAOS_RES : OutputThresholds.ELE_RES);
+                var res_val = CheckThreshold(resistenceValues[i], resistenceNames[i] is "Chaos" ? OutputThresholds.CHAOS_RES : OutputThresholds.ELE_RES);
                 var res_overcap = resistenceOverCap[i];
 
                 if (res_val > 0)
@@ -224,19 +224,19 @@
 
             foreach (var item in items)
             {
-                if (item.Attribute("name").Value == "usePowerCharges")
+                if (item.Attribute("name").Value is "usePowerCharges")
                 {
-                    if (item.Attribute("boolean").Value == "true")
+                    if (item.Attribute("boolean").Value is "true")
                         usePC = true;
                 }
-                else if (item.Attribute("name").Value == "useFrenzyCharges")
+                else if (item.Attribute("name").Value is "useFrenzyCharges")
                 {
-                    if (item.Attribute("boolean").Value == "true")
+                    if (item.Attribute("boolean").Value is "true")
                         useFC = true;
                 }
-                else if (item.Attribute("name").Value == "useEnduranceCharges")
+                else if (item.Attribute("name").Value is "useEnduranceCharges")
                 {
-                    if (item.Attribute("boolean").Value == "true")
+                    if (item.Attribute("boolean").Value is "true")
                         useEC = true;
                 }
             }
@@ -263,7 +263,7 @@
             if (character.Skills.MainSkillGroup.IsEnabled)
             {
                 foreach (var gem in character.Skills.MainSkillGroup.Gems)
-                    if (gem.Enabled && gem.Name != "" && !gem.Name.ToLower().Contains("jewel"))
+                    if (gem.Enabled && !(gem.Name is "") && !gem.Name.ToLower().Contains("jewel"))
                         sb.Append($"{gem.Name} {(gem.Quality > 0 || gem.Level > 20 ? "(" + gem.Level + "/" + gem.Quality + ") + " : "+ ")}");
 
                 sb.Remove(sb.Length - 2, 2);
@@ -406,8 +406,8 @@
 
             foreach (var item in items)
             {
-                if (item.Attribute("name").Value == "usePowerCharges" || item.Attribute("name").Value == "useFrenzyCharges" || item.Attribute("name").Value == "useEnduranceCharges")
-                    if (item.Attribute("boolean").Value == "true")
+                if (item.Attribute("name").Value is "usePowerCharges" || item.Attribute("name").Value is "useFrenzyCharges" || item.Attribute("name").Value is "useEnduranceCharges")
+                    if (item.Attribute("boolean").Value is "true")
                         return true;
             }
 
@@ -417,7 +417,7 @@
         private static string PrepConfigLine(string abbrev, string value)
         {
             string conf = $"{abbrev}";
-            if (value.ToLower() != "true")
+            if (!(value.ToLower() is "true"))
                 conf += $": {FirstLetterToUpper(value)}";
             return conf;
         }

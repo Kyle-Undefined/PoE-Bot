@@ -123,7 +123,7 @@
 
                     HtmlNodeCollection image = null;
 
-                    if (itemType == 2)
+                    if (itemType is 2)
                     {
                         var stackNumber = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-stack\"]").InnerHtml.Replace("<br>", " ");
                         var reward = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-reward\"]").InnerText;
@@ -200,7 +200,7 @@
                         var itemMods = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -default\"]");
                         string vaalsouls = string.Empty;
 
-                        if (itemType == 3 && title.Contains("Vaal"))
+                        if (itemType is 3 && title.Contains("Vaal"))
                         {
                             var vaal = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -value\"]");
                             vaalsouls = vaal[1].InnerText + vaal[2].InnerText;
@@ -344,12 +344,12 @@
             for (int i = 0; i < source.Length; i++)
             {
                 char let = source[i];
-                if (let == '<')
+                if (let is '<')
                 {
                     inside = true;
                     continue;
                 }
-                if (let == '>')
+                if (let is '>')
                 {
                     inside = false;
                     continue;
@@ -371,7 +371,7 @@
             newText.Append(text[0]);
             for (int i = 1; i < text.Length; i++)
             {
-                if (char.IsUpper(text[i]) && text[i - 1] != ' ')
+                if (char.IsUpper(text[i]) && !(text[i - 1] is ' '))
                     newText.Append(' ');
                 newText.Append(text[i]);
             }

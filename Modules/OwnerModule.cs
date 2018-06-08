@@ -133,15 +133,15 @@
                 $"Voice: {Client.Guilds.Sum(x => x.VoiceChannels.Count)}\n" +
                 $"Total: {Client.Guilds.Sum(x => x.Channels.Count)}", true)
                 .AddField("Members",
-                $"Bot: {Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot == true).Count())}\n" +
-                $"Human: { Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot == false).Count())}\n" +
+                $"Bot: {Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot is true).Count())}\n" +
+                $"Human: { Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot is false).Count())}\n" +
                 $"Total: {Client.Guilds.Sum(x => x.Users.Count)}", true)
                 .AddField("Database",
                 $"Tags: {Servers.Sum(x => x.Tags.Count)}\n" +
                 $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
                 $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true)
-                .AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true)
-                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true)
+                .AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}", true)
+                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}", true)
                 .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true)
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)

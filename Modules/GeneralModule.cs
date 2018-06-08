@@ -98,20 +98,20 @@
                     $"Text: {TextChannels.Count}\n" +
                     $"Voice: {VoiceChannels.Count}\n", true)
                 .AddField($"Characters [{Users.Count()}]",
-                    $"Exiles: {Users.Count(x => x.IsBot == false)}\n" +
-                    $"Lieutenants: {Users.Count(x => x.IsBot == true)}\n", true)
+                    $"Exiles: {Users.Count(x => x.IsBot is false)}\n" +
+                    $"Lieutenants: {Users.Count(x => x.IsBot is true)}\n", true)
                 .AddField($"Roles [{Context.Guild.Roles.Count}]",
-                    $"Separated: {Context.Guild.Roles.Count(x => x.IsHoisted == true)}\n" +
-                    $"Mentionable: {Context.Guild.Roles.Count(x => x.IsMentionable == true)}", true)
+                    $"Separated: {Context.Guild.Roles.Count(x => x.IsHoisted is true)}\n" +
+                    $"Mentionable: {Context.Guild.Roles.Count(x => x.IsMentionable is true)}", true)
                 .AddField("Wraeclast Stats", "Wraeclast has the following data logged:")
                 .AddField("Items",
                     $"Tags: {Context.Server.Tags.Count}\n" +
                     $"Currencies: {Context.Server.Prices.Count}\n" +
                     $"Shop Items: {Context.Server.Shops.Count}", true)
                 .AddField("Streams", 
-                    $"Mixer: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}\n" +
-                    $"Twitch: {Context.Server.Streams.Count(s => s.StreamType == StreamType.TWITCH)}", true)
-                .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count(x => x.Enabled == true)}", true)
+                    $"Mixer: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}\n" +
+                    $"Twitch: {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}", true)
+                .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count(x => x.Enabled is true)}", true)
                 .AddField("Lieutenant Info", "Info about myself:")
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
