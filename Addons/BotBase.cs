@@ -72,7 +72,5 @@
                 case 'n': break;
             }
         }
-
-        public RuntimeResult Ok(string reason = null) => new OkResult(reason);
     }
 }
