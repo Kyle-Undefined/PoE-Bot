@@ -39,18 +39,11 @@
             return PagedReplyAsync(Context.GuildHelper.Pages(Searched), $"Tag Search Results");
         }
 
-        [Command("Create"), Remarks("Creates a tag with the specified content."), Summary("Tag Create <TagName: To specify more than one word, wrap your name with quotes \"like this\"> <TagContent> [You can also attach images to your tag creation]"), Priority(1)]
+        [Command("Create"), Remarks("Creates a tag with the specified content."), Summary("Tag Create <TagName: To specify more than one word, wrap your name with quotes \"like this\"> <TagContent>"), Priority(1)]
         public Task CreateAsync(string TagName, [Remainder] string TagContent)
         {
             if (Context.Server.Tags.Any(t => t.Name == TagName.ToLower()))
                 return ReplyAsync($"{Extras.Cross} You chose the road, old friend. God put me at the end of it. *There is already a tag with this name.*");
-            if (Context.Message.Attachments.Any())
-            {
-                StringBuilder sb = new StringBuilder();
-                foreach (var attachment in Context.Message.Attachments)
-                    sb.Append($"\n{attachment.Url}");
-                TagContent += sb.ToString();
-            }
             Context.Server.Tags.Add(new TagObject
             {
                 Uses = 0,
