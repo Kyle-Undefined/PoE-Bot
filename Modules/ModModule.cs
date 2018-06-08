@@ -253,7 +253,7 @@
             var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
             Profile.Warnings = 0;
             Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Warnings has been reset for `{User}`*");
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Warnings has been reset for `{User}`* {Extras.OkHand}");
         }
 
         [Command("GuildInfo"), Remarks("Displays information about guild."), Summary("GuildInfo")]
