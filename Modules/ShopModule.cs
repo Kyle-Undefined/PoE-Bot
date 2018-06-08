@@ -35,17 +35,21 @@
         }
 
         [Command("Search"), Remarks("Searches all shops for the item"), Summary("Shop Search <Item>")]
-        public async Task SearchAsync([Remainder] string Item)
+        public Task SearchAsync([Remainder] string Item)
         {
             var ShopItems = Context.Server.Shops.Where(x => x.Item.Contains(Item)).Select(x => $"League: **{x.League}**\n{x.Item}\nOwned By: {(Context.Guild.GetUserAsync(x.UserId).GetAwaiter().GetResult()).Mention}\n");
-            await PagedReplyAsync(Context.GuildHelper.Pages(ShopItems), $"Search Results");
+            if (!ShopItems.Any())
+                return ReplyAsync($"{Extras.Cross} I'm no beast of burden. *`{Item}` was not found in any shop.*");
+            return PagedReplyAsync(Context.GuildHelper.Pages(ShopItems), $"Search Results");
         }
 
-        [Command("SearchLeague"), Remarks("Searches all shops for the item, in specified League"), Summary("Shop Search <League> <Item>")]
-        public async Task SearchLeagueAsync(Leagues League, [Remainder] string Item)
+        [Command("SearchLeague"), Remarks("Searches all shops for the item, in specified League"), Summary("Shop SearchLeague <League> <Item>")]
+        public Task SearchLeagueAsync(Leagues League, [Remainder] string Item)
         {
             var ShopItems = Context.Server.Shops.Where(x => x.Item.Contains(Item) && x.League == League).Select(x => $"{x.Item}\nOwned By: {(Context.Guild.GetUserAsync(x.UserId).GetAwaiter().GetResult()).Mention}\n");
-            await PagedReplyAsync(Context.GuildHelper.Pages(ShopItems), $"League {League} Search Results");
+            if (!ShopItems.Any())
+                return ReplyAsync($"{Extras.Cross} I'm no beast of burden. *`{Item}` was not found in any {League} shops.*");
+            return PagedReplyAsync(Context.GuildHelper.Pages(ShopItems), $"League {League} Search Results");
         }
 
         [Command("User"), Remarks("Gets all shops for a user"), Summary("Shop User [@User]")]
