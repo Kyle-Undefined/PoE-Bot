@@ -13,7 +13,7 @@
 
     public class GuildHelper
     {
-        string[] ProfanityList { get => new string[] { "bellend", "belend", "bellends", "belends", "bollocks", "bollucks", "bullocks", "bulucks", "bolocks", "bolucks", "bulocks", "bulucks", "buluck", "bolock", "boluck", "bulock", "buluck", "cocksuckers", "cocksucker", "cockmunchers", "cockmuncher", "cockface", "cockhead", "coon", "cunts", "cunt", "cuntwhit", "cuntswhit", "cuntwit", "cuntswit", "doushes", "douches", "doushe", "douche", "dooshes", "dooshe", "doosh", "dykes", "dyke", "dikes", "dike", "faggots", "phaggots", "fagots", "phagots", "faggot", "phaggot", "fagot", "phagot", "faggity", "fagging", "phagity", "fagget", "faggit", "faggat", "faggets", "faggits", "faggats", "faget", "fagit", "fagat", "fagets", "fagits", "fagats", "phagget", "phaggit", "phaggat", "phaggets", "phaggits", "phaggats", "phaget", "phagit", "phagat", "phagets", "phagits", "phagats", "fuckwhits", "fuckwhit", "fuckwits", "fuckwit", "knobends", "knobend", "knobheads", "knobhead", "niggers", "nigger", "niggahs", "niggah", "nigga", "niggas", "niggaz", "nigers", "niger", "nigahs", "nigah", "niga", "nigas", "nigaz", "niggggers", "nigggger", "niggggahs", "niggggah", "nigggga", "niggggas", "niggggaz", "niggers", "nigger", "niggahs", "niggah", "nigga", "niggas", "niggaz", "niggggggggers", "nigggggggger", "niggggggggahs", "niggggggggah", "nigggggggga", "niggggggggas", "niggggggggaz", "niggggers", "nigggger", "niggggahs", "niggggah", "nigggga", "niggggas", "niggggaz", "retards", "retard", "retarded", "retarts", "retarted", "retart", "shitheads", "shithead", "shitfucks", "shitfuck", "twats", "twat", "twatheads", "twathead", "tossers", "tosser", "wankers", "wanker" }; }
+        string[] ProfanityList { get => new string[] { "belend", "belends", "bulucks", "bolocks", "bolucks", "bulocks", "bulucks", "buluck", "bolock", "boluck", "bulock", "buluck", "cocksuckers", "cocksucker", "cockmunchers", "cockmuncher", "cockface", "cockhead", "coon", "coons", "cunts", "cunt", "cuntwhit", "cuntswhit", "cuntwit", "cuntswit", "doushes", "douches", "doushe", "douche", "dooshes", "dooshe", "doosh", "dykes", "dyke", "dikes", "dike", "fagots", "fagot", "fagity", "faging", "faget", "fagit", "fagat", "fagets", "fagits", "fagats", "fuckwhits", "fuckwhit", "fuckwits", "fuckwit", "knobends", "knobend", "knobheads", "knobhead", "nigers", "niger", "nigahs", "nigah", "niga", "nigas", "nigaz", "retards", "retard", "retarded", "retarts", "retarted", "retart", "shitheads", "shithead", "shitfucks", "shitfuck", "twats", "twat", "twatheads", "twathead", "tossers", "tosser", "wankers", "wanker" }; }
         public bool ProfanityMatch(string Message) => DoesStringHaveProfanity(Message, ProfanityList);
         public Regex CheckMatch(string Pattern = null) => new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
@@ -121,35 +121,35 @@
         public string ExpandBadWordToIncludeIntentionalMisspellings(string Word)
         {
             var Chars = Word.ToCharArray();
-            var op = "[" + string.Join("][", Chars) + "]";
+            var op = @"(^|\s)[" + string.Join("][", Chars) + @"](\s|$)";
 
             return op
-                .Replace("[a]", "[aA@]")
-                .Replace("[b]", "[bBI3l3i3]")
-                .Replace("[c]", "(?:[cC\\(]|[kK])")
-                .Replace("[d]", "[dD]")
-                .Replace("[e]", "[eE3]")
-                .Replace("[f]", "(?:[fF]|[phpHPhPH])")
-                .Replace("[g]", "[gG6]")
-                .Replace("[h]", "[hH]")
-                .Replace("[i]", "[iIl!1]")
-                .Replace("[j]", "[jJ]")
-                .Replace("[k]", "(?:[cC\\(]|[kK])")
-                .Replace("[l]", "[lL1!i]")
-                .Replace("[m]", "[mM]")
-                .Replace("[n]", "[nN]")
-                .Replace("[o]", "[oO0]")
-                .Replace("[p]", "[pP]")
-                .Replace("[q]", "[qQ9]")
-                .Replace("[r]", "[rR]")
-                .Replace("[s]", "[sS$5]")
-                .Replace("[t]", "[tT7]")
-                .Replace("[u]", "[uUvV]")
-                .Replace("[v]", "[vVuU]")
-                .Replace("[w]", "[wWvvVV]")
-                .Replace("[x]", "[xX]")
-                .Replace("[y]", "[yY]")
-                .Replace("[z]", "[zZ2]")
+                .Replace("[a]", "[aA@]+")
+                .Replace("[b]", "[bBI3l3i3]+")
+                .Replace("[c]", "(?:[cC\\(]|[kK])+")
+                .Replace("[d]", "[dD]+")
+                .Replace("[e]", "[eE3]+")
+                .Replace("[f]", "(?:[fF]|[phpHPhPH])+")
+                .Replace("[g]", "[gG6]+")
+                .Replace("[h]", "[hH]+")
+                .Replace("[i]", "[iIl!1]+")
+                .Replace("[j]", "[jJ]+")
+                .Replace("[k]", "(?:[cC\\(]|[kK])+")
+                .Replace("[l]", "[lL1!i]+")
+                .Replace("[m]", "[mM]+")
+                .Replace("[n]", "[nN]+")
+                .Replace("[o]", "[oO0]+")
+                .Replace("[p]", "[pP]+")
+                .Replace("[q]", "[qQ9]+")
+                .Replace("[r]", "[rR]+")
+                .Replace("[s]", "[sS$5]+")
+                .Replace("[t]", "[tT7]+")
+                .Replace("[u]", "[uUvV]+")
+                .Replace("[v]", "[vVuU]+")
+                .Replace("[w]", "[wWvvVV]+")
+                .Replace("[x]", "[xX]+")
+                .Replace("[y]", "[yY]+")
+                .Replace("[z]", "[zZ2]+")
                 ;
         }
     }
