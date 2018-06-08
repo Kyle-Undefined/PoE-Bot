@@ -683,7 +683,7 @@
 
             public string Name { get; }
             public string Value { get; }
-            public bool IsValid => Name != null && Value != null;
+            public bool IsValid => !(Name is null) && !(Value is null);
         }
     }
 

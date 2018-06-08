@@ -26,30 +26,22 @@
         {
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers())
-                    if (!Server.Muted.IsEmpty || Server.Muted.Count != 0)
-                        foreach (var Mute in Server.Muted)
-                        {
-                            if (Mute.Value < DateTime.Now)
-                            {
-                                Server.Muted.TryRemove(Mute.Key, out _);
-                                MethodHelper.RunSync(JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
-                                DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
-                            }
-                        }
+                foreach (var Server in DB.Servers().Where(x => !x.Muted.IsEmpty))
+                    foreach (var Mute in Server.Muted.Where(x => x.Value < DateTime.Now))
+                    {
+                        Server.Muted.TryRemove(Mute.Key, out _);
+                        MethodHelper.RunSync(JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
+                        DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                    }
             }).WithName("timed mute").ToRunEvery(1).Minutes().DelayFor(2).Seconds();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers())
+                foreach (var Server in DB.Servers().Where(x => !x.Reminders.IsEmpty))
                 {
-                    if (Server.Reminders.IsEmpty)
-                        continue;
                     var RemindersCount = Server.Reminders.Count;
-                    foreach (var Reminder in Server.Reminders)
+                    foreach (var Reminder in Server.Reminders.Where(x => x.Value.Any()))
                     {
-                        if (!Reminder.Value.Any())
-                            continue;
                         var Reminders = new List<RemindObject>();
                         Server.Reminders.TryGetValue(Reminder.Key, out Reminders);
                         for (int i = 0; i < Reminders.Count; i++)
@@ -88,30 +80,24 @@
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers())
-                    if (Server.LeaderboardFeed)
-                        if (Server.Leaderboards.Count != 0)
-                            foreach (var Leaderboard in Server.Leaderboards)
-                                if (Leaderboard.Enabled)
-                                    MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(Leaderboard, Client.GetGuild(Convert.ToUInt64(Server.Id))));
+                foreach (var Server in DB.Servers().Where(x => x.LeaderboardFeed && x.Leaderboards.Any()))
+                    foreach (var Leaderboard in Server.Leaderboards.Where(l => l.Enabled))
+                        MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(Leaderboard, Client.GetGuild(Convert.ToUInt64(Server.Id))));
             }).WithName("leaderboards").ToRunEvery(30).Minutes();
 
             Schedule(() =>
             {
                 var Config = DB.Execute<ConfigObject>(Operation.LOAD, Id: "Config");
-                foreach (var Server in DB.Servers().Where(s => s.TwitchFeed || s.MixerFeed))
-                    if (Server.Streams.Any())
-                        foreach (var Stream in Server.Streams)
-                            MethodHelper.RunSync(StreamHelper.BuildAndSend(Stream, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
+                foreach (var Server in DB.Servers().Where(s => (s.TwitchFeed || s.MixerFeed) && s.Streams.Any()))
+                    foreach (var Stream in Server.Streams)
+                        MethodHelper.RunSync(StreamHelper.BuildAndSend(Stream, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
             }).WithName("streams").ToRunEvery(5).Minutes().DelayFor(10).Seconds();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers())
-                    if (Server.RssFeed)
-                        if (Server.RssFeeds.Count != 0)
-                            foreach (var Feed in Server.RssFeeds)
-                                MethodHelper.RunSync(RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
+                foreach (var Server in DB.Servers().Where(x => x.RssFeed && x.RssFeeds.Any()))
+                    foreach (var Feed in Server.RssFeeds)
+                        MethodHelper.RunSync(RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
             }).WithName("rss feeds").ToRunEvery(5).Minutes();
 
             JobManager.Initialize(this);

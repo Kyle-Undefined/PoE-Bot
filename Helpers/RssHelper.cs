@@ -22,7 +22,7 @@
         {
             var PostUrls = Feed.RecentUris.Any() ? Feed.RecentUris : new List<string>();
             var CheckRss = await RssAsync(Feed.FeedUri).ConfigureAwait(false);
-            if (CheckRss == null)
+            if (CheckRss is null)
                 return;
 
             foreach (RssItem Item in CheckRss.Data.Items.Take(10).Reverse())
@@ -82,7 +82,7 @@
                 }
 
                 if (!string.IsNullOrEmpty(Embed.Title))
-                    await Channel.SendMessageAsync((RoleToMention != null ? RoleToMention.Mention : null), embed: Embed.Build());
+                    await Channel.SendMessageAsync((!(RoleToMention is null) ? RoleToMention.Mention : null), embed: Embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
                     await Channel.SendMessageAsync(sb.ToString());
 
@@ -99,8 +99,9 @@
         {
             HttpResponseMessage Get;
             using (HttpClient client = new HttpClient())
-                Get = client.GetAsync(RssFeed).ConfigureAwait(false).GetAwaiter().GetResult();
-            if (!Get.IsSuccessStatusCode) return null;
+                Get = await client.GetAsync(RssFeed).ConfigureAwait(false);
+            if (!Get.IsSuccessStatusCode)
+                return null;
             XmlSerializer serializer = new XmlSerializer(typeof(RssDataObject));
             string xml = await Get.Content.ReadAsStringAsync().ConfigureAwait(false);
             Stream xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
@@ -116,15 +117,11 @@
             try
             {
                 using (HttpClient client = new HttpClient())
+                using (HttpResponseMessage response = client.GetAsync(url).Result)
+                using (HttpContent content = response.Content)
                 {
-                    using (HttpResponseMessage response = client.GetAsync(url).Result)
-                    {
-                        using (HttpContent content = response.Content)
-                        {
-                            string result = content.ReadAsStringAsync().Result;
-                            doc.LoadHtml(result);
-                        }
-                    }
+                    string result = content.ReadAsStringAsync().Result;
+                    doc.LoadHtml(result);
                 }
 
                 foreach (HtmlNode node in doc.DocumentNode.SelectNodes("//img"))
@@ -139,7 +136,7 @@
             }
             catch
             {
-
+                // Just eat it
             }
 
             return imageURL;

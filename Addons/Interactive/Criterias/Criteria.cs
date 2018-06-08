@@ -18,7 +18,8 @@
             foreach (var Crit in Criterias)
             {
                 var result = await Crit.JudgeAsync(Context, Param).ConfigureAwait(false);
-                if (!result) return false;
+                if (!result)
+                    return false;
             }
             return true;
         }

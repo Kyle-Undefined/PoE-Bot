@@ -58,12 +58,14 @@
             var emote = reaction.Emote;
             if (emote.Equals(Options.Next))
             {
-                if (Page >= Pages) return false;
+                if (Page >= Pages)
+                    return false;
                 ++Page;
             }
             else if (emote.Equals(Options.Back))
             {
-                if (Page <= 1) return false;
+                if (Page <= 1)
+                    return false;
                 --Page;
             }
             else if (emote.Equals(Options.Stop))

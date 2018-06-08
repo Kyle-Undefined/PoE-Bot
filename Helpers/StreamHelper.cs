@@ -27,7 +27,8 @@
                     MixerAPI Mixer = new MixerAPI();
                     string chanJson = await Mixer.GetChannel(Stream.MixerChannelId);
                     bool chanIsLive = Mixer.IsChannelLive(chanJson);
-                    if (!chanIsLive) Stream.IsLive = false;
+                    if (!chanIsLive)
+                        Stream.IsLive = false;
 
                     if (chanIsLive && !Stream.IsLive)
                     {
@@ -55,7 +56,8 @@
                     TwitchAPI.Settings.AccessToken = Config.APIKeys["TA"];
 
                     var StreamData = await TwitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { Stream.TwitchUserId }), null);
-                    if (!StreamData.Streams.Any()) Stream.IsLive = false;
+                    if (!StreamData.Streams.Any())
+                        Stream.IsLive = false;
 
                     if (StreamData.Streams.Any())
                     {
@@ -84,7 +86,8 @@
                     break;
             }
 
-            if (streamWasLive && !Stream.IsLive) DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+            if (streamWasLive && !Stream.IsLive)
+                DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
         }
     }
 
@@ -98,17 +101,13 @@
         {
             uint ID = 0;
             using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
                 {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var ja = JArray.Parse(await response.Content.ReadAsStringAsync());
-                        var jo = JObject.Parse(ja[0].ToString());
-                        ID = (uint)jo["id"];
-                    }
+                    var ja = JArray.Parse(await response.Content.ReadAsStringAsync());
+                    var jo = JObject.Parse(ja[0].ToString());
+                    ID = (uint)jo["id"];
                 }
-            }
             return ID;
         }
 
@@ -116,43 +115,32 @@
         {
             uint ID = 0;
             using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
                 {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var jo = JObject.Parse(await response.Content.ReadAsStringAsync());
-                        ID = (uint)jo["id"];
-                    }
+                    var jo = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    ID = (uint)jo["id"];
                 }
-            }
+
             return ID;
         }
 
         public async Task<string> GetChannel(uint id)
         {
             using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + id.ToString() + "/details", HttpCompletionOption.ResponseHeadersRead))
-                {
-                    if (response.IsSuccessStatusCode)
-                        return await response.Content.ReadAsStringAsync();
-                }
-            }
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + id.ToString() + "/details", HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadAsStringAsync();
 
-            return null;
+                return null;
         }
 
         public async Task<string> GetUser(uint id)
         {
             using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/" + id.ToString(), HttpCompletionOption.ResponseHeadersRead))
-                {
-                    if (response.IsSuccessStatusCode)
-                        return await response.Content.ReadAsStringAsync();
-                }
-            }
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/" + id.ToString(), HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadAsStringAsync();
 
             return null;
         }

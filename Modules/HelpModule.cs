@@ -18,7 +18,8 @@
         public Task CommandAsync([Remainder] string CommandName)
         {
             var Command = CommandService.Search(Context, CommandName).Commands?.FirstOrDefault(x => x.CheckPreconditionsAsync(Context, Provider).GetAwaiter().GetResult().IsSuccess).Command;
-            if (Command == null) return ReplyAsync($"`{CommandName}` command doesn't exist.");
+            if (Command is null)
+                return ReplyAsync($"{Extras.Cross} What in God's name is that smell? *`{CommandName}` command doesn't exist.*");
             string Name = Command.Name.Contains("Async") ? Command.Module.Group : Command.Name;
             var Embed = Extras.Embed(Drawing.Aqua)
                 .WithAuthor("Detailed Command Information", Context.Client.CurrentUser.GetAvatarUrl())
@@ -30,10 +31,12 @@
                 .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl())
                 .WithFooter("<> = Required | [] = Optional | Need help? Tag @Server Nerd");
             var GetChar = Command.Parameters.Where(x => x.Type == typeof(char));
-            if (GetChar.Any()) Embed.AddField($"{GetChar.FirstOrDefault()?.Name} Values", "a, r, m. a = Add, r = remove, m = Modify.");
+            if (GetChar.Any())
+                Embed.AddField($"{GetChar.FirstOrDefault()?.Name} Values", "a, r, m. a = Add, r = remove, m = Modify.");
             var GetEnum = Command.Parameters.Where(x => x.Type.IsEnum == true);
-            if (GetEnum.Any()) Embed.AddField($"{GetEnum.FirstOrDefault()?.Name} Values", string.Join(", ", GetEnum?.FirstOrDefault().Type.GetEnumNames()));
-            return ReplyAsync(string.Empty, Embed.Build());
+            if (GetEnum.Any())
+                Embed.AddField($"{GetEnum.FirstOrDefault()?.Name} Values", string.Join(", ", GetEnum?.FirstOrDefault().Type.GetEnumNames()));
+            return ReplyAsync(Embed: Embed.Build());
         }
 
         [Command("Commands"), Summary("Displays all commands.")]
@@ -65,7 +68,7 @@
                                     if (!(precondition.CheckPermissionsAsync(Context, o as CommandInfo, Provider)).Result.IsSuccess)
                                         cmds.Remove(o);
                             }
-                            if (cmds.Count != 0) // add to the embed if the list has anything
+                            if (!(cmds.Count is 0)) // add to the embed if the list has anything
                             {
                                 var list = cmds.Select(x => $"{(!string.IsNullOrEmpty(mi.Group) ? mi.Group + " " : "")}{(x as CommandInfo)?.Name ?? (x as ModuleInfo)?.Name}").OrderBy(x => x);
                                 Embed.AddField(mi.Name, String.Join(", ", list));
@@ -73,7 +76,7 @@
                         }
                     }
 
-            return ReplyAsync(string.Empty, Embed.Build());
+            return ReplyAsync(Embed: Embed.Build());
         }
     }
 }

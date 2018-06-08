@@ -31,13 +31,20 @@
 
         internal async Task CheckStateAsync(DiscordSocketClient Client)
         {
-            if (Client.ConnectionState == ConnectionState.Connected) return;
+            if (Client.ConnectionState == ConnectionState.Connected)
+                return;
             var Timeout = Task.Delay(GlobalTimeout);
             var Connect = Client.StartAsync();
             var LocalTask = await Task.WhenAny(Timeout, Connect);
-            if (LocalTask == Timeout || Connect.IsFaulted) { Tries++; return; }
-            else if (Connect.IsCompletedSuccessfully) return;
-            else if (Tries < 10) return;
+            if (LocalTask == Timeout || Connect.IsFaulted)
+            {
+                Tries++;
+                return;
+            }
+            else if (Connect.IsCompletedSuccessfully)
+                return;
+            else if (Tries < 10)
+                return;
             else Environment.Exit(1);
         }
 
@@ -51,10 +58,11 @@
 
         Task AFKHandler(SocketMessage Message, GuildObject Server)
         {
-            if (!Message.MentionedUsers.Any(x => Server.AFK.ContainsKey(x.Id))) return Task.CompletedTask;
+            if (!Message.MentionedUsers.Any(x => Server.AFK.ContainsKey(x.Id)))
+                return Task.CompletedTask;
             string Reason = null;
             var User = Message.MentionedUsers.FirstOrDefault(u => Server.AFK.TryGetValue(u.Id, out Reason));
-            return User == null ? Task.CompletedTask : Message.Channel.SendMessageAsync($"**{User.Username} has left an AFK Message:**  {Reason}");
+            return User is null ? Task.CompletedTask : Message.Channel.SendMessageAsync($"**{User.Username} has left an AFK Message:**  {Reason}");
         }
 
         Task ModeratorAsync(SocketUserMessage Message, GuildObject Server)
@@ -67,20 +75,21 @@
         async Task WarnUserAsync(SocketUserMessage Message, GuildObject Server, string Warning)
         {
             var Guild = (Message.Author as SocketGuildUser).Guild;
-            if (Server.MaxWarningsToMute == 0 || Server.MaxWarningsToKick == 0 || Message.Author.Id == Guild.OwnerId || 
-                (Message.Author as SocketGuildUser).GuildPermissions.Administrator || (Message.Author as SocketGuildUser).GuildPermissions.ManageGuild ||
-                (Message.Author as SocketGuildUser).Roles.Where(r => r.Name == "Moderator").Any()) return;
+            var User = Message.Author as SocketGuildUser;
+            if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToKick is 0 || Message.Author.Id == Guild.OwnerId ||
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.Roles.Where(r => r.Name == "Moderator").Any())
+                return;
             await Message.DeleteAsync();
             var Profile = GuildHelper.GetProfile(DB, Guild.Id, Message.Author.Id);
             Profile.Warnings++;
             if (Profile.Warnings >= Server.MaxWarningsToKick)
             {
-                await (Message.Author as SocketGuildUser).KickAsync("Kicked By AutoMod.");
+                await User.KickAsync("Kicked By AutoMod.");
                 await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODKICK, Warning);
             }
             else if (Profile.Warnings >= Server.MaxWarningsToMute)
             {
-                await MuteCommandAsync(Message, Server, (Message.Author as SocketGuildUser), TimeSpan.FromDays(1), "Muted for 1 day by AutoMod.");
+                await MuteCommandAsync(Message, Server, User, TimeSpan.FromDays(1), "Muted for 1 day by AutoMod.");
                 await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODMUTE, Warning);
             }
             else
@@ -107,7 +116,7 @@
                 .Build();
 
             await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
-            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time).ToUniversalTime());
+            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time));
         }
     }
 }

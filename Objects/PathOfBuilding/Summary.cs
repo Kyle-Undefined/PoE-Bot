@@ -25,7 +25,7 @@
                 else
                     value = item.Value;
 
-                if (value != null)
+                if (!(value is null))
                     prop.SetValue(this, value);
             }
         }

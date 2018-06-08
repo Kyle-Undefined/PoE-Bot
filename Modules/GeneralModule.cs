@@ -21,8 +21,8 @@
         public CommandService CommandService { get; set; }
 
         [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
-        public async Task PingAsync() => await ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
-            .WithTitle("Beep Boop, Boop Beep!")
+        public async Task PingAsync() => await ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+            .WithTitle("Wisdom is the offspring of Suffering and Time.")
             .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build());
 
         [Command("Report"), Remarks("Reports a user to guild moderators."), Summary("Report <@User> <Reason>")]
@@ -44,31 +44,39 @@
         [Command("Feedback", RunMode = RunMode.Async), Remarks("Give feedback on my performance or suggest new features!"), Summary("Feedback")]
         public async Task FeedbackAsync()
         {
-            var Message = Context.GuildHelper.CalculateResponse(await WaitAsync("Please provide your feedback in a couple sentences.", Timeout: TimeSpan.FromMinutes(1)));
-            if (!Message.Item1) { await ReplyAsync(Message.Item2); return; }
+            var Message = Context.GuildHelper.CalculateResponse(await WaitAsync("Wisdom is the offspring of Suffering and Time. *Please provide your feedback in a couple sentences.*", Timeout: TimeSpan.FromMinutes(1)));
+            if (!Message.Item1)
+            {
+                await ReplyAsync(Message.Item2);
+                return;
+            }
             var Channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.ReportChannel) as IMessageChannel;
             await Channel.SendMessageAsync(Message.Item2);
-            await ReplyAsync($"Thank you for submitting your feedback.");
+            await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
         }
 
         [Command("AFK"), Remarks("Adds Or Removes you from AFK list. Actions: Add/Remove/Modify"), Summary("AFK <Action: a, r, m> <AFKMessage>")]
-        public Task AFKAsync(char Action = 'a', [Remainder] string AFKMessage = "Hey I'm AFK. Leave a DM?")
+        public Task AFKAsync(char Action = 'a', [Remainder] string AFKMessage = "Running around Wraeclast, slaying monsters. Shoot me a DM.")
         {
             switch (Action)
             {
                 case 'a':
-                    if (Context.Server.AFK.ContainsKey(Context.User.Id)) return ReplyAsync("Whoops, it seems you are already AFK.");
+                    if (Context.Server.AFK.ContainsKey(Context.User.Id))
+                        return ReplyAsync($"{Extras.Cross} Exile, it seems you are already in Wraeclast.");
                     Context.Server.AFK.Add(Context.User.Id, AFKMessage);
-                    return ReplyAsync("Users will be notified that you are AFK when you are mentioned.", Save: 's');
+                    return ReplyAsync($"Exiles will be notified that you are in Wraeclast when you are mentioned {Extras.OkHand}", Save: 's');
                 case 'r':
-                    if (!Context.Server.AFK.ContainsKey(Context.User.Id)) return ReplyAsync("Whoops, it seems you are not AFK.");
+                    if (!Context.Server.AFK.ContainsKey(Context.User.Id))
+                        return ReplyAsync($"{Extras.Cross} Exile, it seems you are not in Wraeclast.");
                     Context.Server.AFK.Remove(Context.User.Id);
-                    return ReplyAsync("You've been removed from AFK.", Save: 's');
+                    return ReplyAsync($"You've returned from Wraeclast {Extras.OkHand}", Save: 's');
                 case 'm':
-                    if (!Context.Server.AFK.ContainsKey(Context.User.Id)) return ReplyAsync("Whoops, it seems you are not AFK.");
+                    if (!Context.Server.AFK.ContainsKey(Context.User.Id))
+                        return ReplyAsync($"{Extras.Cross} Exile, it seems you are not in Wraeclast.");
                     Context.Server.AFK[Context.User.Id] = AFKMessage;
-                    return ReplyAsync("Your AFK messages has been modified.", Save: 's');
-                default: return ReplyAsync($"{Extras.Cross} Invalid Action! Possible Actions:\n`a` Add To AFK\n`r` Remove From AFK\n`m` Modify AFK Message");
+                    return ReplyAsync($"Your Wraeclast messages has been modified {Extras.OkHand}", Save: 's');
+                default:
+                    return ReplyAsync($"{Extras.Cross} Invalid Action! Possible Actions:\n`a` Add To AFK\n`r` Remove From AFK\n`m` Modify AFK Message");
             }
         }
 
@@ -82,20 +90,20 @@
             var Embed = Extras.Embed(Drawing.Aqua)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription((await Client.GetApplicationInfoAsync()).Description)
-                .AddField("Server Info", $"This server was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
-                .AddField("Discord Owner", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId)).Mention, true)
-                .AddField("Voice Region", Context.Guild.VoiceRegionId, true)
-                .AddField("Verification Level", Context.Guild.VerificationLevel.ToString(), true)
-                .AddField($"Channels [{TextChannels.Count + VoiceChannels.Count}]",
+                .AddField("Wraeclast Info", $"Wraeclast was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
+                .AddField("Kitava", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId)).Mention, true)
+                .AddField("Map", Context.Guild.VoiceRegionId, true)
+                .AddField("Mod", Context.Guild.VerificationLevel.ToString(), true)
+                .AddField($"Chat [{TextChannels.Count + VoiceChannels.Count}]",
                     $"Text: {TextChannels.Count}\n" +
                     $"Voice: {VoiceChannels.Count}\n", true)
-                .AddField($"Members [{Users.Count()}]",
-                    $"Human: {Users.Count(x => x.IsBot == false)}\n" +
-                    $"Bot: {Users.Count(x => x.IsBot == true)}\n", true)
+                .AddField($"Characters [{Users.Count()}]",
+                    $"Exiles: {Users.Count(x => x.IsBot == false)}\n" +
+                    $"Lieutenants: {Users.Count(x => x.IsBot == true)}\n", true)
                 .AddField($"Roles [{Context.Guild.Roles.Count}]",
                     $"Separated: {Context.Guild.Roles.Count(x => x.IsHoisted == true)}\n" +
                     $"Mentionable: {Context.Guild.Roles.Count(x => x.IsMentionable == true)}", true)
-                .AddField("Server Stats", "This server has the following data logged:")
+                .AddField("Wraeclast Stats", "Wraeclast has the following data logged:")
                 .AddField("Items",
                     $"Tags: {Context.Server.Tags.Count}\n" +
                     $"Currencies: {Context.Server.Prices.Count}\n" +
@@ -104,10 +112,10 @@
                     $"Mixer: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}\n" +
                     $"Twitch: {Context.Server.Streams.Count(s => s.StreamType == StreamType.TWITCH)}", true)
                 .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count(x => x.Enabled == true)}", true)
-                .AddField("Bot Info", "Info about myself:")
+                .AddField("Lieutenant Info", "Info about myself:")
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
-                .AddField("Programmer", $"[@{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
+                .AddField("Izaro", $"[@{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
             await ReplyAsync(Embed: Embed);
         }
@@ -125,18 +133,18 @@
                 ExpiryDate = DateTime.Now.Add(Time)
             });
             Context.Server.Reminders.AddOrUpdate(Context.User.Id, Reminders, (key, value) => value = Reminders);
-            await ReplyAsync($"Alright {Context.User.Mention}, I'll remind you in {StringHelper.FormatTimeSpan(Time)}.", Save: 's');
+            await ReplyAsync($"This land has forgotten Karui strength, {Context.User.Mention}. I will remind it. ({StringHelper.FormatTimeSpan(Time)})", Save: 's');
         }
 
         [Command("Reminders"), Remarks("Shows all of your reminders."), Summary("Reminders")]
         public Task RemindersAsync()
         {
             if (!Context.Server.Reminders.Any(x => x.Key == Context.User.Id))
-                return ReplyAsync($"Uhm, you don't have reminders {Extras.Cross}");
+                return ReplyAsync($"{Extras.Cross} Exile, you don't have reminders.");
             var Reminder = Context.Server.Reminders.First(x => x.Key == Context.User.Id);
             var Reminders = new List<string>();
             for (int i = 0; i < Reminder.Value.Count; i++)
-                Reminders.Add($"Reminder #**{i}** | Expires on: **{Reminder.Value[i].ExpiryDate.ToUniversalTime()}**\n**Message:** {Reminder.Value[i].Message}");
+                Reminders.Add($"Reminder #**{i}** | Expires on: **{Reminder.Value[i].ExpiryDate}**\n**Message:** {Reminder.Value[i].Message}");
             return PagedReplyAsync(Reminders, "Your Current Reminders");
         }
 
@@ -144,11 +152,19 @@
         public Task ReminderRemove(int Number)
         {
             if (!Context.Server.Reminders.Any(x => x.Key == Context.User.Id))
-                return ReplyAsync($"Uhm, you don't have reminders {Extras.Cross}");
+                return ReplyAsync($"{Extras.Cross} Exile, you don't have reminders.");
             var Reminders = new List<RemindObject>();
             Context.Server.Reminders.TryGetValue(Context.User.Id, out Reminders);
-            try { Reminders.RemoveAt(Number); } catch { return ReplyAsync($"{Extras.Cross} Invalid reminder number was provided."); }
-            if (Reminders.Any()) Context.Server.Reminders.TryRemove(Context.User.Id, out _);
+            try
+            {
+                Reminders.RemoveAt(Number);
+            }
+            catch
+            {
+                return ReplyAsync($"{Extras.Cross} Exile, invalid reminder number was provided.");
+            }
+            if (Reminders.Any())
+                Context.Server.Reminders.TryRemove(Context.User.Id, out _);
             else
                 Context.Server.Reminders.TryUpdate(Context.User.Id, Reminders, Context.Server.Reminders.FirstOrDefault(x => x.Key == Context.User.Id).Value);
             return ReplyAsync($"Reminder #{Number} deleted 🗑️", Save: 's');
@@ -183,7 +199,7 @@
 
                 embed.AddField("**Info**:", $"[Tree]({PathOfBuildingHelper.GenerateTreeURL(character.Tree)}) - powered by [Path of Building](https://github.com/Openarl/PathOfBuilding) - Help from [Faust](https://github.com/FWidm/discord-pob) and [thezensei](https://github.com/andreandersen/LiftDiscord/).");
 
-                await ReplyAsync(string.Empty, embed.Build());
+                await ReplyAsync(embed: embed.Build());
             }
             catch (Exception ex)
             {
@@ -193,32 +209,37 @@
 
         [Command("Wiki"), Remarks("Searches an item on the PoE Wiki."), Summary("Wiki <Item>")]
         public async Task WikiAsync([Remainder] string Item)
-            => await ReplyAsync(string.Empty, await WikiHelper.WikiGetItemAsync(Item));
+            => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(Item));
 
         [Command("Trials Add"), Summary("Trials Add <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
         public Task TrialAddAsync([Remainder] string Trial)
         {
-            if (Trial.ToLower() == "all") { (Context.User as SocketGuildUser).AddRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of"))); }
-            else (Context.User as SocketGuildUser).AddRoleAsync(Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault());
-            return ReplyAsync($"Trial{(Trial.ToLower() == "all" ? "s were" : " was")} added to your list {Extras.OkHand}");
+            if (Trial.ToLower() is "all")
+                (Context.User as SocketGuildUser).AddRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of")));
+            else
+                (Context.User as SocketGuildUser).AddRoleAsync(Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault());
+            return ReplyAsync($"Some things that slumber should never be awoken. *Trial{(Trial.ToLower() is "all" ? "s were" : " was")} added to your list.* {Extras.OkHand}");
         }
 
         [Command("Trials Delete"), Summary("Trials Delete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
         public Task TrialDeleteAsync([Remainder] string Trial)
         {
-            if (Trial.ToLower() == "all") { (Context.User as SocketGuildUser).RemoveRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of"))); }
-            else (Context.User as SocketGuildUser).RemoveRoleAsync(Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault());
-            return ReplyAsync($"Trial{(Trial.ToLower() == "all" ? "s were" : " was")} removed to your list {Extras.OkHand}");
+            if (Trial.ToLower() is "all")
+                (Context.User as SocketGuildUser).RemoveRolesAsync(Context.Guild.Roles.Where(r => r.Name.Contains("Trial of")));
+            else
+                (Context.User as SocketGuildUser).RemoveRoleAsync(Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault());
+            return ReplyAsync($"The Emperor beckons, and the world attends. *Trial{(Trial.ToLower() is "all" ? "s were" : " was")} removed from your list.* {Extras.OkHand}");
         }
 
         [Command("Trial"), Summary("Trial <Trial: Any part of the Trial Name>"), RequireChannel("lab-and-trials"), Remarks("Announce a Trial of Ascendancy that you have come across.")]
         public Task TrialAsync([Remainder] string Trial)
-            => ReplyAsync($"{Context.User.Mention} has found the {Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault().Mention}");
+            => ReplyAsync($"The essence of an empire must be shared equally amongst all of its citizens. *{Context.User.Mention} has found the {Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault().Mention}*");
 
-        [Command("Price"), Summary("Price <Name: Any Alias> [League: Defaults to Challenge | Standard, Hardcore, Challenge, ChallengeHC]"), Remarks("Pulls the price for the requested currency, in the chosen league, all values based on Chaos."), BanChannel("price-checkers")]
+        [Command("Price"), Summary("Price <Name: Any Alias> [League: Defaults to Challenge]"), Remarks("Pulls the price for the requested currency, in the chosen league, all values based on Chaos."), BanChannel("price-checkers")]
         public Task PriceAsync(string Name, Leagues League = Leagues.Challenge)
         {
-            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any()) return ReplyAsync($"`{Name}` is not in the `{League}` list {Extras.Cross}");
+            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
+                return ReplyAsync($"{Extras.Cross} What in God's name is that smell? *`{Name}` is not in the `{League}` list.*");
             var Price = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League);
             var User = (Context.Guild.GetUserAsync(Price.UserId).GetAwaiter().GetResult() as IUser);
             var Embed = Extras.Embed(Drawing.Aqua)
@@ -232,7 +253,7 @@
             return ReplyAsync(embed: Embed);
         }
 
-        [Command("PriceList"), Summary("PriceList [League Defaults to Challenge | Standard, Hardcore, Challenge, ChallengeHC]"), Remarks("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
+        [Command("PriceList"), Summary("PriceList [League Defaults to Challenge]"), Remarks("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
         public Task PriceListAsync(Leagues League = Leagues.Challenge)
         {
             var Prices = Context.Server.Prices.Where(x => x.League == League).Select(x => 

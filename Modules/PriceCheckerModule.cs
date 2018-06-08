@@ -16,7 +16,8 @@
         [Command("Add"), Remarks("Adds the price for the currency."), Summary("Price Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Replace spaces with _> <Quantity> <Price> <Alias>")]
         public Task AddAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Alias)
         {
-            if (Context.Server.Prices.Where(p => p.Name == Name && p.League == League).Any()) return ReplyAsync($"`{Name}` is already in the `{League}` list {Extras.Cross}");
+            if (Context.Server.Prices.Where(p => p.Name == Name && p.League == League).Any())
+                return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{Name}` is already in the `{League}` list.*");
             Context.Server.Prices.Add(new PriceObject
             {
                 League = League,
@@ -39,13 +40,14 @@
                 .WithThumbnailUrl(Context.User.GetAvatarUrl())
                 .Build();
 
-            return ReplyAsync(null, Embed, Save: 's');
+            return ReplyAsync(Embed: Embed, Save: 's');
         }
 
         [Command("Update"), Remarks("Updates the price for the currency."), Summary("Price Update <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias> <Quantity> <Price> [Aliases]")]
         public Task UpdateAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Aliases = null)
         {
-            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any()) return ReplyAsync($"`{Name}` is not in the `{League}` list {Extras.Cross}");
+            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
+                return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{Name}` is not in the `{League}` list.*");
 
             var price = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League);
             Context.Server.Prices.Remove(price);
@@ -54,7 +56,7 @@
             price.Price = Price;
             price.LastUpdated = DateTime.Now;
             price.UserId = Context.User.Id;
-            if (Aliases != null)
+            if (!(Aliases is null))
                 price.Alias = string.Join(", ", Aliases.Split(" ")).ToLower();
 
             Context.Server.Prices.Add(price);
@@ -70,7 +72,7 @@
                 .WithThumbnailUrl(Context.User.GetAvatarUrl())
                 .Build();
 
-            return ReplyAsync(null, Embed, Save: 's');
+            return ReplyAsync(Embed: Embed, Save: 's');
         }
 
         [Command("Reset"), Remarks("Resets all the prices for items to 0 for league reset."), Summary("Price Reset")]
@@ -86,15 +88,16 @@
                 Context.Server.Prices.Add(Price);
             }
 
-            return ReplyAsync($"All prices have been reset {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"For Tukohama! *All prices have been reset.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Delete"), Remarks("Deletes a currency from the system, by alias, should only be used if one is added in wrong"), Summary("Price Delete <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias>")]
         public Task Delete(Leagues League, string Name)
         {
-            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any()) return ReplyAsync($"`{Name}` is not in the `{League}` list {Extras.Cross}");
+            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
+                return ReplyAsync($"{Extras.Cross} I'm not smart enough for that ... yet. *`{Name}` is not in the `{League}` list.*");
             Context.Server.Prices.Remove(Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League));
-            return ReplyAsync($"`{Name}` was deleted from the `{League}` list {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"The very land heeds to my command. *`{Name}` was deleted from the `{League}` list.* {Extras.OkHand}", Save: 's');
         }
     }
 }

@@ -38,12 +38,12 @@
         public async Task LogAsync(DatabaseHandler DB, IGuild Guild, IUser User, IUser Mod, CaseType CaseType, string Reason)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
-            Reason = string.IsNullOrWhiteSpace(Reason) ? $"*Responsible moderator, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*" : Reason;
+            Reason = string.IsNullOrWhiteSpace(Reason) ? $"*Exile, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*" : Reason;
             var ModChannel = await Guild.GetTextChannelAsync(Server.ModLog);
             IUserMessage Message = null;
-            if (ModChannel != null)
+            if (!(ModChannel is null))
                 Message = await ModChannel.SendMessageAsync($"**{CaseType}** | Case {Server.UserCases.Count + 1}\n**User:** {User} ({User.Id})\n**Reason:** {Reason}\n" +
-                       $"**Responsible Moderator:** {Mod}");
+                       $"**Moderator:** {Mod}");
             Server.UserCases.Add(new CaseObject
             {
                 UserId = User.Id,
@@ -54,7 +54,7 @@
                 ModeratorId = Mod.Id,
                 CaseDate = DateTime.Now,
                 Number = Server.UserCases.Count + 1,
-                MessageId = Message == null ? 0 : Message.Id
+                MessageId = Message is null ? 0 : Message.Id
             });
             DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
         }
@@ -87,40 +87,41 @@
 
         public ulong ParseUlong(string Value)
         {
-            if (string.IsNullOrWhiteSpace(Value)) return 0;
+            if (string.IsNullOrWhiteSpace(Value))
+                return 0;
             return Convert.ToUInt64(string.Join("", CheckMatch("[0-9]").Matches(Value).Select(x => x.Value)));
         }
 
         public IList<string> Pages<T>(IEnumerable<T> Collection)
         {
             var BuildPages = new List<string>(Collection.Count());
-            for (int i = 0; i <= Collection.Count(); i += 10) BuildPages.Add(string.Join("\n", Collection.Skip(i).Take(10)));
+            for (int i = 0; i <= Collection.Count(); i += 10)
+                BuildPages.Add(string.Join("\n", Collection.Skip(i).Take(10)));
             return BuildPages;
         }
 
         public (bool, string) CalculateResponse(SocketMessage Message)
-            => (Message == null || string.IsNullOrWhiteSpace(Message.Content)) ?
-            (false, $"{Extras.Cross} Request cancelled. Either timed out or no response was provided.")
-            : Message.Content.ToLower().Equals("c") ? (false, $"Got it {Extras.OkHand}") : (true, Message.Content);
+            => (Message is null || string.IsNullOrWhiteSpace(Message.Content)) ?
+            (false, $"{Extras.Cross} There is a fine line between consideration and hesitation. The former is wisdom, the latter is fear. *Request Timed Out*")
+            : Message.Content.ToLower().Equals("c") ? (false, $"Understood, Exile {Extras.OkHand}") : (true, Message.Content);
 
-        public bool DoesStringHaveProfanity(string data, string[] badWords)
+        public bool DoesStringHaveProfanity(string Data, string[] BadWords)
         {
-            foreach (var word in badWords)
+            foreach (var Word in BadWords)
             {
-                var expword = ExpandBadWordToIncludeIntentionalMisspellings(word);
-                Regex r = new Regex(expword, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                var match = r.Match(data);
-                if (match.Success) return match.Success;
+                var Expword = ExpandBadWordToIncludeIntentionalMisspellings(Word);
+                Regex r = new Regex(Expword, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                var Match = r.Match(Data);
+                if (Match.Success)
+                    return Match.Success;
             }
             return false;
         }
 
-        public string ExpandBadWordToIncludeIntentionalMisspellings(string word)
+        public string ExpandBadWordToIncludeIntentionalMisspellings(string Word)
         {
-            var chars = word
-                .ToCharArray();
-
-            var op = "[" + string.Join("][", chars) + "]";
+            var Chars = Word.ToCharArray();
+            var op = "[" + string.Join("][", Chars) + "]";
 
             return op
                 .Replace("[a]", "[aA@]")

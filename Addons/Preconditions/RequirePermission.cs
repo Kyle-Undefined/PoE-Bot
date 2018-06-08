@@ -8,27 +8,27 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
 
-    public class UserPermission : PreconditionAttribute
+    public class RequirePermission : PreconditionAttribute
     {
         string ErrorMessage { get; set; }
         PermissionType PermissionType { get; }
         GuildPermission GuildPermission { get; }
         ChannelPermission ChannelPermission { get; }
-        public UserPermission(ChannelPermission channelPermission, string Message)
+        public RequirePermission(ChannelPermission channelPermission, string Message)
         {
             ErrorMessage = Message;
             ChannelPermission = channelPermission;
             PermissionType = PermissionType.CHANNEL;
         }
 
-        public UserPermission(GuildPermission guildPermission, string Message)
+        public RequirePermission(GuildPermission guildPermission, string Message)
         {
             ErrorMessage = Message;
             GuildPermission = guildPermission;
             PermissionType = PermissionType.GUILD;
         }
 
-        public UserPermission() => PermissionType = PermissionType.DEFAULT;
+        public RequirePermission() => PermissionType = PermissionType.DEFAULT;
 
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
@@ -44,10 +44,10 @@
                 case PermissionType.GUILD: Success = User.GuildPermissions.Has(GuildPermission) || Special; break;
                 case PermissionType.DEFAULT:
                     Success = DefaultPerms.Any(x => User.GuildPermissions.Has(x)) || Special;
-                    ErrorMessage = $"What a bummer! Are you sure you've got the proper permissions to run `{(command != null ? command.Name : "Unknown")}` command? {Extras.Cross}";
+                    ErrorMessage = $"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Insufficient Permissions*";
                     break;
             }
-            return Success ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError($"{Extras.Cross}{ErrorMessage}"));
+            return Success ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError($"{ErrorMessage}"));
         }
     }
     public enum PermissionType

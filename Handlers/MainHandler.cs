@@ -10,6 +10,7 @@ namespace PoE.Bot.Handlers
         ConfigObject Config { get; }
         EventHandler Event { get; }
         DiscordSocketClient Client { get; }
+
         public MainHandler(DiscordSocketClient client, EventHandler events, ConfigObject config)
         {
             Client = client;

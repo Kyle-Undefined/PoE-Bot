@@ -11,7 +11,7 @@
 
     public class MethodHelper
     {
-        public static CancellationToken Cancellation(TimeSpan time) => new CancellationTokenSource(time).Token;
+        public static CancellationToken Cancellation(TimeSpan Time) => new CancellationTokenSource(Time).Token;
 
         public static T RunSync<T>(Task<T> AsyncTask)
             => Task.Run(async ()
@@ -33,7 +33,8 @@
             get
             {
                 var Entries = Assembly.GetEntryAssembly().GetReferencedAssemblies();
-                foreach (var Ass in Entries) yield return Assembly.Load(Ass);
+                foreach (var Ass in Entries)
+                    yield return Assembly.Load(Ass);
                 yield return Assembly.GetEntryAssembly();
                 yield return typeof(ILookup<string, string>).GetTypeInfo().Assembly;
             }
@@ -42,9 +43,12 @@
         public static (bool, string) CollectionCheck<T>(IList<T> Collection, object Value, string ObjectName, string CollectionName)
         {
             var check = Collection.Contains((T)Value);
-            if (Collection.Contains((T)Value)) return (false, $"`{ObjectName}` already exists in {CollectionName}.");
-            else if (Collection.Count == (Collection as List<T>).Capacity) return (false, $"Reached max number of entries {Extras.Cross}");
-            else if (typeof(T) == typeof(string) && $"{Value}".Length >= 300) return (false, $"Message way too large {Extras.Cross}");
+            if (Collection.Contains((T)Value))
+                return (false, $"{Extras.Cross} I don't know how to use this yet. `{ObjectName}` already exists in {CollectionName}.");
+            else if (Collection.Count == (Collection as List<T>).Capacity)
+                return (false, $"{Extras.Cross} I don't know how to use this yet. Reached max number of entries.");
+            else if (typeof(T) == typeof(string) && $"{Value}".Length >= 300)
+                return (false, $"{Extras.Cross} I don't know how to use this yet. Message way too large.");
             return (true, $"`{ObjectName}` has been added to {CollectionName}");
         }
     }

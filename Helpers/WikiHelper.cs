@@ -154,7 +154,7 @@
 
                             var dropAreas = htmlSectionDoc.DocumentNode.SelectNodes("//ul//li");
 
-                            if (dropAreas == null)
+                            if (dropAreas is null)
                             {
                                 dropAreas = htmlSectionDoc.DocumentNode.SelectNodes("//p");
                                 dropOverride = true;
@@ -190,9 +190,7 @@
                             StringBuilder dropSB = new StringBuilder();
 
                             foreach (var drop in acquisition)
-                            {
                                 dropSB.AppendLine(drop.InnerText);
-                            }
 
                             builder.AddField("Drop Restrictions", $"```{dropSB.ToString().Trim()}```");
                         }
@@ -213,7 +211,7 @@
                         List<string> itemModsArray = new List<string>();
                         List<string> Mods = new List<string>();
 
-                        if (itemMods != null)
+                        if (!(itemMods is null))
                         {
                             foreach (var mod in itemMods)
                             {
@@ -229,19 +227,15 @@
                                 string[] s = imod.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
                                 if (s.Length > 1)
-                                {
                                     builder.AddField(s[0], $"```{s[1].Replace("&#8211;", "-").Trim()}```");
-                                }
                                 else
-                                {
                                     builder.AddField(s[0], "------------------------------------------");
-                                }
                             }
                         }
 
                         StringBuilder sb = new StringBuilder();
 
-                        if (modRolls != null)
+                        if (!(modRolls is null))
                         {
                             foreach (var modRoll in modRolls)
                             {

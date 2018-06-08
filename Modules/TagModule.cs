@@ -18,27 +18,36 @@
         [Command, Priority(0), Summary("Executes a tag with the given name.")]
         public Task TagAsync(string Name)
         {
-            if (!Exists(Name, true)) return Task.CompletedTask;
+            if (!Exists(Name, true))
+                return Task.CompletedTask;
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
             Tag.Uses++;
             return ReplyAsync(Tag.Content, Save: 's');
         }
 
-        [Command("Create", RunMode = RunMode.Async), Alias("new", "Make"), Priority(10), Remarks("Initiates Tag Creation wizard."), Summary("Tag Create")]
+        [Command("Create", RunMode = RunMode.Async), Priority(10), Remarks("Initiates Tag Creation wizard."), Summary("Tag Create")]
         public async Task CreateAsync()
         {
-            var Name = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the name of your tag?"));
-            if (!Name.Item1) { await ReplyAsync(Name.Item2); return; }
-            Name.Item2 = Name.Item2.Replace(" ", "-");
-            if (Exists(Name.Item2)) return;
-            else if (NameCheck(Name.Item2))
+            var Name = Context.GuildHelper.CalculateResponse(await WaitAsync($"There's nothing like making a ground-shaking entrance. *What would be the name of your tag?*"));
+            if (!Name.Item1)
             {
-                await ReplyAsync($"`{Name.Item2}` is a reserved name. Try something else?");
+                await ReplyAsync(Name.Item2);
                 return;
             }
-            var Content = Context.GuildHelper.CalculateResponse(await WaitAsync($"What would be the content of your tag?",
-                Timeout: TimeSpan.FromMinutes(2)));
-            if (!Content.Item1) { await ReplyAsync(Content.Item2); return; }
+            Name.Item2 = Name.Item2.Replace(" ", "-");
+            if (Exists(Name.Item2))
+                return;
+            else if (NameCheck(Name.Item2))
+            {
+                await ReplyAsync($"{Extras.Cross} Pruning a branch can save a tree. *`{Name.Item2}` is a reserved name. Try something else?*");
+                return;
+            }
+            var Content = Context.GuildHelper.CalculateResponse(await WaitAsync($"Actually, I'm not really sure I like the sound of that. *What would be the content of your tag?*", Timeout: TimeSpan.FromMinutes(2)));
+            if (!Content.Item1)
+            {
+                await ReplyAsync(Content.Item2);
+                return;
+            }
             Context.Server.Tags.Add(new TagObject
             {
                 Uses = 0,
@@ -47,27 +56,34 @@
                 Content = Content.Item2,
                 CreationDate = DateTime.Now
             });
-            await ReplyAsync($"Tag `{Name.Item2}` has been created {Extras.OkHand}", Save: 's');
+            await ReplyAsync($"I think that will come in handy at some point. *Tag `{Name.Item2}` has been created.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Update"), Alias("Modify", "Change"), Priority(10), Remarks("Updates an existing tag"), Summary("Tag Update <name> <content>")]
         public async Task UpdateAsync(string Name, [Remainder] string Content)
         {
-            if (!Exists(Name)) return;
+            if (!Exists(Name))
+                return;
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
-            if (Context.User.Id != Tag.Owner) { await ReplyAsync($"You aren't the owner of `{Name}` {Extras.Cross}"); return; }
+            if (Context.User.Id != Tag.Owner)
+            {
+                await ReplyAsync($"{Extras.Cross} I have a hunch I'll be needing this. *You aren't the owner of `{Name}`*");
+                return;
+            }
             Tag.Content = Content;
-            await ReplyAsync($"Tag `{Name}`'s contant has been updated.", Save: 's');
+            await ReplyAsync($"Thank you, my ancestors. I will repay your gift. *Tag `{Name}`'s contant has been updated.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Remove"), Alias("Delete"), Priority(10), Remarks("Deletes a tag."), Summary("Tag Delete <Name>")]
         public Task RemoveAsync(string Name)
         {
-            if (!Exists(Name)) return Task.CompletedTask;
+            if (!Exists(Name))
+                return Task.CompletedTask;
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
-            if (Context.User.Id != Tag.Owner) return ReplyAsync($"You aren't the owner of `{Name}` {Extras.Cross}");
+            if (Context.User.Id != Tag.Owner)
+                return ReplyAsync($"{Extras.Cross} This item whispers of destiny. *You aren't the owner of `{Name}`*");
             Context.Server.Tags.Remove(Tag);
-            return ReplyAsync($"Tag `{Name}` has been deleted {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"I need more pockets. *Tag `{Name}` has been deleted.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("User"), Priority(10), Remarks("Shows all tags owned by you or a given user."), Summary("Tag User [@User]")]
@@ -75,28 +91,31 @@
         {
             User = User ?? Context.User as IGuildUser;
             var UserTag = Context.Server.Tags.Where(x => x.Owner == User.Id).Select(x => x.Name);
-            if (!Context.Server.Tags.Any() || !UserTag.Any()) return ReplyAsync($"`{User}` doesn't have any tags.");
+            if (!Context.Server.Tags.Any() || !UserTag.Any())
+                return ReplyAsync($"{Extras.Cross} Can't quite get my head around this one. *`{User}` doesn't have any tags.*");
             return PagedReplyAsync(Context.GuildHelper.Pages(UserTag), $"{User.Username} Tag Collection");
         }
 
         [Command("Claim"), Priority(10), Remarks("Claims a tag whose owner isn't in server anymore."), Summary("Tag Claim <Name>")]
         public Task ClaimAsync(string Name)
         {
-            if (!Exists(Name)) return Task.CompletedTask;
+            if (!Exists(Name))
+                return Task.CompletedTask;
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
             if ((Context.Guild as SocketGuild).Users.Where(x => x.Id == Tag.Owner).Any())
-                return ReplyAsync($"Tag owner is still in this guild.");
+                return ReplyAsync($"{Extras.Cross} I cannot carry this. *Tag owner is still in this guild.*");
             Tag.Owner = Context.User.Id;
-            return ReplyAsync($"You are now the owner of `{Tag.Name}` tag {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"Show me the way, Kaom. *You are now the owner of `{Tag.Name}` tag.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Info"), Priority(10), Remarks("Displays information about a given tag."), Summary("Tag Info <Name>")]
         public async Task InfoAsync(string Name)
         {
-            if (!Exists(Name, true)) return;
+            if (!Exists(Name, true))
+                return;
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == Name);
             var User = StringHelper.ValidateUser(Context.Guild, Tag.Owner);
-            await ReplyAsync(string.Empty, Extras.Embed(Drawing.Aqua)
+            await ReplyAsync(Embed: Extras.Embed(Drawing.Aqua)
                 .WithAuthor($"Tag Information", Context.Client.CurrentUser.GetAvatarUrl())
                 .AddField("Name", Tag.Name, true)
                 .AddField("Owner", User, true)
@@ -109,14 +128,14 @@
 
         bool Exists(string Name, bool Suggest = false)
         {
-            if (Context.Server.Tags.FirstOrDefault(x => x.Name == Name) == null)
+            if (Context.Server.Tags.FirstOrDefault(x => x.Name == Name) is null)
             {
                 if (Suggest)
                 {
                     var LDTags = Context.Server.Tags.Where(x => LevenshteinDistance(Name.ToLower(), x.Name) < 5);
                     var ContainTags = Context.Server.Tags.Where(x => x.Name.Contains(Name.ToLower())).Take(5);
                     var Suggested = LDTags.Union(ContainTags);
-                    _ = ReplyAsync($"Couldn't find tag `{Name}` {Extras.Cross} {(Suggested.Any() ? $"\nTry these: {string.Join(", ", Suggested.Select(x => x.Name))}" : null)} ");
+                    _ = ReplyAsync($"{Extras.Cross} Pity the emperor who sits alone on his throne. *Couldn't find tag `{Name}`* {(Suggested.Any() ? $"\nTry these: {string.Join(", ", Suggested.Select(x => x.Name))}" : null)} ");
                 }
                 return false;
             }
@@ -129,7 +148,8 @@
         // Honestly have no idea what this is, found it on SO from a "close string match" search
         int LevenshteinDistance(string a, string b)
         {
-            if (String.IsNullOrEmpty(a) || String.IsNullOrEmpty(b)) return 0;
+            if (String.IsNullOrEmpty(a) || String.IsNullOrEmpty(b))
+                return 0;
 
             int lengthA = a.Length;
             int lengthB = b.Length;

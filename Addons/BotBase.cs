@@ -34,14 +34,15 @@
         {
             _ = ReplyAsync($"{Message}\n**To cancel**, type `c`.");
             var Criteria = new Criteria<SocketMessage>();
-            if (User) Criteria.AddCriteria(new SourceUser());
-            if (Channel) Criteria.AddCriteria(new SourceChannel());
+            if (User)
+                Criteria.AddCriteria(new SourceUser());
+            if (Channel)
+                Criteria.AddCriteria(new SourceChannel());
             return Interactive.WaitAsync(Context, Criteria, Timeout);
         }
 
         public Task<IUserMessage> PagedReplyAsync(IEnumerable<object> Pages, string Title, bool Delete = false)
-        {
-            var Paged = new PagedMessage
+            => PagedReplyAsync(new PagedMessage
             {
                 Pages = Pages,
                 Author = new EmbedAuthorBuilder
@@ -49,15 +50,14 @@
                     Name = Title,
                     IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
                 }
-            };
-            return PagedReplyAsync(Paged, Delete, true);
-        }
+            }, Delete, true);
 
         Task<IUserMessage> PagedReplyAsync(PagedMessage Paged, bool Delete, bool SourceUser = true)
         {
             var criteria = new Criteria<SocketReaction>();
-            if (SourceUser) criteria.AddCriteria(new ReactionCriteria());
-            return PagedReplyAsync(Paged, criteria, Delete);
+            if (SourceUser)
+                criteria.AddCriteria(new ReactionCriteria());
+            return Interactive.PagedMessageAsync(Context, Paged, Delete, criteria);
         }
 
         Task<IUserMessage> PagedReplyAsync(PagedMessage Paged, ICriteria<SocketReaction> Criteria, bool Delete)

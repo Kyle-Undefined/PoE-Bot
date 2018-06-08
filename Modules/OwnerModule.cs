@@ -25,19 +25,16 @@
             {
                 case 'a':
                     var ImagePath = string.IsNullOrWhiteSpace(Value) ?
-                        await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync()).IconUrl)
-                        : Value;
+                        await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync()).IconUrl) : Value;
                     await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ImagePath));
                     break;
                 case 'u': await Context.Client.CurrentUser.ModifyAsync(x => x.Username = Value); break;
                 case 's':
                     var Split = Value.Split(':');
-                    await (Context.Client as DiscordSocketClient).SetActivityAsync(
-                        new Game(Split[1], (ActivityType)Enum.Parse(typeof(ActivityType), Split[0]))).ConfigureAwait(false);
+                    await (Context.Client as DiscordSocketClient).SetActivityAsync(new Game(Split[1], (ActivityType)Enum.Parse(typeof(ActivityType), Split[0]))).ConfigureAwait(false);
                     break;
                 case 'n':
-                    await (await Context.Guild.GetCurrentUserAsync(CacheMode.AllowDownload)).ModifyAsync(
-                        x => x.Nickname = string.IsNullOrWhiteSpace(Value) ? Context.Client.CurrentUser.Username : Value);
+                    await (await Context.Guild.GetCurrentUserAsync(CacheMode.AllowDownload)).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(Value) ? Context.Client.CurrentUser.Username : Value);
                     break;
                 case 'r':
                     Context.Config.ReportChannel = string.IsNullOrWhiteSpace(Value) ? 0 : Context.GuildHelper.ParseUlong(Value);
@@ -60,11 +57,13 @@
             switch (Action)
             {
                 case 'a':
-                    if (Context.Config.Blacklist.Contains(User.Id)) return ReplyAsync($"{User} is already in blacklisted.");
+                    if (Context.Config.Blacklist.Contains(User.Id))
+                        return ReplyAsync($"{Extras.Cross} {User} is already in blacklisted.");
                     Context.Config.Blacklist.Add(User.Id);
                     return ReplyAsync($"`{User}` has been added to global blacklist.", Save: 'c');
                 case 'r':
-                    if (!Context.Config.Blacklist.Contains(User.Id)) return ReplyAsync($"{User} isn't blacklisted.");
+                    if (!Context.Config.Blacklist.Contains(User.Id))
+                        return ReplyAsync($"{Extras.Cross} {User} isn't blacklisted.");
                     Context.Config.Blacklist.Remove(User.Id);
                     return ReplyAsync($"`{User}` has been removed from global blacklist.", Save: 'c');
                 default: return Task.CompletedTask;
@@ -108,11 +107,13 @@
             switch (Action)
             {
                 case 'a':
-                    if (Context.Config.Namespaces.Contains(Namespace)) return ReplyAsync($"{Namespace} namespace already exists.");
+                    if (Context.Config.Namespaces.Contains(Namespace))
+                        return ReplyAsync($"{Extras.Cross} {Namespace} namespace already exists.");
                     Context.Config.Namespaces.Add(Namespace);
                     return ReplyAsync($"`{Namespace}` has been added.", Save: 'c');
                 case 'r':
-                    if (!Context.Config.Namespaces.Contains(Namespace)) return ReplyAsync($"{Namespace} namespace doesn't exist.");
+                    if (!Context.Config.Namespaces.Contains(Namespace))
+                        return ReplyAsync($"{Extras.Cross} {Namespace} namespace doesn't exist.");
                     Context.Config.Namespaces.Remove(Namespace);
                     return ReplyAsync($"`{Namespace}` has been removed.", Save: 'c');
                 default: return Task.CompletedTask;
@@ -138,14 +139,15 @@
                 .AddField("Database",
                 $"Tags: {Servers.Sum(x => x.Tags.Count)}\n" +
                 $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
-                $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true);
-            Embed.AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true);
-            Embed.AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true);
-            Embed.AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true);
-            Embed.AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true);
-            Embed.AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true);
-            Embed.AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true);
-            await ReplyAsync(Embed: Embed.Build());
+                $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true)
+                .AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true)
+                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType == StreamType.MIXER)}", true)
+                .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true)
+                .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
+                .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
+                .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
+                .Build();
+            await ReplyAsync(Embed: Embed);
         }
     }
 }

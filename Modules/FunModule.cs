@@ -20,7 +20,7 @@
         public Task ClapAsync([Remainder] string Message) => ReplyAsync(Message.Replace(" ", " 👏 "));
 
         [Command("Rate"), Remarks("Rates something for you out of 10."), Summary("Rate <ThingToRate>")]
-        public Task RateAsync([Remainder] string ThingToRate) => ReplyAsync($":thinking: I would rate '{ThingToRate}' a solid {Context.Random.Next(11)}/10");
+        public Task RateAsync([Remainder] string ThingToRate) => ReplyAsync($":thinking: Must I do everything myself? *I would rate '{ThingToRate}' a solid {Context.Random.Next(11)}/10*");
 
         [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <Text>")]
         public Task ExpandAsync([Remainder] string Text)
@@ -32,7 +32,7 @@
             User = User ?? Context.User as SocketGuildUser;
             var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
             var Embed = Extras.Embed(Drawing.Aqua)
-                .WithAuthor($"{User.Username} Profile", User.GetAvatarUrl())
+                .WithAuthor($"{User.Username}'s Profile", User.GetAvatarUrl())
                 .WithThumbnailUrl(User.GetAvatarUrl())
                 .AddField("Warnings", Profile.Warnings, true)
                 .AddField("Mod Cases", Context.Server.UserCases.Where(x => x.UserId == User.Id).Count(), true)
@@ -47,7 +47,7 @@
         {
             Context.Channel.TriggerTypingAsync();
 
-            var meme = string.Concat(Text.ToLower().AsEnumerable().Select((c, i) => i % 2 == 0 ? c : char.ToUpper(c)));
+            var meme = string.Concat(Text.ToLower().AsEnumerable().Select((c, i) => i % 2 is 0 ? c : char.ToUpper(c)));
             IEnumerable<string> chunkedMeme = null;
             var charCount = 0;
             var maxChar = 33;

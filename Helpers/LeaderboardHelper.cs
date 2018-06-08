@@ -8,6 +8,8 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
+    using PoE.Bot.Addons;
+    using Drawing = System.Drawing.Color;
     using System.Collections.Generic;
     using System.Text;
     using CsvHelper;
@@ -20,19 +22,21 @@
             List<LeaderboardData> racers = new List<LeaderboardData>();
 
             using (HttpClient client = new HttpClient())
-                using (HttpResponseMessage response = client.GetAsync($"https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{Leaderboard.Variant}_league_export.csv", HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
-                    if (response.IsSuccessStatusCode)
-                        using (Stream stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
-                            using (TextReader reader = new StreamReader(stream))
-                                using (CsvReader csv = new CsvReader(reader))
-                                {
-                                    csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
-                                    await csv.ReadAsync();
-                                    csv.ReadHeader();
+            using (HttpResponseMessage response = await client.GetAsync($"https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{Leaderboard.Variant}_league_export.csv", HttpCompletionOption.ResponseHeadersRead))
+            {
+                if (response.IsSuccessStatusCode)
+                    using (Stream stream = await response.Content.ReadAsStreamAsync())
+                    using (TextReader reader = new StreamReader(stream))
+                    using (CsvReader csv = new CsvReader(reader))
+                    {
+                        csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
+                        await csv.ReadAsync();
+                        csv.ReadHeader();
 
-                                    while (await csv.ReadAsync())
-                                        racers.Add(csv.GetRecord<LeaderboardData>());
-                                }
+                        while (await csv.ReadAsync())
+                            racers.Add(csv.GetRecord<LeaderboardData>());
+                    }
+            }
 
             if (racers.Any())
             {
@@ -117,13 +121,11 @@
                 if (rScions.Any())
                     sb.AppendLine($"Scions       : {rScions.Count().ToString("##,##0")}");
 
-                var embed = new EmbedBuilder();
-                embed.WithTitle($"{WebUtility.UrlDecode(Leaderboard.Variant).Replace("_", " ")} Leaderboard")
+                var embed = Extras.Embed(Drawing.Aqua)
+                    .WithTitle($"{WebUtility.UrlDecode(Leaderboard.Variant).Replace("_", " ")} Leaderboard")
                     .WithDescription($"Retrieved {racers.Count().ToString("##,##0")} records, Rank is overall and not by Ascendancy, below is the total of Ascendancy classes:\n```{sb.ToString()}```")
-                    .WithColor(new Color(0, 127, 255))
-                    .WithCurrentTimestamp();
-
-                embed.AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
+                    .WithCurrentTimestamp()
+                    .AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
 
                 var cDuelists = racers.FindAll(x => x.Class == AscendancyClass.Duelist || x.Class == AscendancyClass.Slayer || x.Class == AscendancyClass.Gladiator || x.Class == AscendancyClass.Champion);
                 var cShadows = racers.FindAll(x => x.Class == AscendancyClass.Shadow || x.Class == AscendancyClass.Saboteur || x.Class == AscendancyClass.Assassin || x.Class == AscendancyClass.Trickster);
@@ -143,71 +145,63 @@
 
                 if (cDuelists.Any())
                 {
-                    var tDuelists = cDuelists.GetRange(0, (cDuelists.Count() < 10 ? cDuelists.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tDuelists)
+                    foreach (var racer in cDuelists.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Duelists, Slayers, Champions, Gladiators", $"```{sb.ToString()}```");
                 }
 
                 if (cShadows.Any())
                 {
-                    var tShadows = cShadows.GetRange(0, (cShadows.Count() < 10 ? cShadows.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tShadows)
+                    foreach (var racer in cShadows.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Shadows, Saboteurs, Assassins, Tricksters", $"```{sb.ToString()}```");
                 }
 
                 if (cMarauders.Any())
                 {
-                    var tMarauders = cMarauders.GetRange(0, (cMarauders.Count() < 10 ? cMarauders.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tMarauders)
+                    foreach (var racer in cMarauders.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Marauders, Juggernauts, Chieftains, Berserkers", $"```{sb.ToString()}```");
                 }
 
                 if (cWitchs.Any())
                 {
-                    var tWitchs = cWitchs.GetRange(0, (cWitchs.Count() < 10 ? cWitchs.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tWitchs)
+                    foreach (var racer in cWitchs.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Witches, Necromancers, Occultists, Elemantalists", $"```{sb.ToString()}```");
                 }
 
                 if (cRangers.Any())
                 {
-                    var tRangers = cRangers.GetRange(0, (cRangers.Count() < 10 ? cRangers.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tRangers)
+                    foreach (var racer in cRangers.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Rangers, Pathfinders, Raiders, Deadeyes", $"```{sb.ToString()}```");
                 }
 
                 if (cTemplars.Any())
                 {
-                    var tTemplars = cTemplars.GetRange(0, (cTemplars.Count() < 10 ? cTemplars.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tTemplars)
+                    foreach (var racer in cTemplars.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Templars, Guardians, Inquisitors, Hierophants", $"```{sb.ToString()}```");
                 }
 
                 if (cScions.Any())
                 {
-                    var tScions = cScions.GetRange(0, (cScions.Count() < 10 ? cScions.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tScions)
+                    foreach (var racer in cScions.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Scions, Ascendants", $"```{sb.ToString()}```");
                 }
 
-                var embedClasses = new EmbedBuilder();
-                embedClasses.WithTitle("Top 10 Characters of each Class")
+                var embedClasses = Extras.Embed(Drawing.Aqua)
+                    .WithTitle("Top 10 Characters of each Class")
                     .WithDescription("Rank is overall and not by Class.")
-                    .WithColor(new Color(0, 127, 255))
                     .WithCurrentTimestamp();
 
                 rDuelists.Sort((p, q) => p.Rank.CompareTo(q.Rank));
@@ -220,71 +214,63 @@
 
                 if (rDuelists.Any())
                 {
-                    var tDuelists = rDuelists.GetRange(0, (rDuelists.Count() < 10 ? rDuelists.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tDuelists)
+                    foreach (var racer in cDuelists.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Duelists", $"```{sb.ToString()}```");
                 }
 
                 if (rShadows.Any())
                 {
-                    var tShadows = rShadows.GetRange(0, (rShadows.Count() < 10 ? rShadows.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tShadows)
+                    foreach (var racer in cShadows.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Shadows", $"```{sb.ToString()}```");
                 }
 
                 if (rMarauders.Any())
                 {
-                    var tMarauders = rMarauders.GetRange(0, (rMarauders.Count() < 10 ? rMarauders.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tMarauders)
+                    foreach (var racer in cMarauders.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Marauders", $"```{sb.ToString()}```");
                 }
 
                 if (rWitchs.Any())
                 {
-                    var tWitchs = rWitchs.GetRange(0, (rWitchs.Count() < 10 ? rWitchs.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tWitchs)
+                    foreach (var racer in cWitchs.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Witches", $"```{sb.ToString()}```");
                 }
 
                 if (rRangers.Any())
                 {
-                    var tRangers = rRangers.GetRange(0, (rRangers.Count() < 10 ? rRangers.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tRangers)
+                    foreach (var racer in cRangers.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Rangers", $"```{sb.ToString()}```");
                 }
 
                 if (rTemplars.Any())
                 {
-                    var tTemplars = rTemplars.GetRange(0, (rTemplars.Count() < 10 ? rTemplars.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tTemplars)
+                    foreach (var racer in cTemplars.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Templars", $"```{sb.ToString()}```");
                 }
 
                 if (rScions.Any())
                 {
-                    var tScions = rScions.GetRange(0, (rScions.Count() < 10 ? rScions.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tScions)
+                    foreach (var racer in cScions.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedClasses.AddField("Scions", $"```{sb.ToString()}```");
                 }
 
-                var embedAscendancy = new EmbedBuilder();
-                embedAscendancy.WithTitle("Top 10 Characters of each Ascendancy")
+                var embedAscendancy = Extras.Embed(Drawing.Aqua)
+                    .WithTitle("Top 10 Characters of each Ascendancy")
                     .WithDescription("Rank is overall and not by Ascendancy.")
-                    .WithColor(new Color(0, 127, 255))
                     .WithCurrentTimestamp();
 
                 rSlayers.Sort((p, q) => p.Rank.CompareTo(q.Rank));
@@ -309,189 +295,166 @@
 
                 if (rSlayers.Any())
                 {
-                    var tSlayers = rSlayers.GetRange(0, (rSlayers.Count() < 10 ? rSlayers.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tSlayers)
+                    foreach (var racer in rSlayers.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Slayers", $"```{sb.ToString()}```");
                 }
 
                 if (rChampions.Any())
                 {
-                    var tChampions = rChampions.GetRange(0, (rChampions.Count() < 10 ? rChampions.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tChampions)
+                    foreach (var racer in rChampions.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Champions", $"```{sb.ToString()}```");
                 }
 
                 if (rGladiators.Any())
                 {
-                    var tGladiators = rGladiators.GetRange(0, (rGladiators.Count() < 10 ? rGladiators.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tGladiators)
+                    foreach (var racer in rGladiators.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Gladiators", $"```{sb.ToString()}```");
                 }
 
                 if (rAssassins.Any())
                 {
-                    var tAssassins = rAssassins.GetRange(0, (rAssassins.Count() < 10 ? rAssassins.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tAssassins)
+                    foreach (var racer in rAssassins.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Assassins", $"```{sb.ToString()}```");
                 }
 
                 if (rSaboteurs.Any())
                 {
-                    var tSaboteurs = rSaboteurs.GetRange(0, (rSaboteurs.Count() < 10 ? rSaboteurs.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tSaboteurs)
+                    foreach (var racer in rSaboteurs.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Saboteurs", $"```{sb.ToString()}```");
                 }
 
                 if (rTricksters.Any())
                 {
-                    var tTricksters = rTricksters.GetRange(0, (rTricksters.Count() < 10 ? rTricksters.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tTricksters)
+                    foreach (var racer in rTricksters.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Tricksters", $"```{sb.ToString()}```");
                 }
 
                 if (rJuggernauts.Any())
                 {
-                    var tJuggernauts = rJuggernauts.GetRange(0, (rJuggernauts.Count() < 10 ? rJuggernauts.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tJuggernauts)
+                    foreach (var racer in rJuggernauts.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Juggernauts", $"```{sb.ToString()}```");
                 }
 
                 if (rBerserkers.Any())
                 {
-                    var tBerserkers = rBerserkers.GetRange(0, (rBerserkers.Count() < 10 ? rBerserkers.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tBerserkers)
+                    foreach (var racer in rBerserkers.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Berserkers", $"```{sb.ToString()}```");
                 }
 
                 if (rChieftains.Any())
                 {
-                    var tChieftains = rChieftains.GetRange(0, (rChieftains.Count() < 10 ? rChieftains.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tChieftains)
+                    foreach (var racer in rChieftains.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Chieftains", $"```{sb.ToString()}```");
                 }
 
                 if (rNecromancers.Any())
                 {
-                    var tNecromancers = rNecromancers.GetRange(0, (rNecromancers.Count() < 10 ? rNecromancers.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tNecromancers)
+                    foreach (var racer in rNecromancers.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancy.AddField("Necromancers", $"```{sb.ToString()}```");
                 }
 
-
-                var embedAscendancyCont = new EmbedBuilder();
-                embedAscendancyCont.WithTitle("Top 10 Characters of each Ascendancy")
+                var embedAscendancyCont = Extras.Embed(Drawing.Aqua)
+                    .WithTitle("Top 10 Characters of each Ascendancy")
                     .WithDescription("Rank is overall and not by Ascendancy.")
-                    .WithColor(new Color(0, 127, 255))
                     .WithCurrentTimestamp();
 
                 if (rElementalists.Any())
                 {
-                    var tElementalists = rElementalists.GetRange(0, (rElementalists.Count() < 10 ? rElementalists.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tElementalists)
+                    foreach (var racer in rElementalists.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Elemantalists", $"```{sb.ToString()}```");
                 }
 
                 if (rOccultists.Any())
                 {
-                    var tOccultists = rOccultists.GetRange(0, (rOccultists.Count() < 10 ? rOccultists.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tOccultists)
+                    foreach (var racer in rOccultists.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Occultists", $"```{sb.ToString()}```");
                 }
 
                 if (rDeadeyes.Any())
                 {
-                    var tDeadeyes = rDeadeyes.GetRange(0, (rDeadeyes.Count() < 10 ? rDeadeyes.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tDeadeyes)
+                    foreach (var racer in rDeadeyes.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Deadeyes", $"```{sb.ToString()}```");
                 }
 
                 if (rRaiders.Any())
                 {
-                    var tRaiders = rRaiders.GetRange(0, (rRaiders.Count() < 10 ? rRaiders.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tRaiders)
+                    foreach (var racer in rRaiders.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Raiders", $"```{sb.ToString()}```");
                 }
 
                 if (rPathfinders.Any())
                 {
-                    var tPathfinders = rPathfinders.GetRange(0, (rPathfinders.Count() < 10 ? rPathfinders.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tPathfinders)
+                    foreach (var racer in rPathfinders.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Pathfinders", $"```{sb.ToString()}```");
                 }
 
                 if (rInquisitors.Any())
                 {
-                    var tInquisitors = rInquisitors.GetRange(0, (rInquisitors.Count() < 10 ? rInquisitors.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tInquisitors)
+                    foreach (var racer in rInquisitors.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Inquisitors", $"```{sb.ToString()}```");
                 }
 
                 if (rHierophants.Any())
                 {
-                    var tHierophants = rHierophants.GetRange(0, (rHierophants.Count() < 10 ? rHierophants.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tHierophants)
+                    foreach (var racer in rHierophants.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Hierophants", $"```{sb.ToString()}```");
                 }
 
                 if (rGuardians.Any())
                 {
-                    var tGuardians = rGuardians.GetRange(0, (rGuardians.Count() < 10 ? rGuardians.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tGuardians)
+                    foreach (var racer in rGuardians.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Guardians", $"```{sb.ToString()}```");
                 }
 
                 if (rAscendants.Any())
                 {
-                    var tAscendants = rAscendants.GetRange(0, (rAscendants.Count() < 10 ? rAscendants.Count() : 10));
                     sb = new StringBuilder();
-                    foreach (var racer in tAscendants)
+                    foreach (var racer in rAscendants.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | E:{racer.Experience,10}{(racer.Dead ? " | X" : null)}");
                     embedAscendancyCont.AddField("Ascendants", $"```{sb.ToString()}```");
                 }
 
-                var Discordians = new EmbedBuilder();
-                Discordians.WithTitle($"Discordians Only {Leaderboard.Variant.Replace("_", " ")} Leaderboard")
+                var Discordians = Extras.Embed(Drawing.Aqua)
+                    .WithTitle($"Discordians Only {Leaderboard.Variant.Replace("_", " ")} Leaderboard")
                     .WithDescription($"Retrieved {racers.Where(r => r.Character.ToLower().Contains("discord")).Count().ToString("##,##0")} users with Discord in their name.")
-                    .WithColor(new Color(0, 127, 255))
-                    .WithCurrentTimestamp();
-
-                Discordians.AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
+                    .WithCurrentTimestamp()
+                    .AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
 
                 if (cDuelists.Any(r => r.Character.ToLower().Contains("discord")))
                 {

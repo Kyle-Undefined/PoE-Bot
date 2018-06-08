@@ -34,21 +34,23 @@
         public static string ValidateUser(IGuild Guild, ulong Id)
         {
             var User = (Guild as SocketGuild).GetUser(Id);
-            return User == null ? "Unknown User" : User.Username;
+            return User is null ? "Unknown User" : User.Username;
         }
 
         public static string ValidateChannel(IGuild Guild, ulong Id)
         {
-            if (Id == 0) return "Not Set.";
+            if (Id is 0)
+                return "Not Set.";
             var Channel = (Guild as SocketGuild).GetTextChannel(Id);
-            return Channel == null ? $"Unknown ({Id})" : Channel.Name;
+            return Channel is null ? $"Unknown ({Id})" : Channel.Name;
         }
 
         public static string ValidateRole(IGuild Guild, ulong Id)
         {
-            if (Id == 0) return "Not Set";
+            if (Id is 0)
+                return "Not Set";
             var Role = Guild.GetRole(Id);
-            return Role == null ? $"Unknown ({Id})" : Role.Name;
+            return Role is null ? $"Unknown ({Id})" : Role.Name;
         }
 
         public static string FormatTimeSpan(TimeSpan timeSpan)
@@ -58,7 +60,7 @@
                 FormatPart(timeSpan.Days, "day"),
                 FormatPart(timeSpan.Hours, "hour"),
                 FormatPart(timeSpan.Minutes, "minute"),
-                FormatPart(timeSpan.Seconds, "second") }.Where(x => x != null));
+                FormatPart(timeSpan.Seconds, "second") }.Where(x => !(x is null)));
         }
     }
 }

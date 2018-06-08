@@ -13,10 +13,10 @@
         {
             GuildPermission = guildPermission;
         }
-        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Services)
         {
             string Permission = null;
-            var IsSuccess = (context.Guild as SocketGuild).CurrentUser.GuildPermissions.Has(GuildPermission);
+            var IsSuccess = (Context.Guild as SocketGuild).CurrentUser.GuildPermissions.Has(GuildPermission);
             switch (GuildPermission)
             {
                 case GuildPermission.BanMembers: Permission = "ban users"; break;
@@ -26,7 +26,7 @@
                 case GuildPermission.ManageChannels: Permission = "manage channels"; break;
             }
             return IsSuccess ? Task.FromResult(PreconditionResult.FromSuccess()) :
-                Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} OH NOES! I don't have the power to {Permission}."));
+                Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} An emperor is only as efficient as those he commands. Missing `{Permission}` permission."));
         }
     }
 }

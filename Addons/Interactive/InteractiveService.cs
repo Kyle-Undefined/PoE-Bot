@@ -35,9 +35,11 @@
             TokenSource.Token.Register(() => CancelTask.SetResult(true));
             async Task InteractiveHandlerAsync(SocketMessage Message)
             {
-                if (Message.Author.IsBot) return;
+                if (Message.Author.IsBot)
+                    return;
                 var Result = await Criteria.JudgeAsync(Context, Message).ConfigureAwait(false);
-                if (Result) Trigger.SetResult(Message);
+                if (Result)
+                    Trigger.SetResult(Message);
             }
             Client.MessageReceived += InteractiveHandlerAsync;
             var PersonalTask = await Task.WhenAny(Trigger.Task, Task.Delay(Timeout.Value), CancelTask.Task).ConfigureAwait(false);
@@ -57,17 +59,20 @@
             var EmoteArray = new[] { Extras.Next, Extras.Back, Extras.Cross };
             if (Reaction.UserId == Client.CurrentUser.Id || !(Callbacks.TryGetValue(Cache.Id, out var callback)) ||
                 !(await callback.Criteria.JudgeAsync(callback.Context, Reaction).ConfigureAwait(false)) ||
-                !EmoteArray.Any(x => x.Name == Reaction.Emote.Name)) return;
+                !EmoteArray.Any(x => x.Name == Reaction.Emote.Name))
+                return;
             switch (callback.RunMode)
             {
                 case RunMode.Async:
                     _ = Task.Run(async () =>
                     {
-                        if (await callback.HandleCallbackAsync(Reaction).ConfigureAwait(false)) RemoveReactionCallback(Cache.Id);
+                        if (await callback.HandleCallbackAsync(Reaction).ConfigureAwait(false))
+                            RemoveReactionCallback(Cache.Id);
                     });
                     break;
                 default:
-                    if (await callback.HandleCallbackAsync(Reaction).ConfigureAwait(false)) RemoveReactionCallback(Cache.Id);
+                    if (await callback.HandleCallbackAsync(Reaction).ConfigureAwait(false))
+                        RemoveReactionCallback(Cache.Id);
                     break;
             }
         }
