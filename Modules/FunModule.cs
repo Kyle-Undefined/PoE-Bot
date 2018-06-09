@@ -140,7 +140,7 @@
                         "░░░░░░has░░░░░░░░▀▄▄███████████████ \n" +
                         "░░░░░arrived░░░░░░░░░░░░█▀██████░░");
 
-        [Command("YEEEEAAAHHH"), Alias("Yeah"), Remarks(""), Summary("YEEEEAAAHHH")]
+        [Command("YEEEEAAAHHH"), Alias("Yeah"), Remarks("YEEEEAAAHHH"), Summary("YEEEEAAAHHH")]
         public async Task YeahAsync()
         {
             var Message = await ReplyAsync("( •_•)");
