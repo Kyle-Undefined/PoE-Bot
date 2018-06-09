@@ -110,7 +110,7 @@
             return Context.Channel.SendFileAsync(savePath);
         }
 
-        [Command("Enhance"), Remarks("Enhances the Emote into a larger size"), Summary("Enhance <SmallEmote>")]
+        [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <SmallEmote>")]
         public Task EnhanceAsync(string SmallEmote)
         {
             Random Rand = new Random();
@@ -121,6 +121,10 @@
                     .WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
             return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
         }
+
+        [Command("Nut"), Remarks("Nut on the chat."), Summary("Nut")]
+        public Task NutAsync()
+            => ReplyAsync("█▀█ █▄█ ▀█▀");
 
         public IEnumerable<int> GetUnicodeCodePoints(string s)
         {
