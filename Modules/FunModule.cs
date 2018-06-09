@@ -160,7 +160,7 @@
                 Green = Next(255);
             if (Blue < 0 || Blue > 255)
                 Blue = Next(255);
-            return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithColor(new Color(Red, Green, Blue)).Build());
+            return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithDescription($"Red: `{Red}` Green: `{Green}` Blue: `{Blue}`").WithColor(new Color(Red, Green, Blue)).Build());
         }
 
         int[] GetUnicodeCodePoints(string EmojiString)
