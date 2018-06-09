@@ -154,25 +154,24 @@
         [Command("GenColor"), Remarks("Generate a color in chat."), Summary("GenColor <Red: 0 - 255> <Green: 0 - 255> <Blue: 0 - 255>")]
         public Task GenColorAsync(int Red, int Green, int Blue)
         {
-            Random Rand = new Random();
             if (Red < 0 || Red > 255)
-                Red = Rand.Next(0, 256);
+                Red = Next(255);
             if (Green < 0 || Green > 255)
-                Green = Rand.Next(0, 256);
+                Green = Next(255);
             if (Blue < 0 || Blue > 255)
-                Blue = Rand.Next(0, 256);
+                Blue = Next(255);
             return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithColor(new Color(Red, Green, Blue)).Build());
         }
 
-        int[] GetUnicodeCodePoints(string EmoteString)
+        int[] GetUnicodeCodePoints(string EmojiString)
         {
-            var CodePoints = new List<int>(EmoteString.Length);
-            for (int i = 0; i < EmoteString.Length; i++)
+            var CodePoints = new List<int>(EmojiString.Length);
+            for (int i = 0; i < EmojiString.Length; i++)
             {
-                int CodePoint = Char.ConvertToUtf32(EmoteString, i);
+                int CodePoint = Char.ConvertToUtf32(EmojiString, i);
                 if(CodePoint != 0xfe0f)
                     CodePoints.Add(CodePoint);
-                if (Char.IsHighSurrogate(EmoteString[i]))
+                if (Char.IsHighSurrogate(EmojiString[i]))
                     i++;
             }
 
