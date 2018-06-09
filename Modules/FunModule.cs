@@ -3,8 +3,11 @@
     using System;
     using System.Linq;
     using System.IO;
+    using System.Text;
+    using System.Text.RegularExpressions;
     using PoE.Bot.Addons;
     using PoE.Bot.Helpers;
+    using Discord;
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
@@ -105,6 +108,29 @@
             }
 
             return Context.Channel.SendFileAsync(savePath);
+        }
+
+        [Command("Enhance"), Remarks("Enhances the Emote into a larger size"), Summary("Enhance <SmallEmote>")]
+        public Task EnhanceAsync(string SmallEmote)
+        {
+            Random Rand = new Random();
+            if (Emote.TryParse(SmallEmote, out var BigEmote))
+                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
+            else if (Regex.Match(SmallEmote, @"[^\u0000-\u007F]+", RegexOptions.IgnoreCase).Success)
+                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl($"https://twemoji.maxcdn.com/2/72x72/{GetUnicodeCodePoints(SmallEmote).FirstOrDefault():X4}.png".ToLower())
+                    .WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
+            return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
+        }
+
+        public IEnumerable<int> GetUnicodeCodePoints(string s)
+        {
+            for (int i = 0; i < s.Length; i++)
+            {
+                int unicodeCodePoint = char.ConvertToUtf32(s, i);
+                if (unicodeCodePoint > 0xffff)
+                    i++;
+                yield return unicodeCodePoint;
+            }
         }
     }
 }
