@@ -87,7 +87,7 @@
             };
             try
             {
-                var Eval = await CSharpScript.EvaluateAsync(Code, Options, Globals, typeof(EvalObject));
+                var Eval = await CSharpScript.EvaluateAsync(Code.Replace("```", ""), Options, Globals, typeof(EvalObject));
                 await Message.ModifyAsync(x => x.Content = $"{Eval ?? "No Result Produced."}");
             }
             catch (CompilationErrorException Ex)
