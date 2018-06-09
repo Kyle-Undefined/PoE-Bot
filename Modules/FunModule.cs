@@ -3,7 +3,7 @@
     using System;
     using System.Linq;
     using System.IO;
-    using System.Text;
+    using System.Security.Cryptography;
     using System.Text.RegularExpressions;
     using PoE.Bot.Addons;
     using PoE.Bot.Helpers;
@@ -19,6 +19,8 @@
     [Name("Fun Commands"), Ratelimit]
     public class FunModule : BotBase
     {
+        private RNGCryptoServiceProvider RNGesus = new RNGCryptoServiceProvider();
+
         [Command("Clap"), Remarks("Replaces spaces in your message with a clap emoji."), Summary("Clap <Message>")]
         public Task ClapAsync([Remainder] string Message) => ReplyAsync(Message.Replace(" ", " 👏 "));
 
@@ -115,9 +117,9 @@
         {
             Random Rand = new Random();
             if (Emote.TryParse(SmallEmote, out var BigEmote))
-                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
+                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Next(255), Next(255), Next(255))).Build());
             else if (Regex.Match(SmallEmote, @"[^\u0000-\u007F]+", RegexOptions.IgnoreCase).Success)
-                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl($"https://twemoji.maxcdn.com/2/72x72/{GetUnicodeCodePoints(SmallEmote).FirstOrDefault():X4}.png".ToLower())
+                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl($"https://i.kuro.mu/emoji/{string.Join("-", GetUnicodeCodePoints(SmallEmote).Select(x => x.ToString("X2")))}.png".ToLower())
                     .WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
             return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
         }
@@ -163,15 +165,27 @@
             return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithColor(new Color(Red, Green, Blue)).Build());
         }
 
-        public IEnumerable<int> GetUnicodeCodePoints(string s)
+        IEnumerable<int> GetUnicodeCodePoints(string s)
         {
             for (int i = 0; i < s.Length; i++)
             {
                 int unicodeCodePoint = char.ConvertToUtf32(s, i);
-                if (unicodeCodePoint > 0xffff)
+                if (unicodeCodePoint > 0xffff || unicodeCodePoint != 0xfe0f)
                     i++;
                 yield return unicodeCodePoint;
             }
+        }
+
+        int Next(int MaxVal)
+        {
+            uint weight = uint.MaxValue;
+            while (weight == uint.MaxValue)
+            {
+                byte[] four_bytes = new byte[4];
+                RNGesus.GetBytes(four_bytes);
+                weight = BitConverter.ToUInt32(four_bytes, 0);
+            }
+            return (int)(MaxVal * (weight / (double)uint.MaxValue));
         }
     }
 }
