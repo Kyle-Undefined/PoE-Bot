@@ -211,7 +211,7 @@
         public async Task WikiAsync([Remainder] string Item)
             => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(Item));
 
-        [Command("Trials Add"), Alias("TrialAdd"), Summary("Trials Add <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
+        [Command("Trials Add"), Summary("Trials Add <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
         public Task TrialAddAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() is "all")
@@ -221,7 +221,7 @@
             return ReplyAsync($"Some things that slumber should never be awoken. *Trial{(Trial.ToLower() is "all" ? "s were" : " was")} added to your list.* {Extras.OkHand}");
         }
 
-        [Command("Trials Delete"), Alias("TrialDelete", "TrialDel", "Trials Remove"), Summary("Trials Delete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
+        [Command("Trials Delete"), Summary("Trials Delete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
         public Task TrialDeleteAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() is "all")
@@ -231,7 +231,7 @@
             return ReplyAsync($"Woooooah, the weary traveller draws close to the end of the path.. *Trial{(Trial.ToLower() is "all" ? "s were" : " was")} removed from your list.* {Extras.OkHand}");
         }
 
-        [Command("Trials"), Alias("Trials List"), Summary("Trials"), RequireChannel("lab-and-trials"), Remarks("Shows a list of Trials you have left.")]
+        [Command("Trials List"), Summary("Trials"), RequireChannel("lab-and-trials"), Remarks("Shows a list of Trials you have left.")]
         public Task TrialListAsync()
             => ReplyAsync($"The Emperor beckons, and the world attends. *{String.Join(", ", (Context.User as SocketGuildUser).Roles.Where(r => r.Name.Contains("Trial of")).Select(r => r.Name))}*");
 
