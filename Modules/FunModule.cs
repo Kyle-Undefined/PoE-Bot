@@ -19,8 +19,6 @@
     [Name("Fun Commands"), Ratelimit]
     public class FunModule : BotBase
     {
-        private RNGCryptoServiceProvider RNGesus = new RNGCryptoServiceProvider();
-
         [Command("Clap"), Remarks("Replaces spaces in your message with a clap emoji."), Summary("Clap <Message>")]
         public Task ClapAsync([Remainder] string Message) => ReplyAsync(Message.Replace(" ", " 👏 "));
 
@@ -116,10 +114,10 @@
         public Task EnhanceAsync(string SmallEmote)
         {
             if (Emote.TryParse(SmallEmote, out var BigEmote))
-                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Next(255), Next(255), Next(255))).Build());
+                return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Context.Random.Next(255), Context.Random.Next(255), Context.Random.Next(255))).Build());
             else if (Regex.Match(SmallEmote, @"[^\u0000-\u007F]+", RegexOptions.IgnoreCase).Success)
                 return ReplyAsync(embed: new EmbedBuilder().WithImageUrl($"https://i.kuro.mu/emoji/256x256/{string.Join("-", GetUnicodeCodePoints(SmallEmote).Select(x => x.ToString("X2")))}.png".ToLower())
-                    .WithColor(new Color(Next(255), Next(255), Next(255))).Build());
+                    .WithColor(new Color(Context.Random.Next(255), Context.Random.Next(255), Context.Random.Next(255))).Build());
             return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
         }
 
@@ -155,11 +153,11 @@
         public Task GenColorAsync(int Red, int Green, int Blue)
         {
             if (Red < 0 || Red > 255)
-                Red = Next(255);
+                Red = Context.Random.Next(255);
             if (Green < 0 || Green > 255)
-                Green = Next(255);
+                Green = Context.Random.Next(255);
             if (Blue < 0 || Blue > 255)
-                Blue = Next(255);
+                Blue = Context.Random.Next(255);
             return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithDescription($"Red: `{Red}` Green: `{Green}` Blue: `{Blue}`").WithColor(new Color(Red, Green, Blue)).Build());
         }
 
@@ -176,18 +174,6 @@
             }
 
             return CodePoints.ToArray();
-        }
-
-        int Next(int MaxVal)
-        {
-            uint weight = uint.MaxValue;
-            while (weight == uint.MaxValue)
-            {
-                byte[] four_bytes = new byte[4];
-                RNGesus.GetBytes(four_bytes);
-                weight = BitConverter.ToUInt32(four_bytes, 0);
-            }
-            return (int)(MaxVal * (weight / (double)uint.MaxValue));
         }
     }
 }
