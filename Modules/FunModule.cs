@@ -165,15 +165,19 @@
             return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithColor(new Color(Red, Green, Blue)).Build());
         }
 
-        IEnumerable<int> GetUnicodeCodePoints(string s)
+        int[] GetUnicodeCodePoints(string EmoteString)
         {
-            for (int i = 0; i < s.Length; i++)
+            var CodePoints = new List<int>(EmoteString.Length);
+            for (int i = 0; i < EmoteString.Length; i++)
             {
-                int unicodeCodePoint = char.ConvertToUtf32(s, i);
-                if (unicodeCodePoint > 0xffff || unicodeCodePoint != 0xfe0f)
+                int CodePoint = Char.ConvertToUtf32(EmoteString, i);
+                if(CodePoint != 0xfe0f)
+                    CodePoints.Add(CodePoint);
+                if (Char.IsHighSurrogate(EmoteString[i]))
                     i++;
-                yield return unicodeCodePoint;
             }
+
+            return CodePoints.ToArray();
         }
 
         int Next(int MaxVal)
