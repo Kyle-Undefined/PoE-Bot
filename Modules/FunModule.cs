@@ -150,6 +150,19 @@
             await Message.ModifyAsync(x => x.Content = "(⌐■_■)\n**YYYYYYEEEEEEEAAAAAHHHHHHH**");
         }
 
+        [Command("GenColor"), Remarks("Generate a color in chat."), Summary("GenColor <Red: 0 - 255> <Green: 0 - 255> <Blue: 0 - 255>")]
+        public Task GenColorAsync(int Red, int Green, int Blue)
+        {
+            Random Rand = new Random();
+            if (Red < 0 || Red > 255)
+                Red = Rand.Next(0, 256);
+            if (Green < 0 || Green > 255)
+                Green = Rand.Next(0, 256);
+            if (Blue < 0 || Blue > 255)
+                Blue = Rand.Next(0, 256);
+            return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithColor(new Color(Red, Green, Blue)).Build());
+        }
+
         public IEnumerable<int> GetUnicodeCodePoints(string s)
         {
             for (int i = 0; i < s.Length; i++)
