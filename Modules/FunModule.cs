@@ -115,12 +115,11 @@
         [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <SmallEmote>")]
         public Task EnhanceAsync(string SmallEmote)
         {
-            Random Rand = new Random();
             if (Emote.TryParse(SmallEmote, out var BigEmote))
                 return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Next(255), Next(255), Next(255))).Build());
             else if (Regex.Match(SmallEmote, @"[^\u0000-\u007F]+", RegexOptions.IgnoreCase).Success)
                 return ReplyAsync(embed: new EmbedBuilder().WithImageUrl($"https://i.kuro.mu/emoji/256x256/{string.Join("-", GetUnicodeCodePoints(SmallEmote).Select(x => x.ToString("X2")))}.png".ToLower())
-                    .WithColor(new Color(Rand.Next(0, 256), Rand.Next(0, 256), Rand.Next(0, 256))).Build());
+                    .WithColor(new Color(Next(255), Next(255), Next(255))).Build());
             return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
         }
 
