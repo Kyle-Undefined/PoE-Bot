@@ -140,6 +140,16 @@
                         "░░░░░░has░░░░░░░░▀▄▄███████████████ \n" +
                         "░░░░░arrived░░░░░░░░░░░░█▀██████░░");
 
+        [Command("YEEEEAAAHHH"), Alias("Yeah"), Remarks(""), Summary("YEEEEAAAHHH")]
+        public async Task YeahAsync()
+        {
+            var Message = await ReplyAsync("( •_•)");
+            await Task.Delay(1000);
+            await Message.ModifyAsync(x => x.Content = "( •_•)>⌐■-■");
+            await Task.Delay(1200);
+            await Message.ModifyAsync(x => x.Content = "(⌐■_■)\n**YYYYYYEEEEEEEAAAAAHHHHHHH**");
+        }
+
         public IEnumerable<int> GetUnicodeCodePoints(string s)
         {
             for (int i = 0; i < s.Length; i++)
