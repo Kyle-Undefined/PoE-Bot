@@ -24,7 +24,7 @@
             return ReplyAsync($"Your humble servant thanks you, my God. *`{Item}` has been added to your shop.* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Delete"), Remarks("Deletes the item from your shop."), Summary("Shop Delete <League> <Item: Has to be an exact match to what you want to delete>")]
+        [Command("Delete"), Remarks("Deletes the item from your shop. Item has to be an exact match to what you want to delete"), Summary("Shop Delete <League> <Item>")]
         public Task Delete(Leagues League, [Remainder] string Item)
         {
             if (!Context.Server.Shops.Where(s => s.Item == Item && s.League == League && s.UserId == Context.User.Id).Any())

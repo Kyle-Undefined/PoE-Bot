@@ -39,7 +39,7 @@
             return PagedReplyAsync(Context.GuildHelper.Pages(Searched), $"Tag Search Results");
         }
 
-        [Command("Create"), Remarks("Creates a tag with the specified content."), Summary("Tag Create <TagName: To specify more than one word, wrap your name with quotes \"like this\"> <TagContent>"), Priority(1)]
+        [Command("Create"), Remarks("Creates a tag with the specified content. To specify more than one word, wrap your name with quotes \"like this\"."), Summary("Tag Create <TagName> <TagContent>"), Priority(1)]
         public Task CreateAsync(string TagName, [Remainder] string TagContent)
         {
             if (Context.Server.Tags.Any(t => t.Name == TagName.ToLower()))
@@ -55,7 +55,7 @@
             return ReplyAsync($"I think that will come in handy at some point. *Tag `{TagName}` has been created.* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Update"), Alias("Modify", "Change"), Remarks("Updates an existing tag"), Summary("Tag Update <TagName: To specify more than one word, wrap your name with quotes \"like this\"> <TagContent>"), Priority(1)]
+        [Command("Update"), Alias("Modify", "Change"), Remarks("Updates an existing tag. To specify more than one word, wrap your name with quotes \"like this\"."), Summary("Tag Update <TagName> <TagContent>"), Priority(1)]
         public Task UpdateAsync(string TagName, [Remainder] string TagContent)
         {
             if (!(Context.Server.Tags.Any(t => t.Name == TagName.ToLower())))

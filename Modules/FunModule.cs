@@ -151,7 +151,7 @@
             await Message.ModifyAsync(x => x.Content = "(⌐■_■)\n**YYYYYYEEEEEEEAAAAAHHHHHHH**");
         }
 
-        [Command("GenColor"), Remarks("Generate a color in chat."), Summary("GenColor <Red: 0 - 255> <Green: 0 - 255> <Blue: 0 - 255>")]
+        [Command("GenColor"), Remarks("Generate a color in chat. Red, Green and Blue values can be between 0 and 255."), Summary("GenColor <Red> <Green> <Blue>")]
         public Task GenColorAsync(int Red, int Green, int Blue)
         {
             if (Red < 0 || Red > 255)

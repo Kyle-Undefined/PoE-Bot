@@ -55,7 +55,7 @@
             await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
         }
 
-        [Command("AFK"), Remarks("Adds Or Removes you from AFK list. Actions: Add/Remove/Modify"), Summary("AFK <Action: a, r, m> <AFKMessage>")]
+        [Command("AFK"), Remarks("Adds Or Removes you from AFK list."), Summary("AFK <Action> <AFKMessage>")]
         public Task AFKAsync(char Action = 'a', [Remainder] string AFKMessage = "Running around Wraeclast, slaying monsters. Shoot me a DM.")
         {
             switch (Action)
@@ -120,7 +120,7 @@
             await ReplyAsync(Embed: Embed);
         }
 
-        [Command("Remind"), Remarks("Set a reminder for later."), Summary("Remind <Time: Number(d/h/m/s) Example: 5h for 5 Hours> <Message>")]
+        [Command("Remind"), Remarks("Set a reminder for later. Time is formatted like: Number(d/h/m/s) Example: 5h for 5 Hours."), Summary("Remind <Time> <Message>")]
         public async Task RemindAsync(TimeSpan Time, [Remainder] string Message)
         {
             var Reminders = new List<RemindObject>();
@@ -207,11 +207,11 @@
             }
         }
 
-        [Command("Wiki"), Remarks("Searches an item on the PoE Wiki."), Summary("Wiki <Item>")]
+        [Command("Wiki"), Remarks("Searches an item on the Path of Exile Wiki."), Summary("Wiki <Item>")]
         public async Task WikiAsync([Remainder] string Item)
             => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(Item));
 
-        [Command("Trials Add"), Summary("Trials Add <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it.")]
+        [Command("Trials Add"), Summary("Trials Add <Trial>"), RequireChannel("lab-and-trials"), Remarks("Add a Trial of Ascendancy that you're looking for to be notified when someone has found it. Any part of the Trial Name or All for all Trials.")]
         public Task TrialAddAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() is "all")
@@ -221,7 +221,7 @@
             return ReplyAsync($"Some things that slumber should never be awoken. *Trial{(Trial.ToLower() is "all" ? "s were" : " was")} added to your list.* {Extras.OkHand}");
         }
 
-        [Command("Trials Delete"), Summary("Trials Delete <Trial: Any part of the Trial Name or All for all Trials>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed.")]
+        [Command("Trials Delete"), Summary("Trials Delete <Trial>"), RequireChannel("lab-and-trials"), Remarks("Delete a Trial of Ascendancy that you have completed. Any part of the Trial Name or All for all Trials.")]
         public Task TrialDeleteAsync([Remainder] string Trial)
         {
             if (Trial.ToLower() is "all")
@@ -235,7 +235,7 @@
         public Task TrialListAsync()
             => ReplyAsync($"The Emperor beckons, and the world attends. *{String.Join(", ", (Context.User as SocketGuildUser).Roles.Where(r => r.Name.Contains("Trial of")).Select(r => r.Name))}*");
 
-        [Command("Trial"), Summary("Trial <Trial: Any part of the Trial Name>"), RequireChannel("lab-and-trials"), Remarks("Announce a Trial of Ascendancy that you have come across.")]
+        [Command("Trial"), Summary("Trial <Trial>"), RequireChannel("lab-and-trials"), Remarks("Announce a Trial of Ascendancy that you have come across. Any part of the Trial Name.")]
         public Task TrialAsync([Remainder] string Trial)
             => ReplyAsync($"The essence of an empire must be shared equally amongst all of its citizens. *{Context.User.Mention} has found the {Context.Guild.Roles.Where(r => r.Name.ToLower().Contains(Trial.ToLower())).FirstOrDefault().Mention}*");
 
@@ -257,7 +257,7 @@
             return ReplyAsync(embed: Embed);
         }
 
-        [Command("PriceList"), Summary("PriceList [League Defaults to Challenge]"), Remarks("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
+        [Command("PriceList"), Summary("PriceList [League: Defaults to Challenge]"), Remarks("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
         public Task PriceListAsync(Leagues League = Leagues.Challenge)
         {
             var Prices = Context.Server.Prices.Where(x => x.League == League).Select(x => 

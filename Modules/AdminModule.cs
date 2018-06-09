@@ -101,7 +101,7 @@
             await SetupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}");
         }
 
-        [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <ToggleType: PROFANITY, LOG, RSSFEED, MIXERFEED, TWITCHFEED, LEADERBOARD>")]
+        [Command("Toggle"), Remarks("Sets certain values for current server's config. ToggleTypes: profanity, log, rssfeed, mixerfeed, twitchfeed, leaderboard"), Summary("Toggle <ToggleType>")]
         public Task SetAsync(string ToggleType)
         {
             string State, ToggleName = null;
@@ -144,11 +144,11 @@
             return ReplyAsync($"`{ToggleName}` has been {State} {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Set"), Remarks("Sets certain values for current server's config."), Summary("Set <Setting: PREFIX, MODLOG, ALLLOG, RPTLOG, RULECHAN, MUTEROLE, MAXWARNKICK, MAXWARNMUTE> [Value]")]
-        public Task SetAsync(string Settings, [Remainder] string Value = null)
+        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, muterole, maxwarnkick, maxwarnmute"), Summary("Set <Setting> [Value]")]
+        public Task SetAsync(string Setting, [Remainder] string Value = null)
         {
             string SettingName = null;
-            switch (Settings.ToLower())
+            switch (Setting.ToLower())
             {
                 case "prefix":
                     if (string.IsNullOrWhiteSpace(Value) || Value.Length > 2)

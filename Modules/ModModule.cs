@@ -146,7 +146,7 @@
             }
         }
 
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user."), Summary("Mute <@User> [Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes] [Reason]"), BotPermission(GuildPermission.ManageRoles),
+        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task MuteAsync(IGuildUser User, TimeSpan? Time = null, [Remainder] string Reason = null) 
             => MuteUserAsync(User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
@@ -155,10 +155,10 @@
                     SaveDocument('s');
                 });
 
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
+        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
-        public Task MuteAsync(IGuildUser User, [Remainder] string Reason)
-            => MuteUserAsync(User, TimeSpan.FromMinutes(5), Reason).ContinueWith(x =>
+        public Task MuteAsync(IGuildUser User, [Remainder] string Reason = null)
+            => MuteUserAsync(User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
                 {
                     Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add(TimeSpan.FromMinutes(5)));
                     SaveDocument('s');
@@ -513,7 +513,7 @@
             => ReplyAsync(!Context.Server.Streams.Any() ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any streamers.*" : 
                 $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(s => $"`{s.StreamType}`: {s.Name} {(Context.GuildHelper.DefaultStreamChannel(Context.Guild).Id == Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Id ? "" : Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention)}").ToList())}");
 
-        [Command("Leaderboard Add"), Summary("Leaderboard Add <Variant> <#Channel> <Enabled: True, False>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
+        [Command("Leaderboard Add"), Summary("Leaderboard Add <#Channel> <Enabled: True, False> <Variant>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
         public async Task LeaderboardAddAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
@@ -528,7 +528,7 @@
             await ReplyAsync($"Slowness lends strength to one's enemies. *`{Variant}` has been added to Leaderboard list.* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Leaderboard Update"), Summary("Leaderboard Update <Variant> <#Channel> <Enabled: True, False>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
+        [Command("Leaderboard Update"), Summary("Leaderboard Update <#Channel> <Enabled: True, False> <Variant>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
         public Task LeaderboardUpdateAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");
@@ -545,7 +545,7 @@
             return ReplyAsync($"Slowness lends strength to one's enemies. *Updated Leaderboard Variant: `{Variant}`* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Leaderboard Remove"), Summary("Leaderboard Remove <Variant> <#Channel>"), Remarks("Remove Leaderboard Variant.")]
+        [Command("Leaderboard Remove"), Summary("Leaderboard Remove <#Channel> <Variant>"), Remarks("Remove Leaderboard Variant.")]
         public Task LeaderboardRemove(SocketTextChannel Channel, [Remainder] string Variant)
         {
             Variant = Variant.Replace(" ", "_");

@@ -17,7 +17,7 @@
     [Name("Owner Commands"), RequireOwner]
     public class OwnerModule : BotBase
     {
-        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information."), Summary("Update <Action: a, u, s, n, r, t, p> [Value]")]
+        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information. Action: a: avatar, u: username, s: status, n: nickname, r: reportchannel, t: twitchauth, p: prefix"), Summary("Update <Action> [Value]")]
         public async Task UpdateAsync(char Action, [Remainder] string Value = null)
         {
             char Save = 'n';
@@ -51,7 +51,7 @@
             await ReplyAsync($"Bot has been updated {Extras.OkHand}", Save: Save);
         }
 
-        [Command("Blacklist"), Remarks("Adds or removes a user from the blacklist."), Summary("Blacklist <Action: a, r> <@User>")]
+        [Command("Blacklist"), Remarks("Adds or removes a user from the blacklist."), Summary("Blacklist <Action> <@User>")]
         public Task BlaclistAsync(char Action, IUser User)
         {
             switch (Action)
@@ -96,12 +96,12 @@
             }
         }
 
-        [Command("Namespace", RunMode = RunMode.Async), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace")]
-        public Task NamespaceAsync()
+        [Command("Namespaces", RunMode = RunMode.Async), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace")]
+        public Task NamespacesAsync()
             => !Context.Config.Namespaces.Any() ? ReplyAsync($"Uhm.. I couldn't find any namespaces.") :
             PagedReplyAsync(Context.GuildHelper.Pages(Context.Config.Namespaces), "Current Namespaces");
 
-        [Command("Namespace"), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace <Action: a, r> <Namespace>")]
+        [Command("Namespace"), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace <Action> <Namespace>")]
         public Task NamespaceAsync(char Action, string Namespace)
         {
             switch (Action)
