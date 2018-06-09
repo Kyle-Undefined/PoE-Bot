@@ -149,7 +149,7 @@
         [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task MuteAsync(IGuildUser User, TimeSpan? Time = null, [Remainder] string Reason = null) 
-            => MuteUserAsync(User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
+            => Context.GuildHelper.MuteUserAsync(Context, User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
                 {
                     Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)(Time.HasValue ? Time : TimeSpan.FromMinutes(5))));
                     SaveDocument('s');
@@ -158,7 +158,7 @@
         [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task MuteAsync(IGuildUser User, [Remainder] string Reason = null)
-            => MuteUserAsync(User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
+            => Context.GuildHelper.MuteUserAsync(Context, User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
                 {
                     Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add(TimeSpan.FromMinutes(5)));
                     SaveDocument('s');
@@ -179,50 +179,6 @@
                 Save = 's';
             }
             return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}", Save: Save);
-        }
-
-        async Task MuteUserAsync(IGuildUser User, TimeSpan? Time, string Message)
-        {
-            await Context.Message.DeleteAsync();
-
-            if (User.RoleIds.Contains(Context.Server.MuteRole))
-            {
-                await ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` is already muted.*");
-                return;
-            }
-            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-            {
-                await ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
-                return;
-            }
-            var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ??
-                (!(Context.Server.MuteRole is 0) ? Context.Guild.GetRole(Context.Server.MuteRole) : await Context.Guild.CreateRoleAsync("Muted", GuildPermissions.None, Color.DarkerGrey));
-            var Permissions = new OverwritePermissions(createInstantInvite: PermValue.Deny,
-                addReactions: PermValue.Deny, sendMessages: PermValue.Deny, sendTTSMessages: PermValue.Deny, attachFiles: PermValue.Deny);
-            foreach (var Channel in (Context.Guild as SocketGuild).TextChannels)
-                if (!Channel.PermissionOverwrites.Select(x => x.Permissions).Contains(Permissions))
-                    await Channel.AddPermissionOverwriteAsync(MuteRole, Permissions).ConfigureAwait(false);
-            var Save = 'n';
-            if (Context.Server.MuteRole != MuteRole.Id)
-            {
-                Context.Server.MuteRole = MuteRole.Id;
-                Save = 's';
-            }
-            await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
-            await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, Message);
-            await ReplyAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}", Save: Save);
-
-            var Embed = Extras.Embed(Drawing.Aqua)
-                .WithAuthor(Context.User)
-                .WithTitle("Mod Action")
-                .WithDescription($"You were muted in the {Context.Guild.Name} server.")
-                .WithThumbnailUrl(Context.User.GetAvatarUrl())
-                .WithFooter($"You can PM {Context.User.Username} directly to resolve the issue.")
-                .AddField("Reason", Message)
-                .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)Time))
-                .Build();
-
-            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
         }
 
         [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]

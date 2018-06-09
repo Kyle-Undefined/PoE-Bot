@@ -10,6 +10,7 @@
     using PoE.Bot.Objects;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
+    using Drawing = System.Drawing.Color;
 
     public class GuildHelper
     {
@@ -151,6 +152,42 @@
                 .Replace("[y]", "[yY]+")
                 .Replace("[z]", "[zZ2]+")
                 ;
+        }
+
+        public async Task MuteUserAsync(IContext Context, IGuildUser User, TimeSpan? Time, string Message)
+        {
+            await Context.Message.DeleteAsync();
+
+            if(Context.Server.MuteRole is 0)
+            {
+                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*");
+                return;
+            }
+            if (User.RoleIds.Contains(Context.Server.MuteRole))
+            {
+                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` is already muted.*");
+                return;
+            }
+            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
+            {
+                await Context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
+                return;
+            }
+            await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
+            await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
+            await Context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}");
+
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithAuthor(Context.User)
+                .WithTitle("Mod Action")
+                .WithDescription($"You were muted in the {Context.Guild.Name} server.")
+                .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                .WithFooter($"You can PM {Context.User.Username} directly to resolve the issue.")
+                .AddField("Reason", Message)
+                .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)Time))
+                .Build();
+
+            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
         }
     }
 }
