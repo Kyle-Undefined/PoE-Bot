@@ -128,7 +128,7 @@
             await ReplyAsync($"Case #{Case.Number} has been updated {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Purge"), Remarks("Deletes Messages, and can specify a User"), Summary("Purge [Amount] [@User]"), BotPermission(GuildPermission.ManageMessages),
+        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a User"), Summary("Purge [Amount] [@User]"), BotPermission(GuildPermission.ManageMessages),
             RequirePermission(GuildPermission.ManageMessages, "Complex machinations converge to a single act of power. *You don't have manage messages permission.*")]
         public Task PurgeAsync(int Amount = 20, IGuildUser User = null)
         {
