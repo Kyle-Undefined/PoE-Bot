@@ -195,6 +195,17 @@
             }
         }
 
+        [Command("RemoveWarns"), Remarks("Removes a number of users warnings."), Summary("RemoveWarns <@User> <Amount>"), RequirePermission]
+        public Task RemoveWarnsAsync(IGuildUser User, int Amount = 1)
+        {
+            var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
+            if (Amount > Profile.Warnings)
+                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have `{Amount}` warnings to remove.*");
+            Profile.Warnings = Profile.Warnings - Amount;
+            Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{Amount}` Warnings has been removed for `{User}`* {Extras.OkHand}");
+        }
+
         [Command("ResetWarns"), Remarks("Resets users warnings."), Summary("ResetWarns <@User>"), RequirePermission]
         public Task ResetWarnsAsync(IGuildUser User)
         {
