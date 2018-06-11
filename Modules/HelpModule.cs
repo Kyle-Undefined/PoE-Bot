@@ -25,7 +25,7 @@
                 .WithAuthor("Detailed Command Information", Context.Client.CurrentUser.GetAvatarUrl())
                 .AddField("Name", Name, true)
                 .AddField("Aliases", string.Join(", ", Command.Aliases), true)
-                .AddField("Arguments", Command.Parameters.Any() ? string.Join(", ", Command.Parameters.Select(x => $"`{(x.Type.IsValueType ? Nullable.GetUnderlyingType(x.Type).Name : x.Type.Name)}` {x.Name}")) : "No arguments.")
+                .AddField("Arguments", Command.Parameters.Any() ? string.Join(", ", Command.Parameters.Select(x => $"`{(x.Type.IsValueType ? (Nullable.GetUnderlyingType(x.Type) is null ? x.Type.Name : Nullable.GetUnderlyingType(x.Type).Name) : x.Type.Name)}` {x.Name}")) : "No arguments.")
                 .AddField("Usage", $"{Context.Server.Prefix}{Command.Summary}")
                 .AddField("Summary", Command.Remarks)
                 .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl())
