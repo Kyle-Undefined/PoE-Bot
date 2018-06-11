@@ -149,20 +149,12 @@
         [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task MuteAsync(IGuildUser User, TimeSpan? Time = null, [Remainder] string Reason = null) 
-            => Context.GuildHelper.MuteUserAsync(Context, User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
-                {
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)(Time.HasValue ? Time : TimeSpan.FromMinutes(5))));
-                    SaveDocument('s');
-                });
+            => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified."));
 
         [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task MuteAsync(IGuildUser User, [Remainder] string Reason = null)
-            => Context.GuildHelper.MuteUserAsync(Context, User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified.")).ContinueWith(x =>
-                {
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add(TimeSpan.FromMinutes(5)));
-                    SaveDocument('s');
-                });
+            => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified."));
 
         [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles),
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]

@@ -9,12 +9,15 @@
     {
         public static async Task UnmuteUser(ulong UserId, SocketGuild Guild, GuildObject Server)
         {
-            var Role = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
             var User = Guild.GetUser(UserId);
-            if (!(User as SocketGuildUser).Roles.Contains(Role) || Role is null)
+            var MuteRole = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            var TradeMuteRole = Guild.GetRole(Server.TradeMuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!(User as SocketGuildUser).Roles.Contains(MuteRole) && !(User as SocketGuildUser).Roles.Contains(TradeMuteRole))
                 return;
-            if ((User as SocketGuildUser).Roles.Contains(Role) || !(Role is null))
-                await User.RemoveRoleAsync(Role);
+            if ((User as SocketGuildUser).Roles.Contains(MuteRole))
+                await User.RemoveRoleAsync(MuteRole);
+            else if ((User as SocketGuildUser).Roles.Contains(TradeMuteRole))
+                await User.RemoveRoleAsync(TradeMuteRole);
         }
     }
 }

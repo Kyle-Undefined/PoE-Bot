@@ -154,16 +154,16 @@
                 ;
         }
 
-        public async Task MuteUserAsync(IContext Context, IGuildUser User, TimeSpan? Time, string Message)
+        public async Task MuteUserAsync(IContext Context, MuteType MuteType, IGuildUser User, TimeSpan? Time, string Message)
         {
             await Context.Message.DeleteAsync();
 
-            if(Context.Server.MuteRole is 0)
+            if((Context.Server.MuteRole is 0 && MuteType == MuteType.MOD) || (Context.Server.TradeMuteRole is 0 && MuteType == MuteType.TRADE))
             {
                 await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*");
                 return;
             }
-            if (User.RoleIds.Contains(Context.Server.MuteRole))
+            if (User.RoleIds.Contains(Context.Server.MuteRole) || User.RoleIds.Contains(Context.Server.TradeMuteRole))
             {
                 await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` is already muted.*");
                 return;
@@ -173,7 +173,19 @@
                 await Context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
                 return;
             }
-            await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
+            switch (MuteType)
+            {
+                case MuteType.MOD:
+                    await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
+                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
+                    Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, Context.Guild.Id);
+                    break;
+                case MuteType.TRADE:
+                    await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.TradeMuteRole));
+                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
+                    Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, Context.Guild.Id);
+                    break;
+            }
             await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
             await Context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}");
 

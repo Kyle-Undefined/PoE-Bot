@@ -31,6 +31,7 @@
 
                  $"```diff\n- Mod Information\n\n" +
                 $"+ Mute Role             : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
+                $"+ Trade Mute Role       : {StringHelper.ValidateRole(Context.Guild , Context.Server.TradeMuteRole)}\n" +
                 $"+ Log Messages          : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
                 $"+ Profanity Check       : {(Context.Server.AntiProfanity ? "Enabled" : "Disabled")}\n" +
                 $"+ RSS Feed              : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
@@ -92,6 +93,8 @@
 
             var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ?? await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
             Context.Server.MuteRole = MuteRole.Id;
+            var TradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ?? await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
+            Context.Server.TradeMuteRole = TradeMuteRole.Id;
 
             Context.Server.MaxWarningsToKick = 6;
             Context.Server.MaxWarningsToMute = 3;
@@ -163,6 +166,7 @@
                 case "botchan": Context.Server.BotChangeChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Bot Change Channel"; break;
                 case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
                 case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role";  break;
+                case "trademuterole": Context.Server.TradeMuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Trade Board Mute Role"; break;
                 case "maxwarnkick":
                     if (!int.TryParse(Value, out int ParsedK) || ParsedK > 10)
                         return ReplyAsync($"{Extras.Cross} Value provided in incorrect format. Must be an number no greater than 10.");
@@ -185,6 +189,7 @@
                $"`BOTCHAN` Changes bot change channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`DEVCHAN` Changes developer channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`MUTEROLE` Changes mute role (Mention Role)\n" +
+               $"`TRADEMUTEROLE` Changes trade board mute role (Mention Role)\n" +
                $"`PRICEROLE` Changes price checker role (Mention Role)\n" +
                $"`MAXWARNKICK` Changes max number of warnings before Kick (0 = Disabled)\n" +
                $"`MAXWARNMUTE` Changes max number of warnings before Mute (0 = Disabled)\n");

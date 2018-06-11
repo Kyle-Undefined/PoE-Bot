@@ -21,6 +21,7 @@
         public ulong BotChangeChannel { get; set; }
         public ulong DevChannel { get; set; }
         public ulong MuteRole { get; set; }
+        public ulong TradeMuteRole { get; set; }
         public ulong ModLog { get; set; }
         public ulong RepLog { get; set; }
         public ulong AllLog { get; set; }
@@ -38,5 +39,11 @@
         public Dictionary<ulong, ProfileObject> Profiles { get; set; } = new Dictionary<ulong, ProfileObject>();
         public ConcurrentDictionary<ulong, DateTime> Muted { get; set; } = new ConcurrentDictionary<ulong, DateTime>();
         public ConcurrentDictionary<ulong, List<RemindObject>> Reminders { get; set; } = new ConcurrentDictionary<ulong, List<RemindObject>>();
+    }
+
+    public enum MuteType
+    {
+        TRADE,
+        MOD
     }
 }
