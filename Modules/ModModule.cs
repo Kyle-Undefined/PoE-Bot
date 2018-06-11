@@ -572,5 +572,21 @@
         public Task LeaderboardAsync()
             => ReplyAsync(!Context.Server.Leaderboards.Any() ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any leaderboards.*" :
                 $"**Leaderboard Variants**:\n{String.Join("\n", Context.Server.Leaderboards.Select(l => $"Variant: {l.Variant} | Channel: {Context.Guild.GetTextChannelAsync(l.ChannelId).GetAwaiter().GetResult().Mention} | Enabled: {l.Enabled.ToString()}").ToList())}");
+
+        [Command("Situation Add"), Summary("Situation Add <@User1> <@User2> ..."), Remarks("Adds the Situation Room role to the specified users.")]
+        public Task SituationAddAsync(params IGuildUser[] Users)
+        {
+            foreach (var User in Users)
+                User.AddRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
+            return ReplyAndDeleteAsync($"Purity will prevail! *Users has been added to Situation Room.* {Extras.OkHand}");
+        }
+
+        [Command("Situation Remove"), Summary("Situation Remove <@User1> <@User2> ..."), Remarks("Removes the Situation Room role to the specified users.")]
+        public Task SituationRemoveAsync(params IGuildUser[] Users)
+        {
+            foreach (var User in Users)
+                User.RemoveRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
+            return ReplyAndDeleteAsync($"Purity will prevail! *Users has been removed from Situation Room.* {Extras.OkHand}");
+        }
     }
 }
