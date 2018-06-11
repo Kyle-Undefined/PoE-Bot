@@ -186,7 +186,7 @@
         }
 
         [XmlRoot("rss")]
-        private class RssDataObject
+        public class RssDataObject
         {
             [XmlElement("channel")]
             public RssData Data { get; set; }
