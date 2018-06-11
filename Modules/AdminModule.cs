@@ -237,5 +237,23 @@
         public Task RssAsync()
             => ReplyAsync(!Context.Server.RssFeeds.Any() ? $"This server isn't subscribed to any feeds {Extras.Cross}" :
                 $"**Subbed To Following RSS Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(f => $"Feed: {f.FeedUri} | Channel: {Context.Guild.GetTextChannelAsync(f.ChannelId).GetAwaiter().GetResult().Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");
+
+        [Command("SelfRole Add"), Remarks("Adds Role for users to Self Assign"), Summary("SelfRole Add <Role>")]
+        public Task SelfRoleAddAsync(IRole Role)
+        {
+            if (Role == Context.Guild.EveryoneRole)
+                return ReplyAsync($"{Extras.Cross} Role cannot be the everyone role.");
+            Context.Server.SelfRoles.Add(Role.Id);
+            return ReplyAsync($"`{Role}` has been added to Self Roles {Extras.OkHand}", Save: 's');
+        }
+
+        [Command("SelfRole Remove"), Remarks("Removes Role for users to Self Assign"), Summary("SelfRole Remove <Role>")]
+        public Task SelfRoleRemoveAsync(IRole Role)
+        {
+            if (!Context.Server.SelfRoles.Contains(Role.Id))
+                return ReplyAsync($"{Extras.Cross} Role is not assigned as a Self Role.");
+            Context.Server.SelfRoles.Remove(Role.Id);
+            return ReplyAsync($"`{Role}` has been removed from Self Roles {Extras.OkHand}", Save: 's');
+        }
     }
 }

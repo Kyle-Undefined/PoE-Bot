@@ -7,7 +7,7 @@
     public class GuildObject
     {
         public string Id { get; set; }
-        public string Rules { get; set; }
+        public RuleObject RulesConfig { get; set; }
         public char Prefix { get; set; }
         public bool AntiProfanity { get; set; }
         public bool LogDeleted { get; set; }
@@ -33,6 +33,7 @@
         public IList<StreamObject> Streams { get; set; } = new List<StreamObject>();
         public IList<LeaderboardObject> Leaderboards { get; set; } = new List<LeaderboardObject>();
         public IList<TagObject> Tags { get; set; } = new List<TagObject>();
+        public IList<ulong> SelfRoles { get; set; } = new List<ulong>();
         public IList<CaseObject> UserCases { get; set; } = new List<CaseObject>();
         public Dictionary<ulong, string> AFK { get; set; } = new Dictionary<ulong, string>();
         public IList<MessageObject> DeletedMessages { get; set; } = new List<MessageObject>();

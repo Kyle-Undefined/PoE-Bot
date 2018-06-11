@@ -2,6 +2,7 @@
 {
     using System;
     using Discord;
+    using System.Text;
     using System.Linq;
     using PoE.Bot.Addons;
     using PoE.Bot.Helpers;
@@ -282,21 +283,63 @@
                 .AddField("Reason", Case.Reason).Build());
         }
 
-        [Command("ConfigureRules"), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("ConfigureRules <Rules>"), Alias("cr", "configrules")]
-        public Task ConfigureRulesAsync([Remainder] string Rules)
+        [Command("ConfigureRules", RunMode = RunMode.Async), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("ConfigureRules")]
+        public async Task ConfigureRulesAsync()
         {
-            if (Rules.Length > 2000)
-                return ReplyAsync($"{Extras.Cross} *Rules exceed 2,000 characters, please revise and try again.*");
+            RuleObject Rules = new RuleObject();
 
-            Context.Server.Rules = Rules;
+            var Description = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the Rules description be?", Timeout: TimeSpan.FromMinutes(5)));
+            if (!Description.Item1)
+            {
+                await ReplyAsync(Description.Item2);
+                return;
+            }
+            Rules.Description = Description.Item2;
 
-            return ReplyAsync($"*Rules have been configured.* {Extras.OkHand}", Save: 's');
+            var TotalFields = Context.GuildHelper.CalculateResponse(await WaitAsync("How many sections should there be?", Timeout: TimeSpan.FromMinutes(1)));
+            if (!TotalFields.Item1)
+            {
+                await ReplyAsync(TotalFields.Item2);
+                return;
+            }
+            Rules.TotalFields = Convert.ToInt32(TotalFields.Item2);
+
+            for (int i = 0; i < Rules.TotalFields; i++)
+            {
+                var FieldTitle = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the section be called?", Timeout: TimeSpan.FromMinutes(1)));
+                if (!FieldTitle.Item1)
+                {
+                    await ReplyAsync(FieldTitle.Item2);
+                    break;
+                }
+
+                var FieldContent = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the section contain?  *You can use Discord Markup*", Timeout: TimeSpan.FromMinutes(10)));
+                if (!FieldContent.Item1)
+                {
+                    await ReplyAsync(FieldContent.Item2);
+                    break;
+                }
+
+                Rules.Fields.Add(FieldTitle.Item2, FieldContent.Item2);
+            }
+
+            Context.Server.RulesConfig = Rules;
+            SaveDocument('s');
+
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithTitle($"{Context.Guild.Name} Rules")
+                .WithDescription(Rules.Description);
+
+            foreach (var Field in Rules.Fields)
+                Embed.AddField(Field.Key, Field.Value, false);
+
+            await ReplyAsync($"*Rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: Embed.Build());
         }
 
         [Command("PostRules"), Summary("PostRules"), Remarks("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use ConfigureRules followed by EditRules.")]
         public async Task PostRulesAsync()
         {
-            if (string.IsNullOrEmpty(Context.Server.Rules))
+            if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
             {
                 await ReplyAsync($"{Extras.Cross} *You have no rules to post, please use confrules to set them up.*");
                 return;
@@ -309,20 +352,21 @@
 
             var chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
             var ruleChan = chan as IMessageChannel;
-            var msg = await ruleChan.SendMessageAsync(Context.Server.Rules);
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithTitle($"{Context.Guild.Name} Rules")
+                .WithDescription(Context.Server.RulesConfig.Description);
 
-            await msg.AddReactionAsync(Extras.Newspaper);
-            await msg.AddReactionAsync(Extras.Standard);
-            await msg.AddReactionAsync(Extras.Hardcore);
-            await msg.AddReactionAsync(Extras.Challenge);
+            foreach (var Field in Context.Server.RulesConfig.Fields)
+                Embed.AddField(Field.Key, Field.Value, false);
 
+            await ruleChan.SendMessageAsync(embed: Embed.Build());
             await ReplyAsync($"*Rules have been posted.* {Extras.OkHand}");
         }
 
-        [Command("EditRules"), Summary("EditRules"), Remarks("Edits the rules you've configured and posted to the rules channel."), Alias("er")]
+        [Command("EditRules"), Summary("EditRules"), Remarks("Edits the rules you've configured and posted to the rules channel.")]
         public async Task EditRulesAsync()
         {
-            if (string.IsNullOrEmpty(Context.Server.Rules))
+            if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
             {
                 await ReplyAsync($"{Extras.Cross} *You have no rules to post, please use confrules to set them up.*");
                 return;
@@ -344,8 +388,15 @@
                 return;
             }
 
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithTitle($"{Context.Guild.Name} Rules")
+                .WithDescription(Context.Server.RulesConfig.Description);
+
+            foreach (var Field in Context.Server.RulesConfig.Fields)
+                Embed.AddField(Field.Key, Field.Value, false);
+
             foreach (IUserMessage msg in msgs)
-                await msg.ModifyAsync(x => x.Content = Context.Server.Rules);
+                await msg.ModifyAsync(x => x.Embed = Embed.Build());
 
             await ReplyAsync($"*Rules have been edited.* {Extras.OkHand}");
         }

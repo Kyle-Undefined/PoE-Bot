@@ -164,25 +164,7 @@
         internal async Task ReactionHandlerAsync(Cacheable<IUserMessage, ulong> Cache, SocketReaction Reaction, bool ReactionAdded)
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: (Reaction.Channel as SocketGuildChannel).Guild.Id);
-            if (Server.RulesChannel == Reaction.Channel.Id)
-            {
-                var Guild = (Reaction.Channel as IGuildChannel).Guild;
-                var User = await Guild.GetUserAsync(Reaction.UserId);
-                var Roles = Guild.Roles;
-                IRole Role = null;
-
-                if (Reaction.Emote.Name == Extras.Newspaper.Name) Role = Roles.Where(r => r.Name is "News").First();
-                if (Reaction.Emote.Name == Extras.Standard.Name) Role = Roles.Where(r => r.Name is "Standard").First();
-                if (Reaction.Emote.Name == Extras.Hardcore.Name) Role = Roles.Where(r => r.Name is "Hardcore").First();
-                if (Reaction.Emote.Name == Extras.Challenge.Name) Role = Roles.Where(r => r.Name is "Challenge").First();
-
-                if (!(Role is null))
-                    if (ReactionAdded)
-                        await User.AddRoleAsync(Role);
-                    else
-                        await User.RemoveRoleAsync(Role);
-            }
-            else if (Server.DevChannel == Reaction.Channel.Id)
+            if (Server.DevChannel == Reaction.Channel.Id)
             {
                 if (Reaction.Emote.Name == Extras.Check.Name && (Reaction.UserId == MethodHelper.RunSync(Client.GetApplicationInfoAsync()).Owner.Id))
                 {
