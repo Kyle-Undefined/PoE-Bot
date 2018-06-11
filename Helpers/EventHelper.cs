@@ -76,16 +76,18 @@
         {
             var Guild = (Message.Author as SocketGuildUser).Guild;
             var User = Message.Author as SocketGuildUser;
-            if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToKick is 0 || Message.Author.Id == Guild.OwnerId ||
+            if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToPermMute is 0 || Message.Author.Id == Guild.OwnerId ||
                 User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.Roles.Where(r => r.Name is "Moderator").Any())
                 return;
             await Message.DeleteAsync();
             var Profile = GuildHelper.GetProfile(DB, Guild.Id, Message.Author.Id);
             Profile.Warnings++;
-            if (Profile.Warnings >= Server.MaxWarningsToKick)
+            if (Profile.Warnings >= Server.MaxWarningsToPermMute)
             {
-                await User.KickAsync("Kicked By AutoMod.");
-                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODKICK, Warning);
+                DateTime Now = DateTime.Now;
+                TimeSpan Span = Now.AddYears(999) - Now;
+                await MuteCommandAsync(Message, Server, User, Span, "Muted permanently by AutoMod.");
+                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODPERMMUTE, Warning);
             }
             else if (Profile.Warnings >= Server.MaxWarningsToMute)
             {

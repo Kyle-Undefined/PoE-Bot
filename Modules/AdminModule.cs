@@ -30,20 +30,20 @@
                 $"```",
 
                  $"```diff\n- Mod Information\n\n" +
-                $"+ Mute Role             : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
-                $"+ Trade Mute Role       : {StringHelper.ValidateRole(Context.Guild , Context.Server.TradeMuteRole)}\n" +
-                $"+ Log Messages          : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
-                $"+ Profanity Check       : {(Context.Server.AntiProfanity ? "Enabled" : "Disabled")}\n" +
-                $"+ RSS Feed              : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
-                $"+ Mixer                 : {(Context.Server.MixerFeed ? "Enabled" : "Disabled")}\n" +
-                $"+ Twitch                : {(Context.Server.TwitchFeed ? "Enabled" : "Disabled")}\n" +
-                $"+ Leaderboard           : {(Context.Server.LeaderboardFeed ? "Enabled" : "Disabled")}\n" +
-                $"+ RSS Feeds             : {Context.Server.RssFeeds.Count}\n" +
-                $"+ Mixer Streams         : {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}\n" +
-                $"+ Twitch Stream         : {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}\n" +
-                $"+ Leaderboard Variants  : {Context.Server.Leaderboards.Count}\n" +
-                $"+ Max Warnings (Mute)   : {Context.Server.MaxWarningsToMute}\n" +
-                $"+ Max Warnings (Kick)   : {Context.Server.MaxWarningsToKick}\n" +
+                $"+ Mute Role                  : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
+                $"+ Trade Mute Role            : {StringHelper.ValidateRole(Context.Guild , Context.Server.TradeMuteRole)}\n" +
+                $"+ Log Messages               : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
+                $"+ Profanity Check            : {(Context.Server.AntiProfanity ? "Enabled" : "Disabled")}\n" +
+                $"+ RSS Feed                   : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
+                $"+ Mixer                      : {(Context.Server.MixerFeed ? "Enabled" : "Disabled")}\n" +
+                $"+ Twitch                     : {(Context.Server.TwitchFeed ? "Enabled" : "Disabled")}\n" +
+                $"+ Leaderboard                : {(Context.Server.LeaderboardFeed ? "Enabled" : "Disabled")}\n" +
+                $"+ RSS Feeds                  : {Context.Server.RssFeeds.Count}\n" +
+                $"+ Mixer Streams              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}\n" +
+                $"+ Twitch Stream              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}\n" +
+                $"+ Leaderboard Variants       : {Context.Server.Leaderboards.Count}\n" +
+                $"+ Max Warnings (Mute)        : {Context.Server.MaxWarningsToMute}\n" +
+                $"+ Max Warnings (Perm Mute)   : {Context.Server.MaxWarningsToPermMute}\n" +
                 $"```",
 
                  $"```diff\n+ Server Statistics\n\n" +
@@ -54,7 +54,7 @@
                 $"- Users Mass Kicked     : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.KICKS).Count()}\n" +
                 $"- Users Warned          : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.WARNING).Count()}\n" +
                 $"- Users Muted           : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.MUTE).Count()}\n" +
-                $"- Auto Mod Kicks        : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.AUTOMODKICK).Count()}\n" +
+                $"- Auto Mod Perm Mutes   : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.AUTOMODPERMMUTE).Count()}\n" +
                 $"- Auto Mod Mutes        : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.AUTOMODMUTE).Count()}\n" +
                 $"- Total Currencies      : {Context.Server.Prices.Count}\n" +
                 $"- Total Shop Items      : {Context.Server.Shops.Count}\n" +
@@ -96,7 +96,7 @@
             var TradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ?? await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
             Context.Server.TradeMuteRole = TradeMuteRole.Id;
 
-            Context.Server.MaxWarningsToKick = 6;
+            Context.Server.MaxWarningsToPermMute = 6;
             Context.Server.MaxWarningsToMute = 3;
 
             Context.Server.IsConfigured = true;
@@ -167,11 +167,11 @@
                 case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
                 case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role";  break;
                 case "trademuterole": Context.Server.TradeMuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Trade Board Mute Role"; break;
-                case "maxwarnkick":
+                case "maxwarnpermmute":
                     if (!int.TryParse(Value, out int ParsedK) || ParsedK > 10)
                         return ReplyAsync($"{Extras.Cross} Value provided in incorrect format. Must be an number no greater than 10.");
-                    Context.Server.MaxWarningsToKick = ParsedK;
-                    SettingName = "Max Warnings To Kick";
+                    Context.Server.MaxWarningsToPermMute = ParsedK;
+                    SettingName = "Max Warnings To Perm Mute";
                     break;
                 case "maxwarnmute":
                     if (!int.TryParse(Value, out int ParsedM) || ParsedM > 10)

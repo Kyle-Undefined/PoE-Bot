@@ -24,7 +24,7 @@
         SOFTBAN,
         MUTE,
         WARNING,
-        AUTOMODKICK,
+        AUTOMODPERMMUTE,
         AUTOMODMUTE,
         PURGE
     }

@@ -17,7 +17,7 @@
         public bool LeaderboardFeed { get; set; }
         public bool IsConfigured { get; set; }        
         public int MaxWarningsToMute { get; set; }
-        public int MaxWarningsToKick { get; set; }
+        public int MaxWarningsToPermMute { get; set; }
         public ulong BotChangeChannel { get; set; }
         public ulong DevChannel { get; set; }
         public ulong MuteRole { get; set; }
