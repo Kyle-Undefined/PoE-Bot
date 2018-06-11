@@ -10,10 +10,10 @@
     using PoE.Bot.Addons.Preconditions;
     using Drawing = System.Drawing.Color;
 
-    [Name("Price Checker Commands"), Group("Price"), RequireRole("Price Checker"), Ratelimit]
+    [Name("Price Checker Commands"), RequireRole("Price Checker"), Ratelimit]
     public class PriceCheckerModule : BotBase
     {
-        [Command("Add"), Remarks("Adds the price for the currency."), Summary("Price Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Replace spaces with _> <Quantity> <Price> <Alias>"), RequireChannel("price-checkers")]
+        [Command("Price Add"), Remarks("Adds the price for the currency."), Summary("Price Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Replace spaces with _> <Quantity> <Price> <Alias>"), RequireChannel("price-checkers")]
         public Task AddAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Alias)
         {
             if (Context.Server.Prices.Where(p => p.Name == Name && p.League == League).Any())
@@ -43,7 +43,7 @@
             return ReplyAsync(Embed: Embed, Save: 's');
         }
 
-        [Command("Update"), Remarks("Updates the price for the currency."), Summary("Price Update <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias> <Quantity> <Price> [Aliases]"), RequireChannel("price-checkers")]
+        [Command("Price Update"), Remarks("Updates the price for the currency."), Summary("Price Update <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias> <Quantity> <Price> [Aliases]"), RequireChannel("price-checkers")]
         public Task UpdateAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Aliases = null)
         {
             if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
@@ -75,7 +75,7 @@
             return ReplyAsync(Embed: Embed, Save: 's');
         }
 
-        [Command("Reset"), Remarks("Resets all the prices for items to 0 for league reset."), Summary("Price Reset"), RequireChannel("price-checkers")]
+        [Command("Price Reset"), Remarks("Resets all the prices for items to 0 for league reset."), Summary("Price Reset"), RequireChannel("price-checkers")]
         public Task ResetAsync()
         {
             foreach (var Price in Context.Server.Prices.ToArray())
@@ -91,7 +91,7 @@
             return ReplyAsync($"For Tukohama! *All prices have been reset.* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Delete"), Remarks("Deletes a currency from the system, by alias, should only be used if one is added in wrong"), Summary("Price Delete <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias>"), RequireChannel("price-checkers")]
+        [Command("Price Delete"), Remarks("Deletes a currency from the system, by alias, should only be used if one is added in wrong"), Summary("Price Delete <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias>"), RequireChannel("price-checkers")]
         public Task DeleteAsync(Leagues League, string Name)
         {
             if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
