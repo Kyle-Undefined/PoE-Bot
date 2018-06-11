@@ -14,7 +14,7 @@
 
     public class GuildHelper
     {
-        string[] ProfanityList { get => new string[] { "cocksuckers", "cocksucker", "cockmunchers", "cockmuncher", "cockface", "cockhead", "coon", "coons", "cunts", "cunt", "cuntwhit", "cuntswhit", "cuntwit", "cuntswit", "doushes", "douches", "doushe", "douche", "dooshes", "dooshe", "doosh", "dykes", "dyke", "dikes", "dike", "fagots", "fagot", "fagity", "faging", "faget", "fagit", "fagat", "fagets", "fagits", "fagats", "knobends", "knobend", "knobheads", "knobhead", "nigers", "niger", "nigahs", "nigah", "niga", "nigas", "nigaz", "retards", "retard", "retarded", "retarts", "retarted", "retart", "spick", "twats", "twat", "twatheads", "twathead", "tossers", "tosser", "wankers", "wanker", "wop" }; }
+        string[] ProfanityList { get => new string[] { "cocksuckers", "cocksucker", "cockmunchers", "cockmuncher", "cockface", "cockhead", "coon", "coons", "cunts", "cunt", "cuntwhit", "cuntswhit", "cuntwit", "cuntswit", "doushes", "douches", "doushe", "douche", "dooshes", "dooshe", "doosh", "dykes", "dyke", "dikes", "dike", "fagots", "fagot", "fagity", "faget", "fagit", "fagat", "fagets", "fagits", "fagats", "knobends", "knobend", "knobheads", "knobhead", "nigers", "niger", "nigahs", "nigah", "niga", "nigas", "nigaz", "retards", "retard", "retarded", "retarts", "retarted", "retart", "spick", "twats", "twat", "twatheads", "twathead", "tossers", "tosser", "wankers", "wanker", "wop" }; }
         public bool ProfanityMatch(string Message) => DoesStringHaveProfanity(Message, ProfanityList);
         public Regex CheckMatch(string Pattern = null) => new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
