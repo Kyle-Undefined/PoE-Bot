@@ -163,11 +163,11 @@
             {
                 return ReplyAsync($"{Extras.Cross} Exile, invalid reminder number was provided.");
             }
-            if (Reminders.Any())
+            if (!Reminders.Any())
                 Context.Server.Reminders.TryRemove(Context.User.Id, out _);
             else
                 Context.Server.Reminders.TryUpdate(Context.User.Id, Reminders, Context.Server.Reminders.FirstOrDefault(x => x.Key == Context.User.Id).Value);
-            return ReplyAsync($"Reminder #{Number} deleted 🗑️", Save: 's');
+            return ReplyAsync($"Reminder #{Number} deleted {Extras.Trash}", Save: 's');
         }
 
         [Command("PoB"), Remarks("Parses the PasteBin export from Path of Building and shows the information about the build."), Summary("PoB <PasteBinURL>")]
