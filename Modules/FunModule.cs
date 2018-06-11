@@ -113,6 +113,7 @@
         [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <SmallEmote>")]
         public Task EnhanceAsync(string SmallEmote)
         {
+            Context.Message.DeleteAsync().GetAwaiter().GetResult();
             if (Emote.TryParse(SmallEmote, out var BigEmote))
                 return ReplyAsync(embed: new EmbedBuilder().WithImageUrl(BigEmote.Url).WithColor(new Color(Context.Random.Next(255), Context.Random.Next(255), Context.Random.Next(255))).Build());
             else if (Regex.Match(SmallEmote, @"[^\u0000-\u007F]+", RegexOptions.IgnoreCase).Success)
