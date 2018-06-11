@@ -123,25 +123,27 @@
         [Command("Show"), Remarks("Shows the League sections you are interested in."), Summary("Show <Name>"), RequireChannel("role-setup")]
         public Task ShowAsync(IRole Role)
         {
+            Context.Message.DeleteAsync();
             var User = Context.User as SocketGuildUser;
             if (!Context.Server.SelfRoles.Contains(Role.Id))
-                return ReplyAsync($"{Extras.Cross} Exile, you can't assign this role.");
+                return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you can't assign this role.");
             else if (User.Roles.Contains(Role))
-                return ReplyAsync($"{Extras.Cross} Exile, you already have this role.");
+                return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you already have this role.");
             User.AddRoleAsync(Role);
-            return ReplyAsync($"It seems this new arena suits me! *Role has been added to you.* {Extras.OkHand}");
+            return ReplyAndDeleteAsync($"It seems this new arena suits me! *Role has been added to you.* {Extras.OkHand}");
         }
 
         [Command("Hide"), Remarks("Hides the League sections you aren't interested in."), Summary("Hide <Name>"), RequireChannel("role-setup")]
         public Task HideAsync(IRole Role)
         {
+            Context.Message.DeleteAsync();
             var User = Context.User as SocketGuildUser;
             if (!Context.Server.SelfRoles.Contains(Role.Id))
-                return ReplyAsync($"{Extras.Cross} Exile, you can't assign this role.");
+                return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you can't assign this role.");
             else if (!User.Roles.Contains(Role))
-                return ReplyAsync($"{Extras.Cross} Exile, you don't have this role.");
+                return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you don't have this role.");
             User.RemoveRoleAsync(Role);
-            return ReplyAsync($"Hm. How fascinating. *Role has been removed from you.* {Extras.OkHand}");
+            return ReplyAndDeleteAsync($"Hm. How fascinating. *Role has been removed from you.* {Extras.OkHand}");
         }
 
         [Command("Remind"), Remarks("Set a reminder for later. Time is formatted like: Number(d/h/m/s) Example: 5h for 5 Hours."), Summary("Remind <Time> <Message>")]
