@@ -14,7 +14,6 @@
 
     public class EventHelper
     {
-        int Tries = 1;
         DatabaseHandler DB { get; }
         Random Random { get; }
         GuildHelper GuildHelper { get; }
@@ -37,13 +36,8 @@
             var Connect = Client.StartAsync();
             var LocalTask = await Task.WhenAny(Timeout, Connect);
             if (LocalTask == Timeout || Connect.IsFaulted)
-            {
-                Tries++;
                 return;
-            }
             else if (Connect.IsCompletedSuccessfully)
-                return;
-            else if (Tries < 10)
                 return;
             else Environment.Exit(1);
         }
