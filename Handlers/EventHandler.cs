@@ -133,6 +133,8 @@
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: (Channel as SocketGuildChannel).Guild.Id);
             if (!Server.LogDeleted)
                 return;
+            if (Server.RoleSetChannel == Channel.Id)
+                return;
             var Message = Cache.HasValue ? Cache.Value : await Cache.GetOrDownloadAsync();
             if (string.IsNullOrWhiteSpace(Message.Content) || Message.Author.IsBot)
                 return;

@@ -82,11 +82,13 @@
             var ReportChannel = Channels.FirstOrDefault(x => x.Name is "reports") ?? await Context.Guild.CreateTextChannelAsync("reports");
             var RulesChannel = Channels.FirstOrDefault(x => x.Name is "rules") ?? await Context.Guild.CreateTextChannelAsync("rules");
             var StreamChannel = Channels.FirstOrDefault(x => x.Name is "streams") ?? await Context.Guild.CreateTextChannelAsync("streams");
+            var RoleSetChannel = Channels.FirstOrDefault(x => x.Name is "role-setup") ?? await Context.Guild.CreateTextChannelAsync("role-setup");
 
             Context.Server.ModLog = ModLogChannel.Id;
             Context.Server.AllLog = LogChannel.Id;
             Context.Server.RepLog = ReportChannel.Id;
             Context.Server.RulesChannel = RulesChannel.Id;
+            Context.Server.RoleSetChannel = RoleSetChannel.Id;
 
             Context.Server.LogDeleted = true;
             Context.Server.AntiProfanity = true;
@@ -165,6 +167,7 @@
                 case "rulechan": Context.Server.RulesChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Rule Channel";  break;
                 case "botchan": Context.Server.BotChangeChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Bot Change Channel"; break;
                 case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
+                case "rolechan": Context.Server.RoleSetChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Role Set Channel"; break;
                 case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role";  break;
                 case "trademuterole": Context.Server.TradeMuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Trade Board Mute Role"; break;
                 case "maxwarnpermmute":
@@ -188,6 +191,7 @@
                $"`RULECHAN` Changes reports channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`BOTCHAN` Changes bot change channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`DEVCHAN` Changes developer channel (Mention Channel. Leave empty to set it to null)\n" +
+               $"`ROLECHAN` Changes the role channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`MUTEROLE` Changes mute role (Mention Role)\n" +
                $"`TRADEMUTEROLE` Changes trade board mute role (Mention Role)\n" +
                $"`PRICEROLE` Changes price checker role (Mention Role)\n" +
