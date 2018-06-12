@@ -6,7 +6,6 @@
     using Discord.Commands;
     using System.Threading.Tasks;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
 
     [Name("Help"), Ratelimit]
     public class HelpModule : BotBase
@@ -21,7 +20,7 @@
             if (Command is null)
                 return ReplyAsync($"{Extras.Cross} What in God's name is that smell? *`{CommandName}` command doesn't exist.*");
             string Name = Command.Name.Contains("Async") ? Command.Module.Group : Command.Name;
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor("Detailed Command Information", Context.Client.CurrentUser.GetAvatarUrl())
                 .AddField("Name", Name, true)
                 .AddField("Aliases", string.Join(", ", Command.Aliases), true)
@@ -42,7 +41,7 @@
         [Command("Commands"), Summary("Displays all commands.")]
         public Task CommandsAsync()
         {
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor("List of all commands", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithFooter($"For More Information On A Command's Usage: {Context.Config.Prefix}Command CommandName");
 

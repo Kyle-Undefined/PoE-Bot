@@ -9,7 +9,6 @@
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons;
-    using Drawing = System.Drawing.Color;
     using System.Collections.Generic;
     using System.Text;
     using CsvHelper;
@@ -121,7 +120,7 @@
                 if (rScions.Any())
                     sb.AppendLine($"Scions       : {rScions.Count().ToString("##,##0")}");
 
-                var embed = Extras.Embed(Drawing.Aqua)
+                var embed = Extras.Embed(Extras.Leaderboard)
                     .WithTitle($"{WebUtility.UrlDecode(Leaderboard.Variant).Replace("_", " ")} Leaderboard")
                     .WithDescription($"Retrieved {racers.Count().ToString("##,##0")} records, Rank is overall and not by Ascendancy, below is the total of Ascendancy classes:\n```{sb.ToString()}```")
                     .WithCurrentTimestamp()
@@ -199,7 +198,7 @@
                     embed.AddField("Scions, Ascendants", $"```{sb.ToString()}```");
                 }
 
-                var embedClasses = Extras.Embed(Drawing.Aqua)
+                var embedClasses = Extras.Embed(Extras.Leaderboard)
                     .WithTitle("Top 10 Characters of each Class")
                     .WithDescription("Rank is overall and not by Class.")
                     .WithCurrentTimestamp();
@@ -268,7 +267,7 @@
                     embedClasses.AddField("Scions", $"```{sb.ToString()}```");
                 }
 
-                var embedAscendancy = Extras.Embed(Drawing.Aqua)
+                var embedAscendancy = Extras.Embed(Extras.Leaderboard)
                     .WithTitle("Top 10 Characters of each Ascendancy")
                     .WithDescription("Rank is overall and not by Ascendancy.")
                     .WithCurrentTimestamp();
@@ -373,7 +372,7 @@
                     embedAscendancy.AddField("Necromancers", $"```{sb.ToString()}```");
                 }
 
-                var embedAscendancyCont = Extras.Embed(Drawing.Aqua)
+                var embedAscendancyCont = Extras.Embed(Extras.Leaderboard)
                     .WithTitle("Top 10 Characters of each Ascendancy")
                     .WithDescription("Rank is overall and not by Ascendancy.")
                     .WithCurrentTimestamp();
@@ -450,7 +449,7 @@
                     embedAscendancyCont.AddField("Ascendants", $"```{sb.ToString()}```");
                 }
 
-                var Discordians = Extras.Embed(Drawing.Aqua)
+                var Discordians = Extras.Embed(Extras.Leaderboard)
                     .WithTitle($"Discordians Only {Leaderboard.Variant.Replace("_", " ")} Leaderboard")
                     .WithDescription($"Retrieved {racers.Where(r => r.Character.ToLower().Contains("discord")).Count().ToString("##,##0")} users with Discord in their name.")
                     .WithCurrentTimestamp()

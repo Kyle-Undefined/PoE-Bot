@@ -13,7 +13,6 @@
     using PoE.Bot.Handlers;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons;
-    using Drawing = System.Drawing.Color;
     using HtmlAgilityPack;
 
     public class RssHelper
@@ -31,7 +30,7 @@
                     continue;
 
                 var Channel = Guild.GetChannel(Feed.ChannelId) as SocketTextChannel;
-                var Embed = Extras.Embed(Drawing.Aqua);
+                var Embed = Extras.Embed(Extras.RSS);
                 StringBuilder sb = new StringBuilder();
 
                 var Description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(Item.Description)));

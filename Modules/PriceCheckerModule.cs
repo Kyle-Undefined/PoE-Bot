@@ -8,7 +8,6 @@
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
 
     [Name("Price Checker Commands"), RequireRole("Price Checker"), Ratelimit]
     public class PriceCheckerModule : BotBase
@@ -29,7 +28,7 @@
                 UserId = Context.User.Id
             });
 
-            var Embed = Extras.Embed(Drawing.Green)
+            var Embed = Extras.Embed(Extras.Added)
                 .AddField("Leage", League)
                 .AddField("Name", Name.Replace("_", " "))
                 .AddField("Alias", string.Join(", ", Alias.Split(" ")).ToLower())
@@ -61,7 +60,7 @@
 
             Context.Server.Prices.Add(price);
 
-            var Embed = Extras.Embed(Drawing.Green)
+            var Embed = Extras.Embed(Extras.Added)
                 .AddField("Leage", League)
                 .AddField("Name", price.Name.Replace("_", " "))
                 .AddField("Alias", price.Alias)

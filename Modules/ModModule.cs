@@ -2,7 +2,6 @@
 {
     using System;
     using Discord;
-    using System.Text;
     using System.Linq;
     using PoE.Bot.Addons;
     using PoE.Bot.Helpers;
@@ -11,7 +10,6 @@
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
     using System.Collections.Generic;
     using TwitchLib.Api;
 
@@ -126,7 +124,7 @@
             if (!(Channel is null) && await Channel?.GetMessageAsync(Case.MessageId) is IUserMessage Message)
             {
                 var UserCases = Context.Server.UserCases.Where(x => x.UserId == User.Id);
-                var Embed = Extras.Embed(Drawing.Khaki)
+                var Embed = Extras.Embed(Extras.Case)
                     .WithAuthor($"Case Number: {Case.Number}")
                     .WithTitle(Case.CaseType.ToString())
                     .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
@@ -239,7 +237,7 @@
         public Task GuildInfoAsync()
         {
             var Guild = Context.Guild as SocketGuild;
-            return ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+            return ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Guild.Name}'s Information | {Context.Guild.Id}", Context.Guild.IconUrl)
                 .WithFooter($"Created On: {Guild.CreatedAt}")
                 .WithThumbnailUrl(Context.Guild.IconUrl)
@@ -258,7 +256,7 @@
 
         [Command("RoleInfo"), Remarks("Displays information about a role."), Summary("RoleInfo <@Role>")]
         public Task RoleInfoAsync(IRole Role)
-            => ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+            => ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithTitle($"{Role.Name} Information")
                 .WithFooter($"Created On: {Role.CreatedAt}")
                 .AddField("ID", Role.Id, true)
@@ -273,7 +271,7 @@
         public Task UserInfoAsync(SocketGuildUser User = null)
         {
             User = User ?? Context.User as SocketGuildUser;
-            return ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+            return ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithAuthor($"{User.Username} Information | {User.Id}", User.GetAvatarUrl())
                 .WithThumbnailUrl(User.GetAvatarUrl())
                 .AddField("Muted?", User.IsMuted ? "Yep" : "Nope", true)
@@ -293,7 +291,7 @@
             var Case = Context.Server.UserCases.FirstOrDefault(x => x.Number == CaseNumber);
             if (Case is null)
                 return ReplyAsync($"Case #{CaseNumber} doesn't exist.");
-            return ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+            return ReplyAsync(embed: Extras.Embed(Extras.Case)
                 .AddField("User", $"{Case.Username} ({Case.UserId})", true)
                 .AddField("Case Type", Case.CaseType, true)
                 .AddField("Moderator", $"{Case.Moderator} ({Case.ModeratorId})", true)
@@ -343,7 +341,7 @@
             Context.Server.RulesConfig = Rules;
             SaveDocument('s');
 
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithTitle($"{Context.Guild.Name} Rules")
                 .WithDescription(Rules.Description);
 
@@ -369,7 +367,7 @@
 
             var chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
             var ruleChan = chan as IMessageChannel;
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithTitle($"{Context.Guild.Name} Rules")
                 .WithDescription(Context.Server.RulesConfig.Description);
 
@@ -405,7 +403,7 @@
                 return;
             }
 
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithTitle($"{Context.Guild.Name} Rules")
                 .WithDescription(Context.Server.RulesConfig.Description);
 

@@ -7,11 +7,9 @@
     using PoE.Bot.Helpers;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Text;
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
 
     [Name("Tag Commands"), Group("Tag"), Ratelimit]
     public class TagModule : BotBase
@@ -108,7 +106,7 @@
                 return SuggestTagsAsync(TagName.ToLower());
             var Tag = Context.Server.Tags.FirstOrDefault(x => x.Name == TagName);
             var User = StringHelper.ValidateUser(Context.Guild, Tag.Owner);
-            return ReplyAsync(Embed: Extras.Embed(Drawing.Aqua)
+            return ReplyAsync(Embed: Extras.Embed(Extras.Info)
                 .WithAuthor($"Tag Information", Context.Client.CurrentUser.GetAvatarUrl())
                 .AddField("Name", Tag.Name, true)
                 .AddField("Owner", User, true)

@@ -12,7 +12,6 @@
     using PoE.Bot.Objects;
     using Microsoft.CodeAnalysis.Scripting;
     using Microsoft.CodeAnalysis.CSharp.Scripting;
-    using Drawing = System.Drawing.Color;
 
     [Name("Owner Commands"), RequireOwner]
     public class OwnerModule : BotBase
@@ -125,7 +124,7 @@
         {
             var Client = Context.Client as DiscordSocketClient;
             var Servers = Context.DBHandler.Servers();
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription((await Client.GetApplicationInfoAsync()).Description)
                 .AddField("Channels",

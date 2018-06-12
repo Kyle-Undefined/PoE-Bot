@@ -12,7 +12,6 @@
     using System.Collections.Generic;
     using PoE.Bot.Objects;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
 
     [Name("General Commands"), Ratelimit]
     public class GeneralModule : BotBase
@@ -21,7 +20,7 @@
         public CommandService CommandService { get; set; }
 
         [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
-        public async Task PingAsync() => await ReplyAsync(embed: Extras.Embed(Drawing.Aqua)
+        public async Task PingAsync() => await ReplyAsync(embed: Extras.Embed(Extras.Info)
             .WithTitle("Wisdom is the offspring of Suffering and Time.")
             .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build());
 
@@ -31,7 +30,7 @@
             await Context.Message.DeleteAsync();
 
             var rep = await Context.Guild.GetTextChannelAsync(Context.Server.RepLog);
-            var Embed = Extras.Embed(Drawing.Goldenrod)
+            var Embed = Extras.Embed(Extras.Report)
                 .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl())
                 .WithThumbnailUrl(user.GetAvatarUrl())
                 .WithTitle($"Report for {user.Username}")
@@ -87,7 +86,7 @@
             var TextChannels = await Context.Guild.GetTextChannelsAsync();
             var VoiceChannels = await Context.Guild.GetVoiceChannelsAsync();
             var Users = await Context.Guild.GetUsersAsync();
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
                 .WithDescription((await Client.GetApplicationInfoAsync()).Description)
                 .AddField("Wraeclast Info", $"Wraeclast was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
@@ -206,7 +205,7 @@
             {
                 var base64 = await _pastebinFetcher.GetRawCode(PasteBinURL);
                 var character = _parser.ParseCode(base64);
-                var embed = Extras.Embed(Drawing.Aqua)
+                var embed = Extras.Embed(Extras.Info)
                     .AddField(PathOfBuildingHelper.GenerateDefenseField(character))
                     .AddField(PathOfBuildingHelper.GenerateOffenseField(character))
                     .WithFooter($"Pastebin: {PasteBinURL}")
@@ -272,7 +271,7 @@
                 return ReplyAsync($"{Extras.Cross} What in God's name is that smell? *`{Name}` is not in the `{League}` list.*");
             var Price = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League);
             var User = (Context.Guild.GetUserAsync(Price.UserId).GetAwaiter().GetResult() as IUser);
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .AddField($"{Price.Name.Replace("_", " ")} in {League} league", $"```{Price.Alias}```")
                 .AddField("Ratio", $"```{Price.Quantity}:{Price.Price}c```")
                 .AddField("Last Updated", $"```{Price.LastUpdated}```")

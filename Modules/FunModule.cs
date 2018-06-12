@@ -3,7 +3,6 @@
     using System;
     using System.Linq;
     using System.IO;
-    using System.Security.Cryptography;
     using System.Text.RegularExpressions;
     using PoE.Bot.Addons;
     using PoE.Bot.Helpers;
@@ -12,7 +11,6 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
     using PoE.Bot.Addons.Preconditions;
-    using Drawing = System.Drawing.Color;
     using System.Collections.Generic;
     using SkiaSharp;
 
@@ -34,7 +32,7 @@
         {
             User = User ?? Context.User as SocketGuildUser;
             var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{User.Username}'s Profile", User.GetAvatarUrl())
                 .WithThumbnailUrl(User.GetAvatarUrl())
                 .AddField("Warnings", Profile.Warnings, true)

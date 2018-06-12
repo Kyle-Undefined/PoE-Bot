@@ -11,7 +11,6 @@
     using Discord.WebSocket;
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
-    using Drawing = System.Drawing.Color;
 
     public class EventHandler
     {
@@ -150,7 +149,7 @@
 
             if (Server.AllLog is 0)
                 return;
-            var Embed = Extras.Embed(Drawing.Red)
+            var Embed = Extras.Embed(Extras.Deleted)
                 .WithAuthor(Message.Author)
                 .WithThumbnailUrl(Message.Author.GetAvatarUrl())
                 .WithTitle("Message Deleted")

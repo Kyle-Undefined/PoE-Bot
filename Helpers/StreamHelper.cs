@@ -9,7 +9,6 @@
     using PoE.Bot.Objects;
     using PoE.Bot.Handlers;
     using PoE.Bot.Addons;
-    using Drawing = System.Drawing.Color;
     using TwitchLib.Api;
 
     public class StreamHelper
@@ -32,7 +31,7 @@
 
                     if (chanIsLive && !Stream.IsLive)
                     {
-                        var Embed = Extras.Embed(Drawing.Aqua)
+                        var Embed = Extras.Embed(Extras.Mixer)
                             .WithTitle(Mixer.GetChannelTitle(chanJson))
                             .WithDescription($"\n**{Stream.Name}** is playing **{Mixer.GetChannelGame(chanJson)}** for {Mixer.GetViewerCount(chanJson).ToString()} viewers!\n\n**https://mixer.com/{Stream.Name}**")
                             .WithAuthor(Stream.Name, Mixer.GetUserAvatar(Stream.MixerUserId), $"https://mixer.com/{Stream.Name}")
@@ -67,7 +66,7 @@
                             {
                                 var TwitchUser = await TwitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
                                 var TwitchGame = await TwitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
-                                var Embed = Extras.Embed(Drawing.Aqua)
+                                var Embed = Extras.Embed(Extras.Twitch)
                                     .WithTitle(stream.Title)
                                     .WithDescription($"\n**{TwitchUser.Users[0].DisplayName}** is playing **{TwitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{TwitchUser.Users[0].DisplayName}**")
                                     .WithAuthor(TwitchUser.Users[0].DisplayName, TwitchUser.Users[0].ProfileImageUrl, $"http://www.twitch.tv/{TwitchUser.Users[0].DisplayName}")

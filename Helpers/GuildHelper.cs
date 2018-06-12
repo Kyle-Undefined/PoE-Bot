@@ -6,12 +6,10 @@
     using PoE.Bot.Addons;
     using PoE.Bot.Handlers;
     using Discord.WebSocket;
-    using System.Text;
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
-    using Drawing = System.Drawing.Color;
 
     public class GuildHelper
     {
@@ -46,7 +44,7 @@
             if (!(ModChannel is null))
             {
                 var UserCases = Server.UserCases.Where(x => x.UserId == User.Id);
-                var Embed = Extras.Embed(Drawing.Khaki)
+                var Embed = Extras.Embed(Extras.Case)
                     .WithAuthor($"Case Number: {Server.UserCases.Count + 1}")
                     .WithTitle(CaseType.ToString())
                     .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
@@ -204,7 +202,7 @@
                 await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
             await Context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}");
 
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor(Context.User)
                 .WithTitle("Mod Action")
                 .WithDescription($"You were muted in the {Context.Guild.Name} server.")
@@ -227,7 +225,7 @@
 
             await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType, $"{Reason} ({StringHelper.FormatTimeSpan(Time)})");
 
-            var Embed = Extras.Embed(Drawing.Aqua)
+            var Embed = Extras.Embed(Extras.Info)
                 .WithAuthor(Guild.CurrentUser)
                 .WithTitle("Mod Action")
                 .WithDescription($"You were muted in the {Guild.Name} server.")

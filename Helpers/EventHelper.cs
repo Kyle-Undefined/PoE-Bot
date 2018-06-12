@@ -9,8 +9,6 @@
     using Raven.Client.Extensions;
     using PoE.Bot.Objects;
     using System.Collections.Concurrent;
-    using Drawing = System.Drawing.Color;
-    using PoE.Bot.Addons;
 
     public class EventHelper
     {

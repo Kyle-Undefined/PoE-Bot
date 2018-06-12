@@ -1,7 +1,7 @@
 ﻿namespace PoE.Bot.Addons
 {
     using Discord;
-    using Drawing = System.Drawing.Color;
+    using EmbedColor = System.Drawing.Color;
 
     public class Extras
     {
@@ -19,7 +19,17 @@
         public static Emoji Check { get => new Emoji("\u2705"); }
         public static Emoji Trash { get => new Emoji("\uD83D\uDDD1"); }
 
-        public static EmbedBuilder Embed(Drawing Drawing)
-            => new EmbedBuilder { Color = new Color(Drawing.R, Drawing.G, Drawing.B) };
+        public static EmbedColor Info { get => EmbedColor.Aqua; }
+        public static EmbedColor Deleted { get => EmbedColor.Red; }
+        public static EmbedColor Case { get => EmbedColor.Khaki; }
+        public static EmbedColor Leaderboard { get => EmbedColor.CornflowerBlue; }
+        public static EmbedColor RSS { get => EmbedColor.Aqua; }
+        public static EmbedColor Mixer { get => EmbedColor.RoyalBlue; }
+        public static EmbedColor Twitch { get => EmbedColor.BlueViolet; }
+        public static EmbedColor Report { get => EmbedColor.Goldenrod; }
+        public static EmbedColor Added { get => EmbedColor.Green; }
+
+        public static EmbedBuilder Embed(EmbedColor EmbedColor)
+            => new EmbedBuilder { Color = new Color(EmbedColor.R, EmbedColor.G, EmbedColor.B) };
     }
 }

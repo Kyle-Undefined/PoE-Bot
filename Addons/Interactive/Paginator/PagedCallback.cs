@@ -6,7 +6,6 @@
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using Drawing = System.Drawing.Color;
     using PoE.Bot.Addons.Interactive.Criterias;
 
     public class PagedCallback : IReactionCallback
@@ -78,7 +77,7 @@
             return false;
         }
 
-        Embed Embed => Extras.Embed(Drawing.Aqua)
+        Embed Embed => Extras.Embed(Extras.Info)
             .WithAuthor(Paged.Author)
             .WithDescription($"{Paged.Pages.ElementAt(Page - 1)}")
             .WithFooter(x => x.Text = string.Format(Options.FooterFormat, Page, Pages)).Build();
