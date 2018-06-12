@@ -30,7 +30,7 @@
                     foreach (var Mute in Server.Muted.Where(x => x.Value < DateTime.Now))
                     {
                         Server.Muted.TryRemove(Mute.Key, out _);
-                        MethodHelper.RunSync(JobHelper.UnmuteUser(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
+                        MethodHelper.RunSync(GuildHelper.UnmuteUserAsync(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
                         DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
                     }
             }).WithName("timed mute").ToRunEvery(1).Minutes().DelayFor(2).Seconds();

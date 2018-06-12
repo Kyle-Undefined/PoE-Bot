@@ -201,5 +201,41 @@
 
             await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
         }
+
+        public async Task MuteUserAsync(DatabaseHandler DB, SocketUserMessage Message, GuildObject Server, IGuildUser User, CaseType CaseType, TimeSpan Time, string Reason)
+        {
+            var Guild = (Message.Author as SocketGuildUser).Guild;
+
+            await User.AddRoleAsync(Guild.GetRole(Server.MuteRole));
+            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time));
+            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+
+            await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType, $"{Reason} ({StringHelper.FormatTimeSpan(Time)})");
+
+            var Embed = Extras.Embed(Drawing.Aqua)
+                .WithAuthor(Guild.CurrentUser)
+                .WithTitle("Mod Action")
+                .WithDescription($"You were muted in the {Guild.Name} server.")
+                .WithThumbnailUrl(Guild.CurrentUser.GetAvatarUrl())
+                .WithFooter($"You can PM any Moderator directly to resolve the issue.")
+                .AddField("Reason", Reason)
+                .AddField("Duration", StringHelper.FormatTimeSpan(Time))
+                .Build();
+
+            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
+        }
+
+        public static async Task UnmuteUserAsync(ulong UserId, SocketGuild Guild, GuildObject Server)
+        {
+            var User = Guild.GetUser(UserId);
+            var MuteRole = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            var TradeMuteRole = Guild.GetRole(Server.TradeMuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!User.Roles.Contains(MuteRole) && !User.Roles.Contains(TradeMuteRole))
+                return;
+            if (User.Roles.Contains(MuteRole))
+                await User.RemoveRoleAsync(MuteRole);
+            else if (User.Roles.Contains(TradeMuteRole))
+                await User.RemoveRoleAsync(TradeMuteRole);
+        }
     }
 }

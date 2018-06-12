@@ -19,6 +19,7 @@
         GuildHelper GuildHelper { get; }
         public TimeSpan GlobalTimeout { get; }
         ConcurrentDictionary<ulong, DateTime> WaitList { get; }
+
         public EventHelper(DatabaseHandler dB, Random random, GuildHelper helper)
         {
             DB = dB;
@@ -80,13 +81,13 @@
             {
                 DateTime Now = DateTime.Now;
                 TimeSpan Span = Now.AddYears(999) - Now;
-                await MuteCommandAsync(Message, Server, User, Span, "Muted permanently by AutoMod.");
-                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODPERMMUTE, Warning);
+                GuildHelper.SaveProfile(DB, Guild.Id, Message.Author.Id, Profile);
+                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODPERMMUTE, Span, $"Muted by AutoMod. {Warning}");
             }
             else if (Profile.Warnings >= Server.MaxWarningsToMute)
             {
-                await MuteCommandAsync(Message, Server, User, TimeSpan.FromDays(1), "Muted for 1 day by AutoMod.");
-                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.AUTOMODMUTE, Warning);
+                GuildHelper.SaveProfile(DB, Guild.Id, Message.Author.Id, Profile);
+                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODMUTE, TimeSpan.FromDays(1), $"Muted by AutoMod. {Warning}");
             }
             else
             {
@@ -94,25 +95,6 @@
                 await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.WARNING, Warning);
             }
             await Message.Channel.SendMessageAsync(Warning);
-        }
-
-        async Task MuteCommandAsync(SocketUserMessage Message, GuildObject Server, IGuildUser User, TimeSpan Time, string Reason)
-        {
-            var Guild = (Message.Author as SocketGuildUser).Guild;
-            await User.AddRoleAsync(Guild.GetRole(Server.MuteRole));
-
-            var Embed = Extras.Embed(Drawing.Aqua)
-                .WithAuthor(Guild.CurrentUser)
-                .WithTitle("Mod Action")
-                .WithDescription($"You were muted in the {Guild.Name} server.")
-                .WithThumbnailUrl(Guild.CurrentUser.GetAvatarUrl())
-                .WithFooter($"You can PM a Mod directly to resolve the issue.")
-                .AddField("Reason", Reason)
-                .AddField("Duration", StringHelper.FormatTimeSpan(Time))
-                .Build();
-
-            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
-            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time));
         }
     }
 }

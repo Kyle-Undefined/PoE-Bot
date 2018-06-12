@@ -161,17 +161,18 @@
         RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
         public Task UnMuteAsync(IGuildUser User)
         {
-            var Role = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
-            if (!(User as SocketGuildUser).Roles.Contains(Role) || Role is null)
-                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have the mute role.*");
-            User.RemoveRoleAsync(Role);
-            var Save = 'n';
+            var user = User as SocketGuildUser;
+            var MuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            var TradeMuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!user.Roles.Contains(MuteRole) && !user.Roles.Contains(TradeMuteRole))
+                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have any mute role.*");
+            if (user.Roles.Contains(MuteRole))
+                user.RemoveRoleAsync(MuteRole);
+            else if (user.Roles.Contains(TradeMuteRole))
+                user.RemoveRoleAsync(TradeMuteRole);
             if (Context.Server.Muted.ContainsKey(User.Id))
-            {
                 Context.Server.Muted.TryRemove(User.Id, out _);
-                Save = 's';
-            }
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}", Save: Save);
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
