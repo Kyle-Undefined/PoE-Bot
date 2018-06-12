@@ -1,10 +1,10 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System.Threading.Tasks;
-using PoE.Bot.Objects;
-
-namespace PoE.Bot.Handlers
+﻿namespace PoE.Bot.Handlers
 {
+    using Discord;
+    using Discord.WebSocket;
+    using System.Threading.Tasks;
+    using PoE.Bot.Objects;
+
     public class MainHandler
     {
         ConfigObject Config { get; }

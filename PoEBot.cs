@@ -19,7 +19,7 @@
             var Services = new ServiceCollection()
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                 {
-                    MessageCacheSize = 20,
+                    MessageCacheSize = 50,
                     AlwaysDownloadUsers = true,
                     LogLevel = LogSeverity.Warning
                 }))
@@ -30,6 +30,7 @@
                     DefaultRunMode = RunMode.Sync,
                     CaseSensitiveCommands = false
                 }))
+                .AddSingleton(new CommandService())
                 .AddSingleton<HttpClient>()
                 .AddSingleton<DatabaseHandler>()
                 .AddSingleton<JobHandler>()
