@@ -6,6 +6,7 @@
     using PoE.Bot.Addons;
     using PoE.Bot.Handlers;
     using Discord.WebSocket;
+    using System.Text;
     using System.Threading.Tasks;
     using PoE.Bot.Objects;
     using System.Collections.Generic;
@@ -43,8 +44,21 @@
             var ModChannel = await Guild.GetTextChannelAsync(Server.ModLog);
             IUserMessage Message = null;
             if (!(ModChannel is null))
-                Message = await ModChannel.SendMessageAsync($"**{CaseType}** | Case {Server.UserCases.Count + 1}\n**User:** {User} ({User.Id})\n**Reason:** {Reason}\n" +
-                       $"**Moderator:** {Mod}");
+            {
+                var UserCases = Server.UserCases.Where(x => x.UserId == User.Id);
+                var Embed = Extras.Embed(Drawing.Khaki)
+                    .WithAuthor($"Case Number: {Server.UserCases.Count + 1}")
+                    .WithTitle(CaseType.ToString())
+                    .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
+                    .AddField("History", $"Cases: {UserCases.Count()}\nWarnings: {UserCases.Where(x => x.CaseType == CaseType.WARNING).Count()}\n" +
+                        $"Mutes: {UserCases.Where(x => x.CaseType == CaseType.MUTE).Count()}\nAuto Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODMUTE).Count()}\n" +
+                        $"Auto Perm Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODPERMMUTE).Count()}")
+                    .AddField("Reason", Reason)
+                    .AddField("Moderator", $"{Mod}")
+                    .WithCurrentTimestamp()
+                    .Build();
+                Message = await ModChannel.SendMessageAsync(embed: Embed);
+            }
             Server.UserCases.Add(new CaseObject
             {
                 UserId = User.Id,
@@ -154,7 +168,7 @@
                 ;
         }
 
-        public async Task MuteUserAsync(IContext Context, MuteType MuteType, IGuildUser User, TimeSpan? Time, string Message)
+        public async Task MuteUserAsync(IContext Context, MuteType MuteType, IGuildUser User, TimeSpan? Time, string Message, bool LogMute = true)
         {
             await Context.Message.DeleteAsync();
 
@@ -186,7 +200,8 @@
                     Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, Context.Guild.Id);
                     break;
             }
-            await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
+            if (LogMute)
+                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
             await Context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}");
 
             var Embed = Extras.Embed(Drawing.Aqua)

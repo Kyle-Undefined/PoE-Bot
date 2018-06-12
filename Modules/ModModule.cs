@@ -124,8 +124,21 @@
                 Case.Moderator = $"{Mod}";
             var Channel = await Context.Guild.GetTextChannelAsync(Context.Server.ModLog);
             if (!(Channel is null) && await Channel?.GetMessageAsync(Case.MessageId) is IUserMessage Message)
-                await Message.ModifyAsync(x => x.Content = $"**{Case.CaseType}** | Case {Case.Number}\n**User:** {Case.Username} ({Case.UserId})" +
-                    $"\n**Reason:** {Reason}\n**Responsible Moderator:** {Case.Moderator} ({Case.ModeratorId})");
+            {
+                var UserCases = Context.Server.UserCases.Where(x => x.UserId == User.Id);
+                var Embed = Extras.Embed(Drawing.Khaki)
+                    .WithAuthor($"Case Number: {Case.Number}")
+                    .WithTitle(Case.CaseType.ToString())
+                    .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
+                    .AddField("History", $"Cases: {UserCases.Count()}\nWarnings: {UserCases.Where(x => x.CaseType == CaseType.WARNING).Count()}\n" +
+                        $"Mutes: {UserCases.Where(x => x.CaseType == CaseType.MUTE).Count()}\nAuto Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODMUTE).Count()}\n" +
+                        $"Auto Perm Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODPERMMUTE).Count()}")
+                    .AddField("Reason", Case.Reason)
+                    .AddField("Moderator", $"{Mod}")
+                    .WithCurrentTimestamp()
+                    .Build();
+                await Message.ModifyAsync(x => x.Embed = Embed);
+            }
             await ReplyAsync($"Case #{Case.Number} has been updated {Extras.OkHand}", Save: 's');
         }
 
@@ -178,25 +191,28 @@
         [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
         public async Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
         {
-            string WarnMessage = $"**[Warned in {Context.Guild.Name}]** ```{Reason}```";
-            await User.SendMessageAsync(WarnMessage);
             var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
             Profile.Warnings++;
-            await ReplyAsync($"Purity will prevail! *`{User}` has been warned.* {Extras.Warning}");
             if (Profile.Warnings >= Context.Server.MaxWarningsToPermMute)
             {
                 DateTime Now = DateTime.Now;
                 TimeSpan Span = Now.AddYears(999) - Now;
-                await MuteAsync((User as SocketGuildUser), Span, "Muted permanently by AutoMod.");
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODPERMMUTE, $"{User} was Muted permanently due to reaching max number of warnings.");
+                await Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, (User as SocketGuildUser), Span, $"Muted permanently for reaching Max number of warnings. {Reason}", false);
+                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODPERMMUTE, $"Muted permanently due to reaching max number of warnings. {Reason}");
             }
-            else if(Profile.Warnings >= Context.Server.MaxWarningsToMute)
+            else if (Profile.Warnings >= Context.Server.MaxWarningsToMute)
             {
-                await MuteAsync((User as SocketGuildUser), TimeSpan.FromDays(1), "Muted for 1 day due to reaching Max number of warnings.");
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{User} was muted for 1 day due to reaching max number of warnings.");
+                await Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, (User as SocketGuildUser), TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {Reason}", false);
+                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODMUTE, $"Muted for 1 day due to reaching max number of warnings. {Reason}");
+            }
+            else
+            {
+                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.WARNING, Reason);
+                await ReplyAsync($"Purity will prevail! *`{User}` has been warned.* {Extras.Warning}");
+                string WarnMessage = $"**[Warned in {Context.Guild.Name}]** ```{Reason}```";
+                await User.SendMessageAsync(WarnMessage);
             }
             Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
-            await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.WARNING, Reason);
         }
 
         [Command("RemoveWarns"), Remarks("Removes a number of users warnings."), Summary("RemoveWarns <@User> <Amount>"), RequirePermission]
