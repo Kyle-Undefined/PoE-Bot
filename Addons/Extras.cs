@@ -22,12 +22,4 @@
         public static EmbedBuilder Embed(Drawing Drawing)
             => new EmbedBuilder { Color = new Color(Drawing.R, Drawing.G, Drawing.B) };
     }
-
-    public enum Leagues
-    {
-        Standard,
-        Hardcore,
-        Challenge,
-        ChallengeHC
-    }
 }
