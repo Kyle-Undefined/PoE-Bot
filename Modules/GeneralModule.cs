@@ -20,9 +20,10 @@
         public CommandService CommandService { get; set; }
 
         [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
-        public async Task PingAsync() => await ReplyAsync(embed: Extras.Embed(Extras.Info)
-            .WithTitle("Wisdom is the offspring of Suffering and Time.")
-            .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build());
+        public async Task PingAsync() 
+            => await ReplyAsync(embed: Extras.Embed(Extras.Info)
+                .WithTitle("Wisdom is the offspring of Suffering and Time.")
+                .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build());
 
         [Command("Report"), Remarks("Reports a user to guild moderators."), Summary("Report <@User> <Reason>")]
         public async Task ReportAsync(IUser user, [Remainder] string Reason)
@@ -53,6 +54,11 @@
             await Channel.SendMessageAsync(Message.Item2);
             await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
         }
+
+        [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
+        public async Task InvitesAsync()
+            => await PagedReplyAsync(Context.GuildHelper.Pages((await Context.Guild.GetInvitesAsync()).Select(i => 
+                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("dddd, dd MMMM yyyy")}\n")), $"{Context.Guild.Name}'s Invites");
 
         [Command("AFK"), Remarks("Adds Or Removes you from AFK list."), Summary("AFK <Action> <AFKMessage>")]
         public Task AFKAsync(char Action = 'a', [Remainder] string AFKMessage = "Running around Wraeclast, slaying monsters. Shoot me a DM.")
