@@ -70,7 +70,9 @@
             var Guild = (Message.Author as SocketGuildUser).Guild;
             var User = Message.Author as SocketGuildUser;
             if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToPermMute is 0 || Message.Author.Id == Guild.OwnerId ||
-                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.Roles.Where(r => r.Name is "Moderator").Any())
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || (User as SocketGuildUser).GuildPermissions.ManageChannels || 
+                (User as SocketGuildUser).GuildPermissions.ManageRoles || (User as SocketGuildUser).GuildPermissions.BanMembers || 
+                (User as SocketGuildUser).GuildPermissions.KickMembers)
                 return;
             await Message.DeleteAsync();
             var Profile = GuildHelper.GetProfile(DB, Guild.Id, Message.Author.Id);
