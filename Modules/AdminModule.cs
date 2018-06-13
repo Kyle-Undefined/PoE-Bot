@@ -26,6 +26,7 @@
                 $"Rules Channel      : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RulesChannel)}\n" +
                 $"Bot Change Channel : {StringHelper.ValidateChannel(Context.Guild , Context.Server.BotChangeChannel)}\n" +
                 $"Developer Channel  : {StringHelper.ValidateChannel(Context.Guild , Context.Server.DevChannel)}\n" +
+                $"Role Set Channel   : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RoleSetChannel)}\n" +
                 $"AFK Users          : {Context.Server.AFK.Count}\n" +
                 $"```",
 
