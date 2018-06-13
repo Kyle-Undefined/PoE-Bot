@@ -16,8 +16,7 @@
     [Name("Moderator Commands"), RequireModerator, Ratelimit]
     public class ModModule : BotBase
     {
-        [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@User> [Reason]"), BotPermission(GuildPermission.KickMembers),
-            RequirePermission(GuildPermission.KickMembers, "Complex machinations converge to a single act of power. *You don't have kicking permissions.*")]
+        [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@User> [Reason]"), BotPermission(GuildPermission.KickMembers)]
         public Task KickAsync(IGuildUser User, [Remainder] string Reason = null)
         {
             if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
@@ -27,8 +26,7 @@
             return ReplyAsync($"Death to sin! *`{User}` was kicked.* {Extras.Hammer}");
         }
 
-        [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@User1> <@User2> ..."), BotPermission(GuildPermission.KickMembers),
-            RequirePermission(GuildPermission.KickMembers, "Complex machinations converge to a single act of power. *You don't have kicking permissions.*")]
+        [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@User1> <@User2> ..."), BotPermission(GuildPermission.KickMembers)]
         public async Task KickAsync(params IGuildUser[] Users)
         {
             if (!Users.Any())
@@ -43,8 +41,7 @@
             await ReplyAsync($"Death to sin! *{string.Join(", ", Users.Select(x => $"`{x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@User> [Reason]"), BotPermission(GuildPermission.BanMembers),
-            RequirePermission(GuildPermission.BanMembers, "Complex machinations converge to a single act of power. *You don't have banning permissions.*")]
+        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@User> [Reason]"), BotPermission(GuildPermission.BanMembers)]
         public Task BanAsync(IGuildUser User, [Remainder] string Reason = null)
         {
             if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
@@ -54,8 +51,7 @@
             return ReplyAsync($"You are remembered only for the mess you leave behind. *`{User}` was banned.* {Extras.Hammer}");
         }
 
-        [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@User1> <@User2> ..."), BotPermission(GuildPermission.BanMembers),
-            RequirePermission(GuildPermission.BanMembers, "Complex machinations converge to a single act of power. *You don't have banning permissions.*")]
+        [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@User1> <@User2> ..."), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(params IGuildUser[] Users)
         {
             if (!Users.Any())
@@ -70,8 +66,7 @@
             await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", Users.Select(x => $"`{x.Username}`"))} were banned.* {Extras.Hammer}");
         }
 
-        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <UserId> [Reason]"), BotPermission(GuildPermission.BanMembers),
-            RequirePermission(GuildPermission.BanMembers, "Complex machinations converge to a single act of power. *You don't have banning permissions.*")]
+        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <UserId> [Reason]"), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(ulong UserId, [Remainder] string Reason = null)
         {
             await Context.Guild.AddBanAsync(UserId, 7, Reason ?? "User ID Ban.");
@@ -79,8 +74,7 @@
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{UserId}` was banned.* {Extras.Hammer}");
         }
 
-        [Command("SoftBan", RunMode = RunMode.Async), Remarks("Bans a user then unbans them."), Summary("SoftBan <@User> [Reason]"), BotPermission(GuildPermission.BanMembers),
-            RequirePermission(GuildPermission.BanMembers, "Complex machinations converge to a single act of power. *You don't have banning permissions.*")]
+        [Command("SoftBan", RunMode = RunMode.Async), Remarks("Bans a user then unbans them."), Summary("SoftBan <@User> [Reason]"), BotPermission(GuildPermission.BanMembers)]
         public Task SoftBanAsync(IGuildUser User, [Remainder] string Reason = null)
         {
             if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
@@ -91,8 +85,7 @@
             return ReplyAsync($"Go to bed, little nightmare! *`{User}` was soft banned.* {Extras.Hammer}");
         }
 
-        [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers),
-            RequirePermission(GuildPermission.BanMembers, "Complex machinations converge to a single act of power. *You don't have banning permissions.*")]
+        [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
         public async Task UnbanAsync(ulong Id)
         {
             var Check = (await Context.Guild.GetBansAsync()).Any(x => x.User.Id == Id);
@@ -140,8 +133,7 @@
             await ReplyAsync($"Case #{Case.Number} has been updated {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a User"), Summary("Purge [Amount] [@User]"), BotPermission(GuildPermission.ManageMessages),
-            RequirePermission(GuildPermission.ManageMessages, "Complex machinations converge to a single act of power. *You don't have manage messages permission.*")]
+        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a User"), Summary("Purge [Amount] [@User]"), BotPermission(GuildPermission.ManageMessages)]
         public Task PurgeAsync(int Amount = 20, IGuildUser User = null)
         {
             if(User is null)
@@ -158,18 +150,15 @@
             }
         }
 
-        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles),
-        RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
+        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser User, TimeSpan? Time = null, [Remainder] string Reason = null) 
             => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified."));
 
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles),
-        RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
+        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser User, [Remainder] string Reason = null)
             => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified."));
 
-        [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles),
-        RequirePermission(GuildPermission.ManageRoles, "Complex machinations converge to a single act of power. *You don't have manage roles permission.*")]
+        [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles)]
         public Task UnMuteAsync(IGuildUser User)
         {
             var user = User as SocketGuildUser;

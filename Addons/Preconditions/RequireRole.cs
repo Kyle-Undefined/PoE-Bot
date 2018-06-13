@@ -34,10 +34,9 @@
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Services)
         {
             if (Context.User.Id == MethodHelper.RunSync(Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == Context.Guild.OwnerId ||
-                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild)
-                return Task.FromResult(PreconditionResult.FromSuccess());
-
-            if ((Context.User as SocketGuildUser).Roles.Any(r => r.Name is "Moderator"))
+                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild || 
+                (Context.User as SocketGuildUser).GuildPermissions.ManageChannels || (Context.User as SocketGuildUser).GuildPermissions.ManageRoles ||
+                (Context.User as SocketGuildUser).GuildPermissions.BanMembers || (Context.User as SocketGuildUser).GuildPermissions.KickMembers)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `Moderator`*"));

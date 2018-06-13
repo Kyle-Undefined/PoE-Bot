@@ -4,7 +4,6 @@
     using System.Linq;
     using Discord.Commands;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
 
     public class RequireChannel : PreconditionAttribute
     {
@@ -25,9 +24,9 @@
 
     public class RequireChannels : PreconditionAttribute
     {
-        private readonly string _channels;
+        private readonly string[] _channels;
 
-        public RequireChannels(string channels)
+        public RequireChannels(string[] channels)
         {
             _channels = channels;
         }
