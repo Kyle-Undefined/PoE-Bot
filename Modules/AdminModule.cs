@@ -149,7 +149,7 @@
             return ReplyAsync($"`{ToggleName}` has been {State} {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, muterole, maxwarnkick, maxwarnmute"), Summary("Set <Setting> [Value]")]
+        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, botchan, devchan, rolechan, muterole, trademuterole, maxwarnpermmute, maxwarnmute"), Summary("Set <Setting> [Value]")]
         public Task SetAsync(string Setting, [Remainder] string Value = null)
         {
             string SettingName = null;

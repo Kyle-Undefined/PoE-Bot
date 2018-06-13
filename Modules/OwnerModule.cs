@@ -140,7 +140,7 @@
                 $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
                 $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true)
                 .AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}", true)
-                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}", true)
+                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}", true)
                 .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true)
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
