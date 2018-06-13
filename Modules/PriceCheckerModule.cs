@@ -74,10 +74,10 @@
             return ReplyAsync(Embed: Embed, Save: 's');
         }
 
-        [Command("Price Reset"), Remarks("Resets all the prices for items to 0 for league reset."), Summary("Price Reset"), RequireChannel("price-checkers")]
-        public Task ResetAsync()
+        [Command("Price Reset"), Remarks("Resets all the prices for items to 0 for specified league reset."), Summary("Price Reset <League: Defaults to Challenge>"), RequireChannel("price-checkers")]
+        public Task ResetAsync(Leagues League = Leagues.Challenge)
         {
-            foreach (var Price in Context.Server.Prices.ToArray())
+            foreach (var Price in Context.Server.Prices.Where(x => x.League == League).ToArray())
             {
                 Context.Server.Prices.Remove(Price);
                 Price.Quantity = 0;
@@ -87,7 +87,7 @@
                 Context.Server.Prices.Add(Price);
             }
 
-            return ReplyAsync($"For Tukohama! *All prices have been reset.* {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"For Tukohama! *All prices have been reset for the {League} League.* {Extras.OkHand}", Save: 's');
         }
 
         [Command("Price Delete"), Remarks("Deletes a currency from the system, by alias, should only be used if one is added in wrong"), Summary("Price Delete <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias>"), RequireChannel("price-checkers")]
