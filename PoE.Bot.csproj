@@ -23,7 +23,7 @@
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.8.2" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="RavenDB.Client" Version="4.0.4-patch-40038" />
+    <PackageReference Include="RavenDB.Client" Version="4.1.0-nightly-20180613-1302" />
     <PackageReference Include="SkiaSharp" Version="1.60.1" />
     <PackageReference Include="TwitchLib.Api" Version="2.1.2" />
   </ItemGroup>
