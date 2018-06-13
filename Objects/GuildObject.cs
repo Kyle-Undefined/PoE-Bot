@@ -21,6 +21,7 @@
         public ulong BotChangeChannel { get; set; }
         public ulong DevChannel { get; set; }
         public ulong RoleSetChannel { get; set; }
+        public ulong MainRole { get; set; }
         public ulong MuteRole { get; set; }
         public ulong TradeMuteRole { get; set; }
         public ulong ModLog { get; set; }

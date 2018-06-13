@@ -31,6 +31,7 @@
                 $"```",
 
                  $"```diff\n- Mod Information\n\n" +
+                $"+ Main Role                  : {StringHelper.ValidateRole(Context.Guild , Context.Server.MainRole)}\n" +
                 $"+ Mute Role                  : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
                 $"+ Trade Mute Role            : {StringHelper.ValidateRole(Context.Guild , Context.Server.TradeMuteRole)}\n" +
                 $"+ Log Messages               : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
@@ -94,6 +95,8 @@
             Context.Server.LogDeleted = true;
             Context.Server.AntiProfanity = true;
 
+            var MainRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Exile") ?? await Context.Guild.CreateRoleAsync("Exile", permissions: new GuildPermissions(sendMessages: true, readMessageHistory: true, viewChannel: true, mentionEveryone: false));
+            Context.Server.MainRole = MainRole.Id;
             var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ?? await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
             Context.Server.MuteRole = MuteRole.Id;
             var TradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ?? await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
@@ -150,7 +153,7 @@
             return ReplyAsync($"`{ToggleName}` has been {State} {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, botchan, devchan, rolechan, muterole, trademuterole, maxwarnpermmute, maxwarnmute"), Summary("Set <Setting> [Value]")]
+        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, botchan, devchan, rolechan, mainrole, muterole, trademuterole, maxwarnpermmute, maxwarnmute"), Summary("Set <Setting> [Value]")]
         public Task SetAsync(string Setting, [Remainder] string Value = null)
         {
             string SettingName = null;
@@ -163,13 +166,14 @@
                     SettingName = "Guild Prefix";
                     break;
                 case "modlog": Context.Server.ModLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Mod Log Channel"; break;
-                case "alllog": Context.Server.AllLog = Context.GuildHelper.ParseUlong(Value); SettingName = "All Log Channel";  break;
-                case "rptlog": Context.Server.RepLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Report Log Channel";  break;
-                case "rulechan": Context.Server.RulesChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Rule Channel";  break;
+                case "alllog": Context.Server.AllLog = Context.GuildHelper.ParseUlong(Value); SettingName = "All Log Channel"; break;
+                case "rptlog": Context.Server.RepLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Report Log Channel"; break;
+                case "rulechan": Context.Server.RulesChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Rule Channel"; break;
                 case "botchan": Context.Server.BotChangeChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Bot Change Channel"; break;
                 case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
                 case "rolechan": Context.Server.RoleSetChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Role Set Channel"; break;
-                case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role";  break;
+                case "mainrole": Context.Server.MainRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Main Role"; break;
+                case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role"; break;
                 case "trademuterole": Context.Server.TradeMuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Trade Board Mute Role"; break;
                 case "maxwarnpermmute":
                     if (!int.TryParse(Value, out int ParsedK) || ParsedK > 10)
@@ -193,6 +197,7 @@
                $"`BOTCHAN` Changes bot change channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`DEVCHAN` Changes developer channel (Mention Channel. Leave empty to set it to null)\n" +
                $"`ROLECHAN` Changes the role channel (Mention Channel. Leave empty to set it to null)\n" +
+               $"`MAINROLE` Changes role users get when they agree to rules (Mention Role)\n" +
                $"`MUTEROLE` Changes mute role (Mention Role)\n" +
                $"`TRADEMUTEROLE` Changes trade board mute role (Mention Role)\n" +
                $"`PRICEROLE` Changes price checker role (Mention Role)\n" +

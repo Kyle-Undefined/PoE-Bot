@@ -125,6 +125,17 @@
             await ReplyAsync(Embed: Embed);
         }
 
+        [Command("IAgree"), Remarks("You agree to the rules."), Summary("IAgree"), RequireChannel("role-setup")]
+        public Task IAgreeAsync()
+        {
+            Context.Message.DeleteAsync();
+            var User = Context.User as IGuildUser;
+            if (User.RoleIds.Contains(Context.Server.MainRole))
+                return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you have already agreed to the rules.");
+            User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MainRole));
+            return ReplyAndDeleteAsync($"It seems this new arena suits me! *You have been given access to the server.* {Extras.OkHand}");
+        }
+
         [Command("Show"), Remarks("Shows the League sections you are interested in."), Summary("Show <Name>"), RequireChannel("role-setup")]
         public Task ShowAsync(IRole Role)
         {
