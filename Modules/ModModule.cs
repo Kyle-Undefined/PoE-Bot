@@ -287,6 +287,24 @@
                 .AddField("Reason", Case.Reason).Build());
         }
 
+        [Command("Cases"), Remarks("Lists all of the specified cases for the guild."), Summary("Cases <CaseType>")]
+        public Task CasesAsync(CaseType CaseType)
+            => PagedReplyAsync(Context.GuildHelper.Pages(Context.Server.UserCases.Where(c => c.CaseType == CaseType).Select(c => 
+                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nUser: {c.Username}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{Context.Guild.Name} {CaseType} Cases");
+
+        [Command("Cases"), Remarks("Lists all of the cases for a specified user in the guild."), Summary("Cases <User>")]
+        public Task CasesAsync(SocketGuildUser User)
+            => PagedReplyAsync(Context.GuildHelper.Pages(Context.Server.UserCases.Where(c => c.UserId == User.Id).Select(c =>
+                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nType: {c.CaseType}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{User.Username}'s Cases");
+
+        [Command("CaseRemove"), Remarks("Removes the specified case from the user."), Summary("CaseRemove <User> <CaseNumber>")]
+        public Task CaseRemoveAsync(SocketGuildUser User, int CaseNumber)
+        {
+            var Case = Context.Server.UserCases.FirstOrDefault(c => c.Number == CaseNumber && c.UserId == User.Id);
+            Context.Server.UserCases.Remove(Case);
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Case Number `{CaseNumber}` has been removed from `{User}`'s cases.* {Extras.OkHand}", Save: 's');
+        }
+
         [Command("ConfigureRules", RunMode = RunMode.Async), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("ConfigureRules")]
         public async Task ConfigureRulesAsync()
         {

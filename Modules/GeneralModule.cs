@@ -58,7 +58,7 @@
         [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
         public async Task InvitesAsync()
             => await PagedReplyAsync(Context.GuildHelper.Pages((await Context.Guild.GetInvitesAsync()).Select(i => 
-                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("dddd, dd MMMM yyyy")}\n")), $"{Context.Guild.Name}'s Invites");
+                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites");
 
         [Command("AFK"), Remarks("Adds Or Removes you from AFK list."), Summary("AFK <Action> <AFKMessage>")]
         public Task AFKAsync(char Action = 'a', [Remainder] string AFKMessage = "Running around Wraeclast, slaying monsters. Shoot me a DM.")
