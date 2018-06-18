@@ -13,9 +13,11 @@
 
     public class GuildHelper
     {
-        string[] ProfanityList { get => new string[] { "cocksuckers", "cocksucker", "cockmunchers", "cockmuncher", "cockface", "cockhead", "coon", "coons", "cunts", "cunt", "cuntwhit", "cuntswhit", "cuntwit", "cuntswit", "doushes", "douches", "doushe", "douche", "dooshes", "dooshe", "doosh", "dykes", "dyke", "dikes", "dike", "fagots", "fagot", "fagity", "faget", "fagit", "fagat", "fagets", "fagits", "fagats", "knobends", "knobend", "knobheads", "knobhead", "nigers", "niger", "nigahs", "nigah", "niga", "nigas", "nigaz", "retards", "retard", "retarded", "retarts", "retarted", "retart", "spick", "twats", "twat", "twatheads", "twathead", "tossers", "tosser", "wankers", "wanker" }; }
-        public bool ProfanityMatch(string Message) => DoesStringHaveProfanity(Message, ProfanityList);
-        public Regex CheckMatch(string Pattern = null) => new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
+        public bool ProfanityMatch(string Message, IList<string> ProfanityList)
+            => DoesStringHaveProfanity(Message, ProfanityList);
+
+        public Regex CheckMatch(string Pattern = null)
+            => new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
         public IMessageChannel DefaultChannel(IGuild guild)
         {
@@ -118,7 +120,7 @@
             (false, $"{Extras.Cross} There is a fine line between consideration and hesitation. The former is wisdom, the latter is fear. *Request Timed Out*")
             : Message.Content.ToLower().Equals("c") ? (false, $"Understood, Exile {Extras.OkHand}") : (true, Message.Content);
 
-        public bool DoesStringHaveProfanity(string Data, string[] BadWords)
+        public bool DoesStringHaveProfanity(string Data, IList<string> BadWords)
         {
             foreach (var Word in BadWords)
             {
@@ -138,11 +140,11 @@
 
             return op
                 .Replace("[a]", "[aA@]+")
-                .Replace("[b]", "[bBI3l3i3]+")
+                .Replace("[b]", "(?:(I3)|(l3)|(i3)|(13)|[bB])+")
                 .Replace("[c]", "(?:[cC\\(]|[kK])+")
                 .Replace("[d]", "[dD]+")
                 .Replace("[e]", "[eE3]+")
-                .Replace("[f]", "(?:[fF]|[phpHPhPH])+")
+                .Replace("[f]", "(?:[fF]|[pPhH])+")
                 .Replace("[g]", "[gG6]+")
                 .Replace("[h]", "[hH]+")
                 .Replace("[i]", "[iIl!1]+")

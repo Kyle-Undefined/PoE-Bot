@@ -60,7 +60,7 @@
 
         Task ModeratorAsync(SocketUserMessage Message, GuildObject Server)
         {
-            if (GuildHelper.ProfanityMatch(Message.Content) && Server.AntiProfanity)
+            if (GuildHelper.ProfanityMatch(Message.Content, Server.ProfanityList) && Server.AntiProfanity)
                 return WarnUserAsync(Message, Server, $"{Message.Author.Mention}, Refrain from using profanity. You've been warned.");
             return Task.CompletedTask;
         }
@@ -70,8 +70,8 @@
             var Guild = (Message.Author as SocketGuildUser).Guild;
             var User = Message.Author as SocketGuildUser;
             if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToPermMute is 0 || Message.Author.Id == Guild.OwnerId ||
-                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || (User as SocketGuildUser).GuildPermissions.ManageChannels || 
-                (User as SocketGuildUser).GuildPermissions.ManageRoles || (User as SocketGuildUser).GuildPermissions.BanMembers || 
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || (User as SocketGuildUser).GuildPermissions.ManageChannels ||
+                (User as SocketGuildUser).GuildPermissions.ManageRoles || (User as SocketGuildUser).GuildPermissions.BanMembers ||
                 (User as SocketGuildUser).GuildPermissions.KickMembers)
                 return;
             await Message.DeleteAsync();
@@ -82,17 +82,17 @@
                 DateTime Now = DateTime.Now;
                 TimeSpan Span = Now.AddYears(999) - Now;
                 GuildHelper.SaveProfile(DB, Guild.Id, Message.Author.Id, Profile);
-                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODPERMMUTE, Span, $"Muted by AutoMod. {Warning}");
+                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODPERMMUTE, Span, $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
             }
             else if (Profile.Warnings >= Server.MaxWarningsToMute)
             {
                 GuildHelper.SaveProfile(DB, Guild.Id, Message.Author.Id, Profile);
-                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODMUTE, TimeSpan.FromDays(1), $"Muted by AutoMod. {Warning}");
+                await GuildHelper.MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODMUTE, TimeSpan.FromDays(1), $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
             }
             else
             {
                 GuildHelper.SaveProfile(DB, Guild.Id, Message.Author.Id, Profile);
-                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.WARNING, Warning);
+                await GuildHelper.LogAsync(DB, Guild, Message.Author, Guild.CurrentUser, CaseType.WARNING, $"{Warning} For saying: `{Message.Content}`");
             }
             await Message.Channel.SendMessageAsync(Warning);
         }

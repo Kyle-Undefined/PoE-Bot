@@ -37,8 +37,9 @@
         public IList<TagObject> Tags { get; set; } = new List<TagObject>();
         public IList<ulong> SelfRoles { get; set; } = new List<ulong>();
         public IList<CaseObject> UserCases { get; set; } = new List<CaseObject>();
-        public Dictionary<ulong, string> AFK { get; set; } = new Dictionary<ulong, string>();
         public IList<MessageObject> DeletedMessages { get; set; } = new List<MessageObject>();
+        public IList<string> ProfanityList { get; set; } = new List<string>();
+        public Dictionary<ulong, string> AFK { get; set; } = new Dictionary<ulong, string>();
         public Dictionary<ulong, ProfileObject> Profiles { get; set; } = new Dictionary<ulong, ProfileObject>();
         public ConcurrentDictionary<ulong, DateTime> Muted { get; set; } = new ConcurrentDictionary<ulong, DateTime>();
         public ConcurrentDictionary<ulong, List<RemindObject>> Reminders { get; set; } = new ConcurrentDictionary<ulong, List<RemindObject>>();

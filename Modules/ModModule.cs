@@ -610,5 +610,23 @@
                 User.RemoveRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
             return ReplyAndDeleteAsync($"Purity will prevail! *Users has been removed from Situation Room.* {Extras.OkHand}");
         }
+
+        [Command("Profanity Add"), Summary("Profanity Add <Word>"), Remarks("Adds a word to the Profanity List.")]
+        public Task ProfanityAddAsync(string Word)
+        {
+            Context.Server.ProfanityList.Add(Word.ToLower());
+            return ReplyAsync($"Death to sin! *`{Word}` has been added to the filter.* {Extras.OkHand}", Save: 's');
+        }
+
+        [Command("Profanity Remove"), Summary("Profanity Remove <Word>"), Remarks("Removes a word from the Profanity List.")]
+        public Task ProfanityRemoveAsync(string Word)
+        {
+            Context.Server.ProfanityList.Remove(Word.ToLower());
+            return ReplyAsync($"I like you better this way! *`{Word}` has been removed from the filter.* {Extras.OkHand}", Save: 's');
+        }
+
+        [Command("Profanity List"), Summary("Profanity List"), Remarks("Lists all words in the Profanity List.")]
+        public Task ProfanityListAsync()
+            => ReplyAsync($"`{String.Join("`,`", Context.Server.ProfanityList)}`");
     }
 }
