@@ -57,7 +57,11 @@
                 var Token = Console.ReadLine();
                 LogHandler.Write(Source.DTB, $"Enter bot's prefix: ");
                 var Prefix = Console.ReadLine();
-                Execute<ConfigObject>(Operation.CREATE, new ConfigObject { Prefix = Prefix, APIKeys = new Dictionary<string, string> { { "BT", Token }, { "TC", "" }, { "TA", "" } } }, "Config");
+                Execute<ConfigObject>(Operation.CREATE, new ConfigObject
+                {
+                    Prefix = Prefix,
+                    APIKeys = new Dictionary<string, string> { { "BT", Token }, { "TC", "" }, { "TA", "" } }
+                }, "Config");
                 File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DatabaseObject { IsConfigCreated = true }, Formatting.Indented));
             }
             Settings = null;
@@ -92,10 +96,7 @@
         {
             using (var Session = Store.OpenSession())
             {
-                var Load = Session.Load<T>($"{Id}");
-                if (Load == Data)
-                    return;
-                Load = (T)Data;
+                Session.Store((T)Data, $"{Id}");
                 Session.SaveChanges();
             }
         }
