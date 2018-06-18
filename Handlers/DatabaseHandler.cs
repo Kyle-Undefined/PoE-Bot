@@ -48,6 +48,9 @@
                     LocalSettings = new LocalSettings { FolderPath = Settings.BackupFolder }
                 }));
 
+            Store.AggressivelyCacheFor(TimeSpan.FromMinutes(1), Record.DatabaseName);
+            Store.AggressivelyCache(Record.DatabaseName);
+
             if (Settings.IsConfigCreated is false)
             {
                 LogHandler.Write(Source.DTB, $"Enter bot's token: ");
