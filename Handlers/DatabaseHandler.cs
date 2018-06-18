@@ -38,7 +38,7 @@
                 Store.Maintenance.Server.Send(new CreateDatabaseOperation(new DatabaseRecord(Settings.Name)));
 
             var Record = Store.Maintenance.Server.Send(new GetDatabaseRecordOperation(Settings.Name));
-            if (!Record.PeriodicBackups.Any(x => x.Name is "Backup"))
+            if (!Record.PeriodicBackups.All(x => !(x.Name is "Backup")))
                 Store.Maintenance.Send(new UpdatePeriodicBackupOperation(new PeriodicBackupConfiguration
                 {
                     Name = "Backup",
@@ -53,9 +53,9 @@
 
             if (Settings.IsConfigCreated is false)
             {
-                LogHandler.Write(Source.DTB, $"Enter bot's token: ");
+                LogHandler.Write(Source.DTB, "Enter bot's token: ");
                 var Token = Console.ReadLine();
-                LogHandler.Write(Source.DTB, $"Enter bot's prefix: ");
+                LogHandler.Write(Source.DTB, "Enter bot's prefix: ");
                 var Prefix = Console.ReadLine();
                 Execute<ConfigObject>(Operation.CREATE, new ConfigObject
                 {
@@ -83,8 +83,11 @@
 
                     case Operation.DELETE:
                         LogHandler.Write(Source.DTB, $"Removed => {typeof(T).Name} | ID: {Id}");
-                        Session.Delete<T>(Session.Load<T>($"{Id}")); break;
-                    case Operation.LOAD: return Session.Load<T>($"{Id}");
+                        Session.Delete(Session.Load<T>($"{Id}"));
+                        break;
+
+                    case Operation.LOAD:
+                        return Session.Load<T>($"{Id}");
                 }
                 Session.SaveChanges();
                 Session.Dispose();

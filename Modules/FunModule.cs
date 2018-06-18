@@ -18,10 +18,12 @@
     public class FunModule : BotBase
     {
         [Command("Clap"), Remarks("Replaces spaces in your message with a clap emoji."), Summary("Clap <Message>")]
-        public Task ClapAsync([Remainder] string Message) => ReplyAsync(Message.Replace(" ", " 👏 "));
+        public Task ClapAsync([Remainder] string Message)
+            => ReplyAsync(Message.Replace(" ", " 👏 "));
 
         [Command("Rate"), Remarks("Rates something for you out of 10."), Summary("Rate <ThingToRate>")]
-        public Task RateAsync([Remainder] string ThingToRate) => ReplyAsync($":thinking: Must I do everything myself? *I would rate '{ThingToRate}' a solid {Context.Random.Next(11)}/10*");
+        public Task RateAsync([Remainder] string ThingToRate)
+            => ReplyAsync($":thinking: Must I do everything myself? *I would rate '{ThingToRate}' a solid {Context.Random.Next(11)}/10*");
 
         [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <Text>")]
         public Task ExpandAsync([Remainder] string Text)

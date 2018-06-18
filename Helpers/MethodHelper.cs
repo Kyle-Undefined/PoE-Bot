@@ -11,7 +11,8 @@
 
     public class MethodHelper
     {
-        public static CancellationToken Cancellation(TimeSpan Time) => new CancellationTokenSource(Time).Token;
+        public static CancellationToken Cancellation(TimeSpan Time)
+            => new CancellationTokenSource(Time).Token;
 
         public static T RunSync<T>(Task<T> AsyncTask)
             => Task.Run(async ()
@@ -25,8 +26,6 @@
             }
             catch { }
         });
-
-        public static DateTime UnixDateTime(double Unix) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Local).AddSeconds(Unix);
 
         public static IEnumerable<Assembly> Assemblies
         {
