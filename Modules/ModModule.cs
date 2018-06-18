@@ -160,34 +160,11 @@
 
         [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles)]
         public Task UnMuteAsync(IGuildUser User)
-            => Context.GuildHelper.UnmuteUserAsync(Context, User as SocketGuildUser);
+            => Context.GuildHelper.UnmuteUserAsync(Context, User);
 
         [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
-        public async Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
-        {
-            var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
-            Profile.Warnings++;
-            if (Profile.Warnings >= Context.Server.MaxWarningsToPermMute)
-            {
-                DateTime Now = DateTime.Now;
-                TimeSpan Span = Now.AddYears(999) - Now;
-                await Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, (User as SocketGuildUser), Span, $"Muted permanently for reaching Max number of warnings. {Reason}", false);
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODPERMMUTE, $"Muted permanently due to reaching max number of warnings. {Reason}");
-            }
-            else if (Profile.Warnings >= Context.Server.MaxWarningsToMute)
-            {
-                await Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, (User as SocketGuildUser), TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {Reason}", false);
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODMUTE, $"Muted for 1 day due to reaching max number of warnings. {Reason}");
-            }
-            else
-            {
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.WARNING, Reason);
-                await ReplyAsync($"Purity will prevail! *`{User}` has been warned.* {Extras.Warning}");
-                string WarnMessage = $"**[Warned in {Context.Guild.Name}]** ```{Reason}```";
-                await User.SendMessageAsync(WarnMessage);
-            }
-            Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
-        }
+        public Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
+            => Context.GuildHelper.WarnUserAsync(Context, User, Reason);
 
         [Command("RemoveWarns"), Remarks("Removes a number of users warnings."), Summary("RemoveWarns <@User> <Amount>"), RequirePermission]
         public Task RemoveWarnsAsync(IGuildUser User, int Amount = 1)

@@ -240,18 +240,18 @@
             await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
         }
 
-        public async Task UnmuteUserAsync(IContext Context, SocketGuildUser User)
+        public async Task UnmuteUserAsync(IContext Context, IGuildUser User)
         {
             var MuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
             var TradeMuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
-            if (!User.Roles.Contains(MuteRole) && !User.Roles.Contains(TradeMuteRole))
+            if (!User.RoleIds.Contains(MuteRole.Id) && !User.RoleIds.Contains(TradeMuteRole.Id))
             {
                 await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have any mute role.*");
                 return;
             }
-            if (User.Roles.Contains(MuteRole))
+            if (User.RoleIds.Contains(MuteRole.Id))
                 await User.RemoveRoleAsync(MuteRole);
-            else if (User.Roles.Contains(TradeMuteRole))
+            else if (User.RoleIds.Contains(TradeMuteRole.Id))
                 await User.RemoveRoleAsync(TradeMuteRole);
             if (Context.Server.Muted.ContainsKey(User.Id))
                 Context.Server.Muted.TryRemove(User.Id, out _);
@@ -270,6 +270,59 @@
                 await User.RemoveRoleAsync(MuteRole);
             else if (User.Roles.Contains(TradeMuteRole))
                 await User.RemoveRoleAsync(TradeMuteRole);
+        }
+
+        public async Task WarnUserAsync(IContext Context, IGuildUser User, string Reason, MuteType MuteType = MuteType.MOD)
+        {
+            if (Context.Server.MaxWarningsToMute is 0 || Context.Server.MaxWarningsToPermMute is 0 || User.Id == Context.Guild.OwnerId ||
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.GuildPermissions.ManageChannels ||
+                User.GuildPermissions.ManageRoles || User.GuildPermissions.BanMembers || User.GuildPermissions.KickMembers)
+                return;
+            var Profile = GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
+            Profile.Warnings++;
+            if (Profile.Warnings >= Context.Server.MaxWarningsToPermMute)
+            {
+                DateTime Now = DateTime.Now;
+                TimeSpan Span = Now.AddYears(999) - Now;
+                await MuteUserAsync(Context, MuteType, User, Span, $"Muted permanently for reaching Max number of warnings. {Reason}", false);
+                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODPERMMUTE, $"Muted permanently due to reaching max number of warnings. {Reason}");
+            }
+            else if (Profile.Warnings >= Context.Server.MaxWarningsToMute)
+            {
+                await MuteUserAsync(Context, MuteType, User, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {Reason}", false);
+                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODMUTE, $"Muted for 1 day due to reaching max number of warnings. {Reason}");
+            }
+            else
+            {
+                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.WARNING, Reason);
+                await Context.Channel.SendMessageAsync($"Purity will prevail! *`{User}` has been warned.* {Extras.Warning}");
+            }
+            SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
+        }
+
+        public async Task WarnUserAsync(SocketUserMessage Message, GuildObject Server, DatabaseHandler DB, string Warning)
+        {
+            var Guild = (Message.Author as SocketGuildUser).Guild;
+            var User = Message.Author as SocketGuildUser;
+            if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToPermMute is 0 || User.Id == Guild.OwnerId ||
+                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.GuildPermissions.ManageChannels ||
+                User.GuildPermissions.ManageRoles || User.GuildPermissions.BanMembers || User.GuildPermissions.KickMembers)
+                return;
+            await Message.DeleteAsync();
+            var Profile = GetProfile(DB, Guild.Id, User.Id);
+            Profile.Warnings++;
+            if (Profile.Warnings >= Server.MaxWarningsToPermMute)
+            {
+                DateTime Now = DateTime.Now;
+                TimeSpan Span = Now.AddYears(999) - Now;
+                await MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODPERMMUTE, Span, $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
+            }
+            else if (Profile.Warnings >= Server.MaxWarningsToMute)
+                await MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODMUTE, TimeSpan.FromDays(1), $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
+            else
+                await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType.WARNING, $"{Warning} For saying: `{Message.Content}`");
+            SaveProfile(DB, Guild.Id, User.Id, Profile);
+            await Message.Channel.SendMessageAsync(Warning);
         }
     }
 }

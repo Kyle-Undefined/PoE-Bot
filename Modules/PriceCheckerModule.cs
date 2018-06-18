@@ -2,6 +2,7 @@
 {
     using System;
     using Discord;
+    using Discord.WebSocket;
     using System.Linq;
     using PoE.Bot.Addons;
     using Discord.Commands;
@@ -102,5 +103,9 @@
         [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for the specified time and reason."), Summary("Mute <@User> <Time> <Reason>"), RequireChannel("trade-board")]
         public Task MuteAsync(IGuildUser User, TimeSpan Time, [Remainder] string Reason)
             => Context.GuildHelper.MuteUserAsync(Context, MuteType.TRADE, User, Time, Reason);
+
+        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), RequireChannel("trade-board")]
+        public Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
+            => Context.GuildHelper.WarnUserAsync(Context, User, Reason, MuteType.TRADE);
     }
 }
