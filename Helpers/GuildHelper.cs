@@ -69,7 +69,7 @@
                 Number = Server.UserCases.Count + 1,
                 MessageId = Message is null ? 0 : Message.Id
             });
-            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+            DB.Save<GuildObject>(Server, Guild.Id);
         }
 
         public bool HierarchyCheck(IGuild IGuild, IGuildUser User)
@@ -85,7 +85,7 @@
             if (!Server.Profiles.ContainsKey(UserId))
             {
                 Server.Profiles.Add(UserId, new ProfileObject());
-                DB.Execute<GuildObject>(Operation.SAVE, Server, GuildId);
+                DB.Save<GuildObject>(Server, GuildId);
                 return Server.Profiles[UserId];
             }
             return Server.Profiles[UserId];
@@ -95,7 +95,7 @@
         {
             var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: GuildId);
             Server.Profiles[UserId] = Profile;
-            DB.Execute<GuildObject>(Operation.SAVE, Server, GuildId);
+            DB.Save<GuildObject>(Server, GuildId);
         }
 
         public ulong ParseUlong(string Value)
@@ -190,12 +190,12 @@
                 case MuteType.MOD:
                     await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
                     Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
-                    Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, Context.Guild.Id);
+                    Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
                     break;
                 case MuteType.TRADE:
                     await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.TradeMuteRole));
                     Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
-                    Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, Context.Guild.Id);
+                    Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
                     break;
             }
             if (LogMute)
@@ -221,7 +221,7 @@
 
             await User.AddRoleAsync(Guild.GetRole(Server.MuteRole));
             Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time));
-            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+            DB.Save<GuildObject>(Server, Guild.Id);
 
             await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType, $"{Reason} ({StringHelper.FormatTimeSpan(Time)})");
 

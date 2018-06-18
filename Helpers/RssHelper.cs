@@ -81,7 +81,7 @@
                 }
 
                 if (!string.IsNullOrEmpty(Embed.Title))
-                    await Channel.SendMessageAsync((!(RoleToMention is null) ? RoleToMention.Mention : null), embed: Embed.Build());
+                    await Channel.SendMessageAsync((RoleToMention?.Mention), embed: Embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
                     await Channel.SendMessageAsync(sb.ToString());
 
@@ -91,7 +91,7 @@
             }
 
             Feed.RecentUris = PostUrls;
-            DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+            DB.Save<GuildObject>(Server, Guild.Id);
         }
 
         private static async Task<RssDataObject> RssAsync(Uri RssFeed)

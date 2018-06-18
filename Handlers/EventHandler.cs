@@ -145,7 +145,7 @@
                 AuthorId = Message.Author.Id,
                 Content = Message.Content ?? Message.Attachments.FirstOrDefault().Url
             });
-            DB.Execute<GuildObject>(Operation.SAVE, Server, (Channel as SocketGuildChannel).Guild.Id);
+            DB.Save<GuildObject>(Server, (Channel as SocketGuildChannel).Guild.Id);
 
             if (Server.AllLog is 0)
                 return;

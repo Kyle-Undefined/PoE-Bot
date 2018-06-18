@@ -78,20 +78,23 @@
                         LogHandler.Write(Source.DTB, $"Removed => {typeof(T).Name} | ID: {Id}");
                         Session.Delete<T>(Session.Load<T>($"{Id}")); break;
                     case Operation.LOAD: return Session.Load<T>($"{Id}");
-                    case Operation.SAVE:
-                        var Load = Session.Load<T>($"{Id}");
-                        if (Session.Advanced.IsLoaded($"{Id}") is false || Load == Data)
-                            break;
-                        Session.Advanced.Evict(Load);
-                        Session.Store((T)Data, $"{Id}");
-                        Session.SaveChanges();
-                        break;
                 }
-                if (Operation is Operation.CREATE || Operation is Operation.DELETE)
-                    Session.SaveChanges();
+                Session.SaveChanges();
                 Session.Dispose();
             }
-            return null;
+            return default;
+        }
+
+        public void Save<T>(object Data, object Id) where T : class
+        {
+            using (var Session = Store.OpenSession())
+            {
+                var Load = Session.Load<T>($"{Id}");
+                if (Load == Data)
+                    return;
+                Load = (T)Data;
+                Session.SaveChanges();
+            }
         }
 
         public GuildObject[] Servers()
@@ -105,7 +108,6 @@
 
     public enum Operation
     {
-        SAVE,
         LOAD,
         DELETE,
         CREATE

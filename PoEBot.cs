@@ -47,7 +47,6 @@
             await Provider.GetRequiredService<MainHandler>().InitializeAsync();
             await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
             Provider.GetRequiredService<JobHandler>().Initialize();
-            Provider.GetRequiredService<JobHandler>().RunJob(LogHandler.ForceGC, "garbage collector", 10);
             await Task.Delay(-1);
         }
     }

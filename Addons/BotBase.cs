@@ -67,8 +67,8 @@
         {
             switch (Document)
             {
-                case 'c': Context.DBHandler.Execute<ConfigObject>(Operation.SAVE, Context.Config, "Config"); break;
-                case 's': Context.DBHandler.Execute<GuildObject>(Operation.SAVE, Context.Server, $"{Context.Guild.Id}"); break;
+                case 'c': Context.DBHandler.Save<ConfigObject>(Context.Config, "Config"); break;
+                case 's': Context.DBHandler.Save<GuildObject>(Context.Server, $"{Context.Guild.Id}"); break;
                 case 'n': break;
             }
         }

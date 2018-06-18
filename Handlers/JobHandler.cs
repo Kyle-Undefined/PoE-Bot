@@ -16,14 +16,14 @@
         {
             DB = dB;
             Client = client;
-            JobManager.JobEnd += (Info)
-                => LogHandler.Write(Source.EVT, $"Finished {Info.Name} in {Info.Duration}");
             JobManager.JobException += (Info)
                 => LogHandler.Write(Source.EXC, $"Exception ocurred in {Info.Name} job.\n{Info.Exception.Message}\n{Info.Exception.StackTrace}");
         }
 
         public void Initialize()
         {
+            Schedule(()=> LogHandler.ForceGC()).ToRunEvery(10).Minutes();
+
             Schedule(() =>
             {
                 foreach (var Server in DB.Servers().Where(x => !x.Muted.IsEmpty))
@@ -31,9 +31,9 @@
                     {
                         Server.Muted.TryRemove(Mute.Key, out _);
                         MethodHelper.RunSync(GuildHelper.UnmuteUserAsync(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
-                        DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                        DB.Save<GuildObject>(Server, Server.Id);
                     }
-            }).WithName("timed mute").ToRunEvery(1).Minutes().DelayFor(2).Seconds();
+            }).WithName("mute").ToRunEvery(1).Minutes().DelayFor(2).Seconds();
 
             Schedule(() =>
             {
@@ -73,7 +73,7 @@
 
                         }
                         if (RemindersCount != Server.Reminders.Count)
-                            DB.Execute<GuildObject>(Operation.SAVE, Server, Server.Id);
+                            DB.Save<GuildObject>(Server, Server.Id);
                     }
                 }
             }).WithName("reminders").ToRunEvery(1).Minutes();
@@ -98,30 +98,9 @@
                 foreach (var Server in DB.Servers().Where(x => x.RssFeed && x.RssFeeds.Any()))
                     foreach (var Feed in Server.RssFeeds)
                         MethodHelper.RunSync(RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
-            }).WithName("rss feeds").ToRunEvery(5).Minutes();
+            }).WithName("rss").ToRunEvery(5).Minutes();
 
             JobManager.Initialize(this);
         }
-
-        public void RunJob(Action action, string Name, int Interval, Time Time = Time.MINUTES)
-            => JobManager.AddJob(() => action(), Sch =>
-            {
-                var Set = Sch.WithName(Name).ToRunEvery(Interval);
-                switch (Time)
-                {
-                    case Time.HOURS: Set.Hours(); break;
-                    case Time.MINUTES: Set.Minutes(); break;
-                }
-            });
-
-        public void RemoveJob(string Name) => JobManager.RemoveJob(Name);
-
-        public void ClearJobs() => JobManager.StopAndBlock();
-    }
-
-    public enum Time
-    {
-        HOURS,
-        MINUTES,
     }
 }

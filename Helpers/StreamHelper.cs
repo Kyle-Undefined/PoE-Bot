@@ -42,7 +42,7 @@
                         await Channel.SendMessageAsync(embed: Embed);
 
                         Stream.IsLive = true;
-                        DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+                        DB.Save<GuildObject>(Server, Guild.Id);
                     }
                     break;
 
@@ -78,7 +78,7 @@
                                 await Channel.SendMessageAsync(embed: Embed);
 
                                 Stream.IsLive = true;
-                                DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+                                DB.Save<GuildObject>(Server, Guild.Id);
                             }
                         }
                     }
@@ -86,7 +86,7 @@
             }
 
             if (streamWasLive && !Stream.IsLive)
-                DB.Execute<GuildObject>(Operation.SAVE, Server, Guild.Id);
+                DB.Save<GuildObject>(Server, Guild.Id);
         }
     }
 
