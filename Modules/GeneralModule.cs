@@ -50,7 +50,7 @@
                 await ReplyAsync(Message.Item2);
                 return;
             }
-            var Channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.ReportChannel) as IMessageChannel;
+            var Channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.FeedbackChannel) as IMessageChannel;
             await Channel.SendMessageAsync(Message.Item2);
             await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
         }

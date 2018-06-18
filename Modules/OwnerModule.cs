@@ -16,7 +16,7 @@
     [Name("Owner Commands"), RequireOwner]
     public class OwnerModule : BotBase
     {
-        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information. Action: a: avatar, u: username, s: status, n: nickname, r: reportchannel, t: twitchauth, p: prefix"), Summary("Update <Action> [Value]")]
+        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information. Action: a: avatar, u: username, s: status, n: nickname, f: feedback channel, t: twitchauth, p: prefix"), Summary("Update <Action> [Value]")]
         public async Task UpdateAsync(char Action, [Remainder] string Value = null)
         {
             char Save = 'n';
@@ -35,8 +35,8 @@
                 case 'n':
                     await (await Context.Guild.GetCurrentUserAsync(CacheMode.AllowDownload)).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(Value) ? Context.Client.CurrentUser.Username : Value);
                     break;
-                case 'r':
-                    Context.Config.ReportChannel = string.IsNullOrWhiteSpace(Value) ? 0 : Context.GuildHelper.ParseUlong(Value);
+                case 'f':
+                    Context.Config.FeedbackChannel = string.IsNullOrWhiteSpace(Value) ? 0 : Context.GuildHelper.ParseUlong(Value);
                     Save = 'c';
                     break;
                 case 't':
