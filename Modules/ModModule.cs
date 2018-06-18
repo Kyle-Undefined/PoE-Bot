@@ -160,20 +160,7 @@
 
         [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles)]
         public Task UnMuteAsync(IGuildUser User)
-        {
-            var user = User as SocketGuildUser;
-            var MuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
-            var TradeMuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
-            if (!user.Roles.Contains(MuteRole) && !user.Roles.Contains(TradeMuteRole))
-                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have any mute role.*");
-            if (user.Roles.Contains(MuteRole))
-                user.RemoveRoleAsync(MuteRole);
-            else if (user.Roles.Contains(TradeMuteRole))
-                user.RemoveRoleAsync(TradeMuteRole);
-            if (Context.Server.Muted.ContainsKey(User.Id))
-                Context.Server.Muted.TryRemove(User.Id, out _);
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}", Save: 's');
-        }
+            => Context.GuildHelper.UnmuteUserAsync(Context, User as SocketGuildUser);
 
         [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
         public async Task WarnAysnc(IGuildUser User, [Remainder] string Reason)

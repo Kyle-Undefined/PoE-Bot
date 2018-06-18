@@ -240,6 +240,25 @@
             await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
         }
 
+        public async Task UnmuteUserAsync(IContext Context, SocketGuildUser User)
+        {
+            var MuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            var TradeMuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!User.Roles.Contains(MuteRole) && !User.Roles.Contains(TradeMuteRole))
+            {
+                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have any mute role.*");
+                return;
+            }
+            if (User.Roles.Contains(MuteRole))
+                await User.RemoveRoleAsync(MuteRole);
+            else if (User.Roles.Contains(TradeMuteRole))
+                await User.RemoveRoleAsync(TradeMuteRole);
+            if (Context.Server.Muted.ContainsKey(User.Id))
+                Context.Server.Muted.TryRemove(User.Id, out _);
+            Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
+            await Context.Channel.SendMessageAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}");
+        }
+
         public static async Task UnmuteUserAsync(ulong UserId, SocketGuild Guild, GuildObject Server)
         {
             var User = Guild.GetUser(UserId);
