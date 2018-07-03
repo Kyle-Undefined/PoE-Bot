@@ -42,7 +42,7 @@
                     foreach (var kvpReminder in server.Reminders.Where(x => x.Value.Any()))
                     {
                         server.Reminders.TryGetValue(kvpReminder.Key, out var reminders);
-                        foreach(RemindObject reminder in reminders.ToList())
+                        foreach (RemindObject reminder in reminders.ToList())
                         {
                             if (!(reminder.ExpiryDate <= DateTime.Now))
                                 continue;

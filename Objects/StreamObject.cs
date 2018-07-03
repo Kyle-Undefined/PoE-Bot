@@ -8,12 +8,12 @@
 
     public class StreamObject
     {
+        public ulong ChannelId { get; set; }
         public bool IsLive { get; set; }
-        public StreamType StreamType { get; set; }
-        public string Name { get; set; }
-        public string TwitchUserId { get; set; }
         public uint MixerChannelId { get; set; }
         public uint MixerUserId { get; set; }
-        public ulong ChannelId { get; set; }
+        public string Name { get; set; }
+        public StreamType StreamType { get; set; }
+        public string TwitchUserId { get; set; }
     }
 }

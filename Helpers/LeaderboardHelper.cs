@@ -263,7 +263,7 @@
                     foreach (LeaderboardData racer in totalWitchs.Take(10))
                         sb.AppendLine($"{racer.Character.PadRight(24)}R:{racer.Rank,5} | L:{racer.Level,3} | {racer.Class.ToString(),14}{(racer.Dead ? " | X" : null)}");
                     embed.AddField("Witches, Necromancers, Occultists, Elemantalists", $"```{sb.ToString()}```");
-                }               
+                }
 
                 EmbedBuilder embedClasses = Extras.Embed(Extras.Leaderboard)
                     .WithTitle("Top 10 Characters of each Class")

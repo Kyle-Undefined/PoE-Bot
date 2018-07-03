@@ -1,10 +1,10 @@
 ﻿namespace PoE.Bot.Handlers
 {
-    using Console = Colorful.Console;
     using System;
     using System.Drawing;
     using System.IO;
     using System.Threading.Tasks;
+    using Console = Colorful.Console;
 
     public enum Source
     {
