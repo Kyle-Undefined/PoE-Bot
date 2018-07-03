@@ -289,7 +289,10 @@
             => Context.Message.DeleteAsync().ContinueWith(_ =>
             {
                 SocketGuildUser user = Context.User as SocketGuildUser;
-                if (!Context.Server.SelfRoles.Contains(role.Id))
+                IRole mainRole = Context.Guild.GetRole(Context.Server.MainRole);
+                if (!user.Roles.Contains(mainRole))
+                    return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you haven't accepted the rules, please type !iagree first.");
+                else if (!Context.Server.SelfRoles.Contains(role.Id))
                     return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you can't assign this role.");
                 else if (user.Roles.Contains(role))
                     return ReplyAndDeleteAsync($"{Extras.Cross} Exile, you already have this role.");
