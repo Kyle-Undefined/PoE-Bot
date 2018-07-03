@@ -262,7 +262,7 @@
                     return ReplyAsync($"I like you better this way! *`{word}` has been removed from the filter.* {Extras.OkHand}", save: DocumentType.Server);
 
                 case CommandAction.List:
-                    return ReplyAsync($"`{String.Join("`,`", Context.Server.ProfanityList)}`");
+                    return ReplyAsync($"`{String.Join("`,`", Context.Server.ProfanityList.Sort())}`");
 
                 default:
                     return ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.");

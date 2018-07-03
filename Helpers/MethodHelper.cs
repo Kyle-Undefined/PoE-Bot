@@ -56,5 +56,24 @@
 
         public static T RunSync<T>(Task<T> asyncTask)
             => Task.Run(async () => await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10)))).GetAwaiter().GetResult();
+
+        public static IList<T> Sort<T>(this IList<T> list)
+        {
+            if (list is List<T>)
+                ((List<T>)list).Sort();
+            else
+            {
+                List<T> copy = new List<T>(list);
+                copy.Sort();
+                Copy(copy, 0, list, 0, list.Count);
+            }
+            return list;
+        }
+
+        private static void Copy<T>(IList<T> sourceList, int sourceIndex, IList<T> destinationList, int destinationIndex, int count)
+        {
+            for (int i = 0; i < count; i++)
+                destinationList[destinationIndex + i] = sourceList[sourceIndex + i];
+        }
     }
 }
