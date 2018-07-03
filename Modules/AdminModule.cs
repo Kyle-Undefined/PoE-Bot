@@ -21,7 +21,6 @@
             DevChan,
             MainRole,
             MaxWarnMute,
-            MaxWarnPermMute,
             ModLog,
             MuteRole,
             Prefix,
@@ -172,12 +171,6 @@
                     Context.Server.TradeMuteRole = role;
                     break;
 
-                case Setting.MaxWarnPermMute:
-                    if (!int.TryParse(value, out int parsedK) || parsedK > 10)
-                        return ReplyAsync($"{Extras.Cross} value provided in incorrect format. Must be an number no greater than 10.");
-                    Context.Server.MaxWarningsToPermMute = parsedK;
-                    break;
-
                 case Setting.MaxWarnMute:
                     if (!int.TryParse(value, out int parsedM) || parsedM > 10)
                         return ReplyAsync($"{Extras.Cross} value provided in incorrect format. Must be an number no greater than 10.");
@@ -197,7 +190,6 @@
                        "`MainRole` Changes role users get when they agree to rules (Mention role)\n" +
                        "`MuteRole` Changes mute role (Mention role)\n" +
                        "`TradeMuteRole` Changes trade board mute role (Mention role)\n" +
-                       "`MaxWarnPermMute` Changes max number of warnings before Perm Mute (0 = Disabled)\n" +
                        "`MaxWarnMute` Changes max number of warnings before Mute (0 = Disabled)\n");
             }
             return ReplyAsync($"`{setting}` has been updated {Extras.OkHand}", save: DocumentType.Server);
@@ -234,7 +226,6 @@
                 $"+ Twitch Stream              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.Twitch)}\n" +
                 $"+ Leaderboard Variants       : {Context.Server.Leaderboards.Count}\n" +
                 $"+ Max Warnings (Mute)        : {Context.Server.MaxWarningsToMute}\n" +
-                $"+ Max Warnings (Perm Mute)   : {Context.Server.MaxWarningsToPermMute}\n" +
                 "```",
 
                 "```diff\n+ Server Statistics\n\n" +
@@ -245,7 +236,6 @@
                 $"- Users Mass Kicked     : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Kicks)}\n" +
                 $"- Users Warned          : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Warning)}\n" +
                 $"- Users Muted           : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Mute)}\n" +
-                $"- Auto Mod Perm Mutes   : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.AutoModPermMute)}\n" +
                 $"- Auto Mod Mutes        : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.AutoModMute)}\n" +
                 $"- Total Currencies      : {Context.Server.Prices.Count}\n" +
                 $"- Total Shop Items      : {Context.Server.Shops.Count}\n" +
@@ -296,7 +286,6 @@
                 await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
             Context.Server.TradeMuteRole = tradeMuteRole.Id;
 
-            Context.Server.MaxWarningsToPermMute = 6;
             Context.Server.MaxWarningsToMute = 3;
 
             Context.Server.IsConfigured = true;

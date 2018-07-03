@@ -111,8 +111,7 @@
                         $"Cases: {userCases.Count()}\n" +
                         $"Warnings: {userCases.Count(x => x.CaseType == CaseType.Warning)}\n" +
                         $"Mutes: {userCases.Count(x => x.CaseType == CaseType.Mute)}\n" +
-                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n" +
-                        $"Auto Perm Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModPermMute)}")
+                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n")
                     .AddField("reason", caseObject.Reason)
                     .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()

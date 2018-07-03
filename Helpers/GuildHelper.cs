@@ -79,8 +79,7 @@
                         $"Cases: {userCases.Count()}\n" +
                         $"Warnings: {userCases.Count(x => x.CaseType == CaseType.Warning)}\n" +
                         $"Mutes: {userCases.Count(x => x.CaseType == CaseType.Mute)}\n" +
-                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n" +
-                        $"Auto Perm Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModPermMute)}")
+                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n")
                     .AddField("Reason", reason)
                     .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()
@@ -246,7 +245,7 @@
 
         public static async Task WarnUserAsync(Context context, IGuildUser user, string reason, MuteType muteType = MuteType.Mod)
         {
-            if (context.Server.MaxWarningsToMute is 0 || context.Server.MaxWarningsToPermMute is 0 || user.Id == context.Guild.OwnerId ||
+            if (context.Server.MaxWarningsToMute is 0 || user.Id == context.Guild.OwnerId ||
                 user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
                 user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
                 return;
@@ -254,14 +253,7 @@
             ProfileObject profile = GetProfile(context.DatabaseHandler, context.Guild.Id, user.Id);
             profile.Warnings++;
 
-            if (profile.Warnings >= context.Server.MaxWarningsToPermMute)
-            {
-                DateTime now = DateTime.Now;
-                TimeSpan span = now.AddYears(999) - now;
-                await MuteUserAsync(context, muteType, user, span, $"Muted permanently for reaching Max number of warnings. {reason}", false);
-                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModPermMute, $"Muted permanently due to reaching max number of warnings. {reason}");
-            }
-            else if (profile.Warnings >= context.Server.MaxWarningsToMute)
+            if (profile.Warnings >= context.Server.MaxWarningsToMute)
             {
                 await MuteUserAsync(context, muteType, user, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {reason}", false);
                 await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModMute, $"Muted for 1 day due to reaching max number of warnings. {reason}");
@@ -279,7 +271,7 @@
             {
                 SocketGuild guild = (message.Author as SocketGuildUser).Guild;
                 SocketGuildUser user = message.Author as SocketGuildUser;
-                if (server.MaxWarningsToMute is 0 || server.MaxWarningsToPermMute is 0 || user.Id == guild.OwnerId ||
+                if (server.MaxWarningsToMute is 0 || user.Id == guild.OwnerId ||
                     user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
                     user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
                     return;
@@ -287,13 +279,7 @@
                 ProfileObject profile = GetProfile(databaseHandler, guild.Id, user.Id);
                 profile.Warnings++;
 
-                if (profile.Warnings >= server.MaxWarningsToPermMute)
-                {
-                    DateTime now = DateTime.Now;
-                    TimeSpan span = now.AddYears(999) - now;
-                    await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModPermMute, span, $"Muted by AutoMod. {warning} For saying: `{message.Content}`");
-                }
-                else if (profile.Warnings >= server.MaxWarningsToMute)
+                if (profile.Warnings >= server.MaxWarningsToMute)
                     await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModMute, TimeSpan.FromDays(1), $"Muted by AutoMod. {warning} For saying: `{message.Content}`");
                 else
                     await LogAsync(databaseHandler, guild, user, guild.CurrentUser, CaseType.Warning, $"{warning} For saying: `{message.Content}`");
