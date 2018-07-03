@@ -17,14 +17,31 @@
     public class ModModule : BotBase
     {
         [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
-        public Task BanAsync(IGuildUser user, [Remainder] string reason = null)
+        public async Task BanAsync(IGuildUser user, [Remainder] string reason = null)
         {
             if (Context.Guild.HierarchyCheck(user))
-                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*");
+            {
+                await ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*");
+                return;
+            }
 
-            Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
+            try
+            {
+                Embed embed = Extras.Embed(Extras.Info)
+                    .WithAuthor(Context.User)
+                    .WithTitle("Mod Action")
+                    .WithDescription($"You were banned in the {Context.Guild.Name} server.")
+                    .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                    .AddField("Reason", reason)
+                    .Build();
+
+                await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+            }
+            catch { }
+
+            await Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
             _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Ban, reason);
-            return ReplyAsync($"You are remembered only for the mess you leave behind. *`{user}` was banned.* {Extras.Hammer}");
+            await ReplyAsync($"You are remembered only for the mess you leave behind. *`{user}` was banned.* {Extras.Hammer}");
         }
 
         [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@user1> <@user2> ..."), BotPermission(GuildPermission.BanMembers)]
@@ -153,14 +170,31 @@
         }
 
         [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@user> [reason]"), BotPermission(GuildPermission.KickMembers)]
-        public Task KickAsync(IGuildUser user, [Remainder] string reason = null)
+        public async Task KickAsync(IGuildUser user, [Remainder] string reason = null)
         {
             if (Context.Guild.HierarchyCheck(user))
-                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{user}` is higher than I.");
+            {
+                await ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{user}` is higher than I.");
+                return;
+            }
 
-            user.KickAsync(reason);
+            try
+            {
+                Embed embed = Extras.Embed(Extras.Info)
+                    .WithAuthor(Context.User)
+                    .WithTitle("Mod Action")
+                    .WithDescription($"You were kicked in the {Context.Guild.Name} server.")
+                    .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                    .AddField("Reason", reason)
+                    .Build();
+
+                await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+            }
+            catch { }
+
+            await user.KickAsync(reason);
             _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kick, reason);
-            return ReplyAsync($"Death to sin! *`{user}` was kicked.* {Extras.Hammer}");
+            await ReplyAsync($"Death to sin! *`{user}` was kicked.* {Extras.Hammer}");
         }
 
         [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@user1> <@user2> ..."), BotPermission(GuildPermission.KickMembers)]
