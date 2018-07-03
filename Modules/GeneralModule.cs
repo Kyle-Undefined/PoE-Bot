@@ -138,6 +138,10 @@
             => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync()).Select(i =>
                 $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites");
 
+        [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
+        public Task LabAsync()
+            => ReplyAsync("https://www.poelab.com/ \n**Please be sure to turn off any Ad Blockers you have to help the team keep doing Izaros work.**");
+
         [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
         public async Task PingAsync()
             => await ReplyAsync(embed: Extras.Embed(Extras.Info)

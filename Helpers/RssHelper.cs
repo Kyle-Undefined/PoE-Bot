@@ -17,82 +17,108 @@
 
     public class RssHelper
     {
-        public static async Task<IAsyncResult> BuildAndSend(RssObject Feed, SocketGuild Guild, GuildObject Server, DatabaseHandler DB)
+        public static async Task<IAsyncResult> BuildAndSend(RssObject feed, SocketGuild guild, GuildObject server, DatabaseHandler databaseHandler)
         {
-            var PostUrls = Feed.RecentUris.Any() ? Feed.RecentUris : new List<string>();
-            RssDataObject CheckRss = await RssAsync(Feed.FeedUri).ConfigureAwait(false);
-            if (CheckRss is null)
+            var postUrls = feed.RecentUris.Any() ? feed.RecentUris : new List<string>();
+            RssDataObject checkRss = await RssAsync(feed.FeedUri).ConfigureAwait(false);
+            if (checkRss is null)
                 return Task.CompletedTask;
 
-            foreach (RssItem Item in CheckRss.Data.Items.Take(10).Reverse())
+            foreach (RssItem item in checkRss.Data.Items.Take(10).Reverse())
             {
-                if (PostUrls.Contains(Item.Link))
+                if (postUrls.Contains(item.Link))
                     continue;
 
-                SocketTextChannel Channel = Guild.GetChannel(Feed.ChannelId) as SocketTextChannel;
-                EmbedBuilder Embed = Extras.Embed(Extras.RSS);
+                SocketTextChannel channel = guild.GetChannel(feed.ChannelId) as SocketTextChannel;
+                EmbedBuilder embed = Extras.Embed(Extras.RSS);
                 StringBuilder sb = new StringBuilder();
 
-                string Description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(Item.Description)));
-                Description = Description.Length > 800 ? $"{Description.Substring(0, 800)} [...]" : Description;
+                string description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(item.Description)));
+                description = description.Length > 800 ? $"{description.Substring(0, 800)} [...]" : description;
 
-                switch (Feed.FeedUri.ToString().Contains("gggtracker"))
+                switch (feed.FeedUri)
                 {
-                    case true:
+                    case Uri uri when feed.FeedUri.Host is "www.gggtracker.com":
                         sb.AppendLine("-----------------------------------------------------------");
-                        sb.AppendLine($":newspaper: ***{Item.Title}***\n");
-                        sb.AppendLine(Item.Link);
-                        sb.AppendLine($"```{Description}```");
+                        sb.AppendLine($":newspaper: ***{item.Title}***\n");
+                        sb.AppendLine(item.Link);
+                        sb.AppendLine($"```{description}```");
+
+                        break;
+
+                    case Uri uri when feed.FeedUri.Host is "www.poelab.com":
+                        sb.AppendLine("-----------------------------------------------------------");
+                        sb.AppendLine($"***{item.Title}***\n");
+                        sb.AppendLine(item.Link);
+
+                        string labDescription = "Lab notes not added.";
+
+                        if(item.Comments > 0 && item.Title.Contains("Uber"))
+                        {
+                            RssDataObject commentRSS = await RssAsync(new Uri(item.CommentRss)).ConfigureAwait(false);
+                            RssItem comment = commentRSS.Data.Items.FirstOrDefault(c => c.Title is "By: SuitSizeSmall");
+                            if (!(comment is null))
+                                labDescription = comment.Description;
+                        }
+
+                        sb.AppendLine($"```{labDescription}```");
+
+                        break;
+
+                    case Uri uri when feed.FeedUri.Host is "www.pathofexile.com":
+                        embed.WithTitle(item.Title)
+                            .WithDescription(description)
+                            .WithUrl(item.Link)
+                            .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
+
+                        string newsImage = GetAnnouncementImage(item.Link);
+                        if (!string.IsNullOrWhiteSpace(newsImage))
+                            embed.WithImageUrl(newsImage);
 
                         break;
 
                     default:
-                        Embed.WithTitle(Item.Title)
-                            .WithDescription(Description)
-                            .WithUrl(Item.Link)
-                            .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(Item.PubDate).ToUniversalTime()));
-
-                        string newsImage = GetAnnouncementImage(Item.Link);
-                        if (!string.IsNullOrWhiteSpace(newsImage))
-                            Embed.WithImageUrl(newsImage);
+                        sb.AppendLine($"***{item.Title}***\n");
+                        sb.AppendLine(item.Link);
+                        sb.AppendLine($"```{description}```");
 
                         break;
                 }
 
-                IRole RoleToMention = null;
-                if (Feed.RoleIds.Any())
+                IRole roleToMention = null;
+                if (feed.RoleIds.Any())
                 {
-                    foreach (ulong RoleId in Feed.RoleIds)
+                    foreach (ulong RoleId in feed.RoleIds)
                     {
-                        IRole Role = Guild.GetRole(RoleId);
-                        if (Role.Name.ToLower().Contains("everyone") && !string.IsNullOrEmpty(Feed.Tag))
+                        IRole Role = guild.GetRole(RoleId);
+                        if (Role.Name.ToLower().Contains("everyone") && !string.IsNullOrEmpty(feed.Tag))
                         {
-                            if (Embed.Title.ToLower().Contains(Feed.Tag.ToLower()))
+                            if (embed.Title.ToLower().Contains(feed.Tag.ToLower()))
                             {
-                                RoleToMention = Role;
+                                roleToMention = Role;
                                 break;
                             }
                         }
                         else if (!Role.Name.ToLower().Contains("everyone"))
                         {
-                            RoleToMention = Role;
+                            roleToMention = Role;
                             break;
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(Embed.Title))
-                    await Channel.SendMessageAsync((RoleToMention?.Mention), embed: Embed.Build());
+                if (!string.IsNullOrEmpty(embed.Title))
+                    await channel.SendMessageAsync((roleToMention?.Mention), embed: embed.Build());
                 else if (!string.IsNullOrEmpty(sb.ToString()))
-                    await Channel.SendMessageAsync(sb.ToString());
+                    await channel.SendMessageAsync(sb.ToString());
 
-                PostUrls.Add(Item.Link);
+                postUrls.Add(item.Link);
 
                 await Task.Delay(900);
             }
 
-            Feed.RecentUris = PostUrls;
-            DB.Save<GuildObject>(Server, Guild.Id);
+            feed.RecentUris = postUrls;
+            databaseHandler.Save<GuildObject>(server, guild.Id);
             return Task.CompletedTask;
         }
 
@@ -143,11 +169,11 @@
             return val;
         }
 
-        private static async Task<RssDataObject> RssAsync(Uri RssFeed)
+        private static async Task<RssDataObject> RssAsync(Uri rssFeed)
         {
             HttpResponseMessage response;
             using (HttpClient client = new HttpClient())
-                response = await client.GetAsync(RssFeed).ConfigureAwait(false);
+                response = await client.GetAsync(rssFeed).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return null;
 
@@ -213,6 +239,12 @@
 
             [XmlElement("title")]
             public string Title { get; set; }
+
+            [XmlElement(ElementName = "commentRss", Namespace = "http://wellformedweb.org/CommentAPI/")]
+            public string CommentRss { get; set; }
+
+            [XmlElement(ElementName = "comments", Namespace = "http://purl.org/rss/1.0/modules/slash/")]
+            public int Comments { get; set; }
         }
     }
 }

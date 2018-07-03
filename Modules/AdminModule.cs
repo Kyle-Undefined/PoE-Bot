@@ -9,6 +9,7 @@
     using Objects;
     using System;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
 
     [Name("Admin Commands"), RequireAdmin, Ratelimit]
@@ -47,7 +48,10 @@
             {
                 case CommandAction.Add:
                     if (Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
+                    {
                         await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` already exists.");
+                        return;
+                    }
 
                     Context.Server.RssFeeds.Add(new RssObject
                     {
@@ -61,7 +65,10 @@
 
                 case CommandAction.Delete:
                     if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
+                    {
                         await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.");
+                        return;
+                    }
 
                     RssObject rssObject = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id);
                     Context.Server.RssFeeds.Remove(rssObject);
@@ -69,9 +76,14 @@
                     break;
 
                 case CommandAction.List:
+                    StringBuilder sb = new StringBuilder();
+                    if (Context.Server.RssFeeds.Any())
+                        foreach (RssObject feed in Context.Server.RssFeeds)
+                            sb.AppendLine($"Feed: {feed.FeedUri} | Channel: {(await Context.Guild.GetTextChannelAsync(feed.ChannelId)).Mention} | Tag: {feed.Tag} | Role(s): {String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => feed.RoleIds.Contains(r.Id)).Select(r => r.Name))}\n");
+
                     await ReplyAsync(!Context.Server.RssFeeds.Any()
                         ? $"{Extras.Cross}This server isn't subscribed to any feeds."
-                        : $"**Subbed To Following rss Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(async f => $"Feed: {f.FeedUri} | channel: {(await Context.Guild.GetTextChannelAsync(f.ChannelId)).Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");
+                        : sb.ToString());
                     break;
 
                 default:
@@ -207,7 +219,7 @@
                 $"Rules channel      : {Context.Guild.ValidateChannel(Context.Server.RulesChannel)}\n" +
                 $"Bot Change channel : {Context.Guild.ValidateChannel(Context.Server.BotChangeChannel)}\n" +
                 $"Developer channel  : {Context.Guild.ValidateChannel(Context.Server.DevChannel)}\n" +
-                $"role Set channel   : {Context.Guild.ValidateChannel(Context.Server.RoleSetChannel)}\n" +
+                $"Role Set channel   : {Context.Guild.ValidateChannel(Context.Server.RoleSetChannel)}\n" +
                 $"AFK Users          : {Context.Server.AFK.Count}\n" +
                 "```",
 
