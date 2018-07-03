@@ -240,8 +240,8 @@
             }
         }
 
-        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
-        public Task MuteAsync(IGuildUser user, TimeSpan? time = null, [Remainder] string reason = null)
+        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
+        public Task MuteAsync(IGuildUser user, TimeSpan? time, [Remainder] string reason = null)
             => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, (time.HasValue ? time : TimeSpan.FromMinutes(5)), (!(reason is null) ? reason : "No reason specified."));
 
         [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@user> [reason]"), BotPermission(GuildPermission.ManageRoles)]
