@@ -193,7 +193,6 @@
                 .AddField($"{price.Name.Replace("_", " ")} in {league} league", $"```{price.Alias}```")
                 .AddField("Ratio", $"```{price.Quantity}:{price.Price}c```")
                 .AddField("Last Updated", $"```{price.LastUpdated}```")
-                .AddField("Updated By", user.Mention)
                 .WithFooter("Please be mindful of the Last Updated date and time, as these prices are gathered through community feedback. As you do your trades, if you could kindly report your ratios to a @Price Checker, we would greatly appreciate it as it keeps the prices current.")
                 .Build();
 
@@ -207,8 +206,7 @@
                 $"**{x.Name.Replace("_", " ")}**\n" +
                 $"*{x.Alias}*\n" +
                 $"Ratio: {x.Quantity}:{x.Price}c\n" +
-                $"Last Updated: {x.LastUpdated}\n" +
-                $"Updated By: { (Context.Guild.GetUserAsync(x.UserId).GetAwaiter().GetResult() as IUser).Mention}\n");
+                $"Last Updated: {x.LastUpdated}\n");
             return PagedReplyAsync(MethodHelper.Pages(prices), $"{league} Price List");
         }
 
