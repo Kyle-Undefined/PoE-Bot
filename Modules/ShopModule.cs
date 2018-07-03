@@ -25,8 +25,16 @@
             return ReplyAsync($"Your humble servant thanks you, my God. *`{item}` has been added to your shop.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
+        [Command("Clear"), Remarks("Clears all items from your shop."), Summary("Shop Clear")]
+        public Task ClearAsync()
+        {
+            foreach (ShopObject item in Context.Server.Shops.Where(s => s.UserId == Context.User.Id).ToList())
+                Context.Server.Shops.Remove(item);
+            return ReplyAsync($"Your trust is the only reward I need, my Lord of light. *All items have been removed from your shop.* {Extras.OkHand}", save: DocumentType.Server);
+        }
+
         [Command("Delete"), Remarks("Deletes the item from your shop. Item has to be an exact match to what you want to delete"), Summary("Shop Delete <league> <item>")]
-        public Task Delete(Leagues league, [Remainder] string item)
+        public Task DeleteAsync(Leagues league, [Remainder] string item)
         {
             if (!Context.Server.Shops.Any(s => s.Item == item && s.League == league && s.UserId == Context.User.Id))
                 return ReplyAsync($"{Extras.Cross} I'm no beast of burden. *`{item}` was not found in your shop.*");
