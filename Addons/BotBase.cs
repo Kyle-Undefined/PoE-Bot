@@ -1,76 +1,85 @@
 ﻿namespace PoE.Bot.Addons
 {
-    using System;
     using Discord;
-    using PoE.Bot.Handlers;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Addons.Interactive;
+    using Interactive;
+    using Interactive.Criterias;
+    using Interactive.Paginator;
+    using Objects;
+    using System;
     using System.Collections.Generic;
-    using PoE.Bot.Addons.Interactive.Criterias;
-    using PoE.Bot.Addons.Interactive.Paginator;
+    using System.Threading.Tasks;
 
-    public class BotBase : ModuleBase<IContext>
+    public class BotBase : ModuleBase<Context>
     {
+        public enum CommandAction
+        {
+            Add,
+            Delete,
+            List,
+            Update,
+        }
+
+        public enum DocumentType
+        {
+            Config,
+            None,
+            Server
+        }
+
         public InteractiveService Interactive { get; set; }
-        public async Task<IUserMessage> ReplyAsync(string Message = null, Embed Embed = null, char Save = 'n')
-        {
-            await Context.Channel.TriggerTypingAsync();
-            SaveDocument(Save);
-            return await base.ReplyAsync(Message, embed: Embed);
-        }
 
-        public async Task<IUserMessage> ReplyAndDeleteAsync(string Message, TimeSpan? Timeout = null)
-        {
-            Timeout = Timeout ?? TimeSpan.FromSeconds(5);
-            var Msg = await ReplyAsync(Message).ConfigureAwait(false);
-            _ = Task.Delay(Timeout.Value).ContinueWith(_ => Msg.DeleteAsync()).ConfigureAwait(false);
-            return Msg;
-        }
-
-        public Task<SocketMessage> WaitAsync(string Message, bool User = true, bool Channel = true, TimeSpan? Timeout = null)
-        {
-            _ = ReplyAsync($"{Message}\n**To cancel**, type `c`.");
-            var Criteria = new Criteria<SocketMessage>();
-            if (User)
-                Criteria.AddCriteria(new SourceUser());
-            if (Channel)
-                Criteria.AddCriteria(new SourceChannel());
-            return Interactive.WaitAsync(Context, Criteria, Timeout);
-        }
-
-        public Task<IUserMessage> PagedReplyAsync(IEnumerable<object> Pages, string Title, bool Delete = false)
+        public Task<IUserMessage> PagedReplyAsync(IEnumerable<object> pages, string title, bool delete = false)
             => PagedReplyAsync(new PagedMessage
             {
-                Pages = Pages,
-                Author = new EmbedAuthorBuilder
-                {
-                    Name = Title,
-                    IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
-                }
-            }, Delete, true);
+                Pages = pages,
+                Author = new EmbedAuthorBuilder { Name = title, IconUrl = Context.Client.CurrentUser.GetAvatarUrl() }
+            }, delete);
 
-        Task<IUserMessage> PagedReplyAsync(PagedMessage Paged, bool Delete, bool SourceUser = true)
+        public async Task<IUserMessage> ReplyAndDeleteAsync(string message, TimeSpan? timeout = null)
         {
-            var criteria = new Criteria<SocketReaction>();
-            if (SourceUser)
+            timeout = timeout ?? TimeSpan.FromSeconds(5);
+            IUserMessage msg = await ReplyAsync(message).ConfigureAwait(false);
+            _ = Task.Delay(timeout.Value).ContinueWith(_ => msg.DeleteAsync()).ConfigureAwait(false);
+            return msg;
+        }
+
+        public async Task<IUserMessage> ReplyAsync(string message = null, Embed embed = null, DocumentType save = DocumentType.None)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            SaveDocument(save);
+            return await base.ReplyAsync(message, embed: embed);
+        }
+
+        public Task<SocketMessage> WaitAsync(string message, bool user = true, bool channel = true, TimeSpan? timeout = null)
+        {
+            _ = ReplyAsync($"{message}\n**To cancel**, type `c`.");
+            Criteria<SocketMessage> criteria = new Criteria<SocketMessage>();
+            if (user)
+                criteria.AddCriteria(new SourceUser());
+            if (channel)
+                criteria.AddCriteria(new SourceChannel());
+            return Interactive.WaitAsync(Context, criteria, timeout);
+        }
+
+        protected void SaveDocument(DocumentType document)
+        {
+            if (document is DocumentType.Config)
+                Context.DatabaseHandler.Save<ConfigObject>(Context.Config, "Config");
+            if (document is DocumentType.Server)
+                Context.DatabaseHandler.Save<GuildObject>(Context.Server, $"{Context.Guild.Id}");
+        }
+
+        private Task<IUserMessage> PagedReplyAsync(PagedMessage paged, bool delete, bool sourceUser = true)
+        {
+            Criteria<SocketReaction> criteria = new Criteria<SocketReaction>();
+            if (sourceUser)
                 criteria.AddCriteria(new ReactionCriteria());
-            return Interactive.PagedMessageAsync(Context, Paged, Delete, criteria);
+            return Interactive.PagedMessageAsync(Context, paged, delete, criteria);
         }
 
-        Task<IUserMessage> PagedReplyAsync(PagedMessage Paged, ICriteria<SocketReaction> Criteria, bool Delete)
-           => Interactive.PagedMessageAsync(Context, Paged, Delete, Criteria);
-
-        public void SaveDocument(char Document)
-        {
-            switch (Document)
-            {
-                case 'c': Context.DBHandler.Save<ConfigObject>(Context.Config, "Config"); break;
-                case 's': Context.DBHandler.Save<GuildObject>(Context.Server, $"{Context.Guild.Id}"); break;
-                case 'n': break;
-            }
-        }
+        private Task<IUserMessage> PagedReplyAsync(PagedMessage paged, ICriteria<SocketReaction> criteria, bool delete)
+           => Interactive.PagedMessageAsync(Context, paged, delete, criteria);
     }
 }

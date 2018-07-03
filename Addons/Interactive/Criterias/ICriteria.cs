@@ -4,6 +4,6 @@
 
     public interface ICriteria<in T>
     {
-        Task<bool> JudgeAsync(IContext Context, T Param);
+        Task<bool> JudgeAsync(Context context, T param);
     }
 }

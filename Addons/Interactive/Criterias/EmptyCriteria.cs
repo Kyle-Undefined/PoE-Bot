@@ -4,6 +4,7 @@
 
     public class EmptyCriteria<T> : ICriteria<T>
     {
-        public Task<bool> JudgeAsync(IContext Context, T Param) => Task.FromResult(true);
+        public Task<bool> JudgeAsync(Context context, T param)
+            => Task.FromResult(true);
     }
 }

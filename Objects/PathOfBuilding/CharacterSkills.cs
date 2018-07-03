@@ -6,13 +6,12 @@
     {
         public CharacterSkills(IReadOnlyList<SkillGroup> skillGroups, int mainSkillIndex)
         {
-            SkillGroups = skillGroups;
             MainSkillIndex = mainSkillIndex;
+            SkillGroups = skillGroups;
         }
 
+        public SkillGroup MainSkillGroup => SkillGroups[MainSkillIndex];
         public int MainSkillIndex { get; }
         public IReadOnlyList<SkillGroup> SkillGroups { get; }
-
-        public SkillGroup MainSkillGroup => SkillGroups[MainSkillIndex];
     }
 }

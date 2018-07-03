@@ -1,111 +1,122 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using System;
+    using Addons;
+    using Addons.Preconditions;
     using Discord;
-    using Discord.WebSocket;
-    using System.Linq;
-    using PoE.Bot.Addons;
     using Discord.Commands;
+    using Helpers;
+    using Objects;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Addons.Preconditions;
 
     [Name("Price Checker Commands"), RequireRole("Price Checker"), Ratelimit]
     public class PriceCheckerModule : BotBase
     {
-        [Command("Price Add"), Remarks("Adds the price for the currency."), Summary("Price Add <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Replace spaces with _> <Quantity> <Price> <Alias>"), RequireChannel("price-checkers")]
-        public Task AddAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Alias)
+        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for the specified time and reason."), Summary("Mute <@user> <time> <reason>"), RequireChannel("trade-board")]
+        public Task MuteAsync(IGuildUser user, TimeSpan time, [Remainder] string reason)
+            => GuildHelper.MuteUserAsync(Context, MuteType.Trade, user, time, reason);
+
+        [Command("Price"), Remarks("Adds, Deletes, or Updates the price for the currency."), Summary("Price <action> <league: Standard, Hardcore, Challenge, ChallengeHC> <name: Replace spaces with _ OR The Alias you're Updating or Deleting> <quantity> <price> <alias>"), RequireChannel("price-checkers")]
+        public Task PriceAsync(CommandAction action, Leagues league, string name, double quantity = double.NaN, double price = double.NaN, [Remainder] string alias = null)
         {
-            if (Context.Server.Prices.Where(p => p.Name == Name && p.League == League).Any())
-                return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{Name}` is already in the `{League}` list.*");
-            Context.Server.Prices.Add(new PriceObject
+            switch (action)
             {
-                League = League,
-                Name = Name,
-                Quantity = Quantity,
-                Price = Price,
-                Alias = string.Join(", ", Alias.Split(" ")).ToLower(),
-                LastUpdated = DateTime.Now,
-                UserId = Context.User.Id
-            });
+                case CommandAction.Add:
+                    if (Context.Server.Prices.Any(p => p.Name == name && p.League == league))
+                        return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{name}` is already in the `{league}` list.*");
+                    if (double.IsNaN(quantity))
+                        quantity = 0;
+                    if (double.IsNaN(price))
+                        price = 0;
 
-            var Embed = Extras.Embed(Extras.Added)
-                .AddField("Leage", League)
-                .AddField("Name", Name.Replace("_", " "))
-                .AddField("Alias", string.Join(", ", Alias.Split(" ")).ToLower())
-                .AddField("Quantity", Quantity)
-                .AddField("Price", Price)
-                .AddField("Last Updated", DateTime.Now)
-                .WithAuthor(Context.User)
-                .WithThumbnailUrl(Context.User.GetAvatarUrl())
-                .Build();
+                    Context.Server.Prices.Add(new PriceObject
+                    {
+                        League = league,
+                        Name = name,
+                        Quantity = quantity,
+                        Price = price,
+                        Alias = string.Join(", ", alias.Split(" ")).ToLower(),
+                        LastUpdated = DateTime.Now,
+                        UserId = Context.User.Id
+                    });
 
-            return ReplyAsync(Embed: Embed, Save: 's');
+                    Embed embed = Extras.Embed(Extras.Added)
+                        .AddField("Leage", league)
+                        .AddField("Name", name.Replace("_", " "))
+                        .AddField("Alias", string.Join(", ", alias.Split(" ")).ToLower())
+                        .AddField("Quantity", quantity)
+                        .AddField("Price", price)
+                        .AddField("Last Updated", DateTime.Now)
+                        .WithAuthor(Context.User)
+                        .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                        .Build();
+
+                    return ReplyAsync(embed: embed, save: DocumentType.Server);
+
+                case CommandAction.Delete:
+                    if (!Context.Server.Prices.Any(p => p.Name.ToLower() == name.ToLower() && p.League == league))
+                        return ReplyAsync($"{Extras.Cross} I'm not smart enough for that ... yet. *`{name}` is not in the `{league}` list.*");
+
+                    Context.Server.Prices.Remove(Context.Server.Prices.FirstOrDefault(p => p.Name.ToLower() == name.ToLower() && p.League == league));
+                    return ReplyAsync($"The very land heeds to my command. *`{name}` was deleted from the `{league}` list.* {Extras.OkHand}", save: DocumentType.Server);
+
+                case CommandAction.Update:
+                    if (!Context.Server.Prices.Any(p => p.Alias.Contains(name.ToLower()) && p.League == league))
+                        return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{name}` is not in the `{league}` list.*");
+                    if (double.IsNaN(quantity))
+                        quantity = 0;
+                    if (double.IsNaN(price))
+                        price = 0;
+
+                    PriceObject priceObject = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(name.ToLower()) && p.League == league);
+                    Context.Server.Prices.Remove(priceObject);
+
+                    priceObject.Quantity = quantity;
+                    priceObject.Price = price;
+                    priceObject.LastUpdated = DateTime.Now;
+                    priceObject.UserId = Context.User.Id;
+                    if (!(alias is null))
+                        priceObject.Alias = string.Join(", ", alias.Split(" ")).ToLower();
+
+                    Context.Server.Prices.Add(priceObject);
+
+                    Embed embedUpdate = Extras.Embed(Extras.Added)
+                        .AddField("Leage", league)
+                        .AddField("Name", priceObject.Name.Replace("_", " "))
+                        .AddField("Alias", priceObject.Alias)
+                        .AddField("Quantity", quantity)
+                        .AddField("Price", price)
+                        .AddField("Last Updated", DateTime.Now)
+                        .WithAuthor(Context.User)
+                        .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                        .Build();
+
+                    return ReplyAsync(embed: embedUpdate, save: DocumentType.Server);
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete`, or `Update`.");
+            }
         }
 
-        [Command("Price Update"), Remarks("Updates the price for the currency."), Summary("Price Update <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias> <Quantity> <Price> [Aliases]"), RequireChannel("price-checkers")]
-        public Task UpdateAsync(Leagues League, string Name, Double Quantity, Double Price, [Remainder] string Aliases = null)
+        [Command("PriceReset"), Remarks("Resets all the prices for items to 0 for specified league reset."), Summary("PriceReset <league: Defaults to Challenge>"), RequireChannel("price-checkers")]
+        public Task ResetAsync(Leagues league = Leagues.Challenge)
         {
-            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
-                return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{Name}` is not in the `{League}` list.*");
-
-            var price = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League);
-            Context.Server.Prices.Remove(price);
-
-            price.Quantity = Quantity;
-            price.Price = Price;
-            price.LastUpdated = DateTime.Now;
-            price.UserId = Context.User.Id;
-            if (!(Aliases is null))
-                price.Alias = string.Join(", ", Aliases.Split(" ")).ToLower();
-
-            Context.Server.Prices.Add(price);
-
-            var Embed = Extras.Embed(Extras.Added)
-                .AddField("Leage", League)
-                .AddField("Name", price.Name.Replace("_", " "))
-                .AddField("Alias", price.Alias)
-                .AddField("Quantity", Quantity)
-                .AddField("Price", Price)
-                .AddField("Last Updated", DateTime.Now)
-                .WithAuthor(Context.User)
-                .WithThumbnailUrl(Context.User.GetAvatarUrl())
-                .Build();
-
-            return ReplyAsync(Embed: Embed, Save: 's');
-        }
-
-        [Command("Price Reset"), Remarks("Resets all the prices for items to 0 for specified league reset."), Summary("Price Reset <League: Defaults to Challenge>"), RequireChannel("price-checkers")]
-        public Task ResetAsync(Leagues League = Leagues.Challenge)
-        {
-            foreach (var Price in Context.Server.Prices.Where(x => x.League == League).ToArray())
+            foreach (PriceObject price in Context.Server.Prices.Where(x => x.League == league).ToArray())
             {
-                Context.Server.Prices.Remove(Price);
-                Price.Quantity = 0;
-                Price.Price = 0;
-                Price.LastUpdated = DateTime.Now;
-                Price.UserId = Context.User.Id;
-                Context.Server.Prices.Add(Price);
+                Context.Server.Prices.Remove(price);
+                price.Quantity = 0;
+                price.Price = 0;
+                price.LastUpdated = DateTime.Now;
+                price.UserId = Context.User.Id;
+                Context.Server.Prices.Add(price);
             }
 
-            return ReplyAsync($"For Tukohama! *All prices have been reset for the {League} League.* {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"For Tukohama! *All prices have been reset for the {league} League.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Price Delete"), Remarks("Deletes a currency from the system, by alias, should only be used if one is added in wrong"), Summary("Price Delete <League: Standard, Hardcore, Challenge, ChallengeHC> <Name: Any Alias>"), RequireChannel("price-checkers")]
-        public Task DeleteAsync(Leagues League, string Name)
-        {
-            if (!Context.Server.Prices.Where(p => p.Alias.Contains(Name.ToLower()) && p.League == League).Any())
-                return ReplyAsync($"{Extras.Cross} I'm not smart enough for that ... yet. *`{Name}` is not in the `{League}` list.*");
-            Context.Server.Prices.Remove(Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(Name.ToLower()) && p.League == League));
-            return ReplyAsync($"The very land heeds to my command. *`{Name}` was deleted from the `{League}` list.* {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for the specified time and reason."), Summary("Mute <@User> <Time> <Reason>"), RequireChannel("trade-board")]
-        public Task MuteAsync(IGuildUser User, TimeSpan Time, [Remainder] string Reason)
-            => Context.GuildHelper.MuteUserAsync(Context, MuteType.TRADE, User, Time, Reason);
-
-        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), RequireChannel("trade-board")]
-        public Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
-            => Context.GuildHelper.WarnUserAsync(Context, User, Reason, MuteType.TRADE);
+        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@user> <reason>"), RequireChannel("trade-board")]
+        public Task WarnAysnc(IGuildUser user, [Remainder] string reason)
+            => GuildHelper.WarnUserAsync(Context, user, reason, MuteType.Trade);
     }
 }

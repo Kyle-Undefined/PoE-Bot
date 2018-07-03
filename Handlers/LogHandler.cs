@@ -1,52 +1,36 @@
 ﻿namespace PoE.Bot.Handlers
 {
-    using System;
-    using System.IO;
-    using System.Drawing;
-    using System.Threading.Tasks;
     using Console = Colorful.Console;
+    using System;
+    using System.Drawing;
+    using System.IO;
+    using System.Threading.Tasks;
+
+    public enum Source
+    {
+        Connected,
+        Discord,
+        Disconnected,
+        Database,
+        Event,
+        Exception
+    }
 
     public class LogHandler
     {
-        readonly static object Lock = new object();
+        private static readonly object Lock = new object();
 
-        static void FileLog(string Message)
+        public static async Task CriticalFail(Source source, string text)
         {
-            lock (Lock)
-                using (var Writer = File.AppendText($"{Directory.GetCurrentDirectory()}/log.txt"))
-                    Writer.WriteLine(Message);
-        }
-
-        static void Append(string Text, Color Color)
-        {
-            Console.ForegroundColor = Color;
-            Console.Write(Text);
-        }
-
-        public static async Task CriticalFail(Source Source, string Text)
-        {
-            Write(Source, Text);
+            Write(source, text);
             await Task.Delay(5000);
             Environment.Exit(1);
         }
 
-        public static void Write(Source Source, string Text)
+        public static void ForceGC()
         {
-            Color SourceColor;
-            Console.Write(Environment.NewLine);
-            Append($"{(DateTime.Now.ToShortTimeString().Length <= 7 ? $"0{DateTime.Now.ToShortTimeString()}" : DateTime.Now.ToShortTimeString())} ", Color.DarkGray);
-            switch (Source)
-            {
-                case Source.CNN: SourceColor = Color.SpringGreen; break;
-                case Source.DSD: SourceColor = Color.CornflowerBlue; break;
-                case Source.DSN: SourceColor = Color.Orange; break;
-                case Source.DTB: SourceColor = Color.Violet; break;
-                case Source.EXC: SourceColor = Color.Crimson; break;
-                case Source.EVT: SourceColor = Color.LightSalmon; break;
-            }
-            Append($"[{Source}]", SourceColor);
-            Append($" {Text}", Color.WhiteSmoke);
-            FileLog($"[{(DateTime.Now.ToShortTimeString().Length <= 7 ? $"0{DateTime.Now.ToShortTimeString()}" : DateTime.Now.ToShortTimeString())}] [{Source}] {Text}");
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
+            GC.WaitForPendingFinalizers();
         }
 
         public static void PrintApplicationInformation()
@@ -58,26 +42,53 @@
             FileLog($"\n\n=================================[ {DateTime.Now} ]=================================\n\n");
         }
 
-        public static void ForceGC()
+        public static void Write(Source source, string text)
         {
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
-            GC.WaitForPendingFinalizers();
-            FileLog($"[{(DateTime.Now.ToShortTimeString().Length <= 7 ? $"0{DateTime.Now.ToShortTimeString()}" : DateTime.Now.ToShortTimeString())}] GC Forced. {GC.MaxGeneration} Max Generations.");
+            Color sourceColor;
+            Console.Write(Environment.NewLine);
+            Append($"{(DateTime.Now.ToShortTimeString().Length <= 7 ? $"0{DateTime.Now.ToShortTimeString()}" : DateTime.Now.ToShortTimeString())} ", Color.DarkGray);
+            switch (source)
+            {
+                case Source.Connected:
+                    sourceColor = Color.SpringGreen;
+                    break;
+
+                case Source.Discord:
+                    sourceColor = Color.CornflowerBlue;
+                    break;
+
+                case Source.Disconnected:
+                    sourceColor = Color.Orange;
+                    break;
+
+                case Source.Database:
+                    sourceColor = Color.Violet;
+                    break;
+
+                case Source.Exception:
+                    sourceColor = Color.Crimson;
+                    break;
+
+                case Source.Event:
+                    sourceColor = Color.LightSalmon;
+                    break;
+            }
+            Append($"[{source}]", sourceColor);
+            Append($" {text}", Color.WhiteSmoke);
+            FileLog($"[{(DateTime.Now.ToShortTimeString().Length <= 7 ? $"0{DateTime.Now.ToShortTimeString()}" : DateTime.Now.ToShortTimeString())}] [{source}] {text}");
         }
-    }
-    public enum Source
-    {
-        /// <summary>Connected</summary>
-        CNN,
-        /// <summary>Disconnected</summary>
-        DSN,
-        /// <summary>Discord</summary>
-        DSD,
-        /// <summary>Database</summary>
-        DTB,
-        /// <summary>Exception</summary>
-        EXC,
-        /// <summary>Event</summary>
-        EVT
+
+        private static void Append(string text, Color color)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(text);
+        }
+
+        private static void FileLog(string message)
+        {
+            lock (Lock)
+                using (StreamWriter writer = File.AppendText($"{Directory.GetCurrentDirectory()}/log.txt"))
+                    writer.WriteLine(message);
+        }
     }
 }

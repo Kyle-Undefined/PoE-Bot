@@ -5,7 +5,7 @@
 
     public class SourceChannel : ICriteria<IMessage>
     {
-        public Task<bool> JudgeAsync(IContext Context, IMessage Param)
-            => Task.FromResult(Context.Channel.Id == Param.Channel.Id);
+        public Task<bool> JudgeAsync(Context context, IMessage param)
+            => Task.FromResult(context.Channel.Id == param.Channel.Id);
     }
 }

@@ -1,370 +1,404 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using System;
+    using Addons;
+    using Addons.Preconditions;
     using Discord;
-    using System.Linq;
-    using PoE.Bot.Addons;
-    using PoE.Bot.Helpers;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Addons.Preconditions;
+    using Helpers;
+    using Objects;
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     using TwitchLib.Api;
 
     [Name("Moderator Commands"), RequireModerator, Ratelimit]
     public class ModModule : BotBase
     {
-        [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@User> [Reason]"), BotPermission(GuildPermission.KickMembers)]
-        public Task KickAsync(IGuildUser User, [Remainder] string Reason = null)
+        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        public Task BanAsync(IGuildUser user, [Remainder] string reason = null)
         {
-            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{User}` is higher than I.");
-            User.KickAsync(Reason);
-            _ = Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.KICK, Reason);
-            return ReplyAsync($"Death to sin! *`{User}` was kicked.* {Extras.Hammer}");
+            if (Context.Guild.HierarchyCheck(user))
+                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*");
+
+            Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Ban, reason);
+            return ReplyAsync($"You are remembered only for the mess you leave behind. *`{user}` was banned.* {Extras.Hammer}");
         }
 
-        [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@User1> <@User2> ..."), BotPermission(GuildPermission.KickMembers)]
-        public async Task KickAsync(params IGuildUser[] Users)
+        [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@user1> <@user2> ..."), BotPermission(GuildPermission.BanMembers)]
+        public async Task BanAsync(params IGuildUser[] users)
         {
-            if (!Users.Any())
+            if (!users.Any())
                 return;
-            foreach (var User in Users)
+
+            foreach (IGuildUser user in users)
             {
-                if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
+                if (Context.Guild.HierarchyCheck(user))
                     continue;
-                await User.KickAsync("Multiple kicks.").ConfigureAwait(false);
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.KICKS, "Multiple kicks.");
+
+                await Context.Guild.AddBanAsync(user, 7, "Mass Ban.");
+                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Bans, "Multiple bans.");
             }
-            await ReplyAsync($"Death to sin! *{string.Join(", ", Users.Select(x => $"`{x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
+            await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were banned.* {Extras.Hammer}");
         }
 
-        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@User> [Reason]"), BotPermission(GuildPermission.BanMembers)]
-        public Task BanAsync(IGuildUser User, [Remainder] string Reason = null)
+        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <userId> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        public async Task BanAsync(ulong UserId, [Remainder] string reason = null)
         {
-            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
-            Context.Guild.AddBanAsync(User, 7, Reason).ConfigureAwait(false);
-            _ = Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.BAN, Reason);
-            return ReplyAsync($"You are remembered only for the mess you leave behind. *`{User}` was banned.* {Extras.Hammer}");
-        }
-
-        [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@User1> <@User2> ..."), BotPermission(GuildPermission.BanMembers)]
-        public async Task BanAsync(params IGuildUser[] Users)
-        {
-            if (!Users.Any())
-                return;
-            foreach (var User in Users)
-            {
-                if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-                    continue;
-                await Context.Guild.AddBanAsync(User, 7, "Mass Ban.");
-                await Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.BANS, "Multiple bans.");
-            }
-            await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", Users.Select(x => $"`{x.Username}`"))} were banned.* {Extras.Hammer}");
-        }
-
-        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <UserId> [Reason]"), BotPermission(GuildPermission.BanMembers)]
-        public async Task BanAsync(ulong UserId, [Remainder] string Reason = null)
-        {
-            await Context.Guild.AddBanAsync(UserId, 7, Reason ?? "User ID Ban.");
-            _ = Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, (await Context.Guild.GetUserAsync(UserId) as IUser), Context.User, CaseType.BAN, Reason);
+            await Context.Guild.AddBanAsync(UserId, 7, reason ?? "user ID Ban.");
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, (await Context.Guild.GetUserAsync(UserId) as IUser), Context.User, CaseType.Ban, reason);
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{UserId}` was banned.* {Extras.Hammer}");
         }
 
-        [Command("SoftBan", RunMode = RunMode.Async), Remarks("Bans a user then unbans them."), Summary("SoftBan <@User> [Reason]"), BotPermission(GuildPermission.BanMembers)]
-        public Task SoftBanAsync(IGuildUser User, [Remainder] string Reason = null)
+        [Command("Case"), Remarks("Shows information about a specific case, or Deletes a case."), Summary("Case <action> [caseNumber] [user]")]
+        public Task CaseAsync(CommandAction action = CommandAction.List, int caseNumber = 0, SocketGuildUser user = null)
         {
-            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{User}` is higher than I.");
-            Context.Guild.AddBanAsync(User, 7, Reason).ConfigureAwait(false);
-            Context.Guild.RemoveBanAsync(User);
-            _ = Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.SOFTBAN, Reason);
-            return ReplyAsync($"Go to bed, little nightmare! *`{User}` was soft banned.* {Extras.Hammer}");
+            switch (action)
+            {
+                case CommandAction.Delete:
+                    CaseObject caseDelete = Context.Server.UserCases.FirstOrDefault(c => c.Number == caseNumber && c.UserId == user.Id);
+                    Context.Server.UserCases.Remove(caseDelete);
+                    return ReplyAsync($"It seems there's still glory in the old Empire yet! *Case Number `{caseNumber}` has been removed from `{user}`'s cases.* {Extras.OkHand}", save: DocumentType.Server);
+
+                case CommandAction.List:
+                    if (caseNumber is 0 && Context.Server.UserCases.Any())
+                        caseNumber = Context.Server.UserCases.LastOrDefault().Number;
+
+                    CaseObject caseObject = Context.Server.UserCases.FirstOrDefault(x => x.Number == caseNumber);
+                    return caseObject is null
+                        ? ReplyAsync($"{Extras.Cross} Case #{caseNumber} doesn't exist.")
+                        : ReplyAsync(embed: Extras.Embed(Extras.Case)
+                            .AddField("user", $"{caseObject.Username} ({caseObject.UserId})", true)
+                            .AddField("Case Type", caseObject.CaseType, true)
+                            .AddField("Moderator", $"{caseObject.Moderator} ({caseObject.ModeratorId})", true)
+                            .AddField("reason", caseObject.Reason).Build());
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} action is either `Delete` or `List`.");
+            }
         }
 
-        [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
-        public async Task UnbanAsync(ulong Id)
+        [Command("CaseReason"), Remarks("Specifies reason for a user case."), Summary("CaseReason <number> <reason>"), RequirePermission]
+        public async Task CaseReasonAsync(int number, [Remainder] string reason)
         {
-            var Check = (await Context.Guild.GetBansAsync()).Any(x => x.User.Id == Id);
-            if (!Check)
+            CaseObject caseObject = number is -1 ? Context.Server.UserCases.LastOrDefault() : Context.Server.UserCases.FirstOrDefault(x => x.Number == number);
+            if (caseObject is null)
             {
-                await ReplyAsync($"{Extras.Cross} I have nothing more to give. *No User with `{Id}` found.*");
+                await ReplyAsync(number is -1 ? $"{Extras.Cross} There aren't any user cases." : $"{Extras.Cross} Case #{number} was invalid case number");
                 return;
             }
-            await Context.Guild.RemoveBanAsync(Id).ContinueWith(x => ReplyAsync($"It seems there's still glory in the old Empire yet! *Unbanned user with `{Id}`* {Extras.OkHand}", Save: 's'));
-        }
 
-        [Command("Reason"), Remarks("Specifies reason for a user case."), Summary("Reason <Number> <Reason>"), RequirePermission]
-        public async Task ReasonAsync(int Number, [Remainder] string Reason)
-        {
-            var Case = Number is -1 ? Context.Server.UserCases.LastOrDefault() : Context.Server.UserCases.FirstOrDefault(x => x.Number == Number);
-            if (Case is null)
+            caseObject.Reason = reason;
+            IGuildUser user = await Context.Guild.GetUserAsync(caseObject.UserId);
+            IGuildUser mod = await Context.Guild.GetUserAsync(caseObject.ModeratorId);
+            if (!(user is null))
+                caseObject.Username = $"{user}";
+
+            if (!(mod is null))
+                caseObject.Moderator = $"{mod}";
+
+            ITextChannel channel = await Context.Guild.GetTextChannelAsync(Context.Server.ModLog);
+            if (!(channel is null) && await channel.GetMessageAsync(caseObject.MessageId) is IUserMessage message)
             {
-                await ReplyAsync(Number is -1 ? $"{Extras.Cross} There aren't any user cases." : $"{Extras.Cross} Case #{Number} was invalid case number");
-                return;
-            }
-            Case.Reason = Reason;
-            var User = await Context.Guild.GetUserAsync(Case.UserId);
-            var Mod = await Context.Guild.GetUserAsync(Case.ModeratorId);
-            if (!(User is null))
-                Case.Username = $"{User}";
-            if (!(Mod is null))
-                Case.Moderator = $"{Mod}";
-            var Channel = await Context.Guild.GetTextChannelAsync(Context.Server.ModLog);
-            if (!(Channel is null) && await Channel?.GetMessageAsync(Case.MessageId) is IUserMessage Message)
-            {
-                var UserCases = Context.Server.UserCases.Where(x => x.UserId == User.Id);
-                var Embed = Extras.Embed(Extras.Case)
-                    .WithAuthor($"Case Number: {Case.Number}")
-                    .WithTitle(Case.CaseType.ToString())
-                    .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
-                    .AddField("History", $"Cases: {UserCases.Count()}\nWarnings: {UserCases.Where(x => x.CaseType == CaseType.WARNING).Count()}\n" +
-                        $"Mutes: {UserCases.Where(x => x.CaseType == CaseType.MUTE).Count()}\nAuto Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODMUTE).Count()}\n" +
-                        $"Auto Perm Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODPERMMUTE).Count()}")
-                    .AddField("Reason", Case.Reason)
-                    .AddField("Moderator", $"{Mod}")
+                var userCases = Context.Server.UserCases.Where(x => x.UserId == user.Id);
+                Embed embed = Extras.Embed(Extras.Case)
+                    .WithAuthor($"Case Number: {caseObject.Number}")
+                    .WithTitle(caseObject.CaseType.ToString())
+                    .AddField("user", $"{user.Mention} `{user}` ({user.Id})")
+                    .AddField("History",
+                        $"Cases: {userCases.Count()}\n" +
+                        $"Warnings: {userCases.Count(x => x.CaseType == CaseType.Warning)}\n" +
+                        $"Mutes: {userCases.Count(x => x.CaseType == CaseType.Mute)}\n" +
+                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n" +
+                        $"Auto Perm Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModPermMute)}")
+                    .AddField("reason", caseObject.Reason)
+                    .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()
                     .Build();
-                await Message.ModifyAsync(x => x.Embed = Embed);
+                await message.ModifyAsync(x => x.Embed = embed);
             }
-            await ReplyAsync($"Case #{Case.Number} has been updated {Extras.OkHand}", Save: 's');
+            await ReplyAsync($"Case #{caseObject.Number} has been updated {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a User"), Summary("Purge [Amount] [@User]"), BotPermission(GuildPermission.ManageMessages)]
-        public Task PurgeAsync(int Amount = 20, IGuildUser User = null)
-        {
-            if(User is null)
-            {
-                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(Amount + 1).FlattenAsync()))
-                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{Amount}` messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-                return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} Messages in #{Context.Channel.Name}");
-            }
-            else
-            {
-                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(Amount + 1).FlattenAsync()).Where(x => x.Author.Id == User.Id))
-                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{Amount}` of `{User}`'s messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-                return Context.GuildHelper.LogAsync(Context.DBHandler, Context.Guild, Context.User, Context.User, CaseType.PURGE, $"Purged {Amount} of {User}'s Messages #{Context.Channel.Name}");
-            }
-        }
+        [Command("Cases"), Remarks("Lists all of the specified cases for the guild."), Summary("Cases <caseType>")]
+        public Task CasesAsync(CaseType caseType)
+            => PagedReplyAsync(MethodHelper.Pages(Context.Server.UserCases.Where(c => c.CaseType == caseType).Select(c =>
+                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nUser: {c.Username}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{Context.Guild.Name} {caseType} Cases");
 
-        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@User> [Time] [Reason]"), BotPermission(GuildPermission.ManageRoles)]
-        public Task MuteAsync(IGuildUser User, TimeSpan? Time = null, [Remainder] string Reason = null) 
-            => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, (Time.HasValue ? Time : TimeSpan.FromMinutes(5)), (!(Reason is null) ? Reason : "No Reason specified."));
-
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@User> [Reason]"), BotPermission(GuildPermission.ManageRoles)]
-        public Task MuteAsync(IGuildUser User, [Remainder] string Reason = null)
-            => Context.GuildHelper.MuteUserAsync(Context, MuteType.MOD, User, TimeSpan.FromMinutes(5), (!(Reason is null) ? Reason : "No Reason specified."));
-
-        [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@User>"), BotPermission(GuildPermission.ManageRoles)]
-        public Task UnMuteAsync(IGuildUser User)
-            => Context.GuildHelper.UnmuteUserAsync(Context, User);
-
-        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@User> <Reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
-        public Task WarnAysnc(IGuildUser User, [Remainder] string Reason)
-            => Context.GuildHelper.WarnUserAsync(Context, User, Reason);
-
-        [Command("RemoveWarns"), Remarks("Removes a number of users warnings."), Summary("RemoveWarns <@User> <Amount>"), RequirePermission]
-        public Task RemoveWarnsAsync(IGuildUser User, int Amount = 1)
-        {
-            var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
-            if (Amount > Profile.Warnings)
-                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have `{Amount}` warnings to remove.*");
-            Profile.Warnings = Profile.Warnings - Amount;
-            Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{Amount}` Warnings has been removed for `{User}`* {Extras.OkHand}");
-        }
-
-        [Command("ResetWarns"), Remarks("Resets users warnings."), Summary("ResetWarns <@User>"), RequirePermission]
-        public Task ResetWarnsAsync(IGuildUser User)
-        {
-            var Profile = Context.GuildHelper.GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
-            Profile.Warnings = 0;
-            Context.GuildHelper.SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Warnings has been reset for `{User}`* {Extras.OkHand}");
-        }
+        [Command("Cases"), Remarks("Lists all of the cases for a specified user in the guild."), Summary("Cases <user>")]
+        public Task CasesAsync(SocketGuildUser user)
+            => PagedReplyAsync(MethodHelper.Pages(Context.Server.UserCases.Where(c => c.UserId == user.Id).Select(c =>
+                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nType: {c.CaseType}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{user.Username}'s Cases");
 
         [Command("GuildInfo"), Remarks("Displays information about guild."), Summary("GuildInfo")]
         public Task GuildInfoAsync()
         {
-            var Guild = Context.Guild as SocketGuild;
+            SocketGuild guild = Context.Guild as SocketGuild;
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Guild.Name}'s Information | {Context.Guild.Id}", Context.Guild.IconUrl)
-                .WithFooter($"Created On: {Guild.CreatedAt}")
+                .WithFooter($"Created On: {guild.CreatedAt}")
                 .WithThumbnailUrl(Context.Guild.IconUrl)
-                .AddField("Kitava", Guild.Owner, true)
-                .AddField("Default Channel", Guild.DefaultChannel.Name ?? "No Default Channel", true)
-                .AddField("Message Notifications", Guild.DefaultMessageNotifications, true)
-                .AddField("Verification Level", Guild.VerificationLevel, true)
-                .AddField("MFA Level", Guild.MfaLevel, true)
-                .AddField("Text Channels", Guild.TextChannels.Count, true)
-                .AddField("Voice Channels", Guild.VoiceChannels.Count, true)
-                .AddField("Characters", Guild.MemberCount, true)
-                .AddField("Lieutenants", Guild.Users.Count(x => x.IsBot is true), true)
-                .AddField("Exiles", Guild.Users.Count(x => x.IsBot is false), true)
-                .AddField("Classes", string.Join(", ", Guild.Roles.OrderByDescending(x => x.Position).Select(x => x.Name))).Build());
+                .AddField("Kitava", guild.Owner, true)
+                .AddField("Default channel", guild.DefaultChannel.Name ?? "No Default channel", true)
+                .AddField("Message Notifications", guild.DefaultMessageNotifications, true)
+                .AddField("Verification Level", guild.VerificationLevel, true)
+                .AddField("MFA Level", guild.MfaLevel, true)
+                .AddField("Text Channels", guild.TextChannels.Count, true)
+                .AddField("Voice Channels", guild.VoiceChannels.Count, true)
+                .AddField("Characters", guild.MemberCount, true)
+                .AddField("Lieutenants", guild.Users.Count(x => x.IsBot is true), true)
+                .AddField("Exiles", guild.Users.Count(x => x.IsBot is false), true)
+                .AddField("Classes", string.Join(", ", guild.Roles.OrderByDescending(x => x.Position).Select(x => x.Name))).Build());
         }
 
-        [Command("RoleInfo"), Remarks("Displays information about a role."), Summary("RoleInfo <@Role>")]
-        public Task RoleInfoAsync(IRole Role)
+        [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@user> [reason]"), BotPermission(GuildPermission.KickMembers)]
+        public Task KickAsync(IGuildUser user, [Remainder] string reason = null)
+        {
+            if (Context.Guild.HierarchyCheck(user))
+                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{user}` is higher than I.");
+
+            user.KickAsync(reason);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kick, reason);
+            return ReplyAsync($"Death to sin! *`{user}` was kicked.* {Extras.Hammer}");
+        }
+
+        [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@user1> <@user2> ..."), BotPermission(GuildPermission.KickMembers)]
+        public async Task KickAsync(params IGuildUser[] users)
+        {
+            if (!users.Any())
+                return;
+
+            foreach (IGuildUser user in users)
+            {
+                if (Context.Guild.HierarchyCheck(user))
+                    continue;
+
+                await user.KickAsync("Multiple kicks.").ConfigureAwait(false);
+                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kicks, "Multiple kicks.");
+            }
+            await ReplyAsync($"Death to sin! *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
+        }
+
+        [Command("Leaderboard"), Summary("Leaderboard <action> [#channel] [enabled: True, False] [variant]"), Remarks("Adds, Deletes, or Updates a Leaderboard Variant. Lists Leaderboard Variants as well.")]
+        public async Task LeaderboardAsync(CommandAction action, SocketTextChannel channel = null, bool enabled = false, [Remainder] string variant = null)
+        {
+            switch (action)
+            {
+                case CommandAction.Add:
+                    variant = variant.Replace(" ", "_");
+                    if (Context.Server.Leaderboards.Any(f => f.Variant == variant && f.ChannelId == channel.Id))
+                        await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{variant}` is already in the list.*");
+
+                    Context.Server.Leaderboards.Add(new LeaderboardObject
+                    {
+                        Variant = variant,
+                        ChannelId = channel.Id,
+                        Enabled = enabled
+                    });
+
+                    await ReplyAsync($"Slowness lends strength to one's enemies. *`{variant}` has been added to Leaderboard list.* {Extras.OkHand}", save: DocumentType.Server);
+                    break;
+
+                case CommandAction.Delete:
+                    variant = variant.Replace(" ", "_");
+                    if (!Context.Server.Leaderboards.Any(l => l.Variant == variant && l.ChannelId == channel.Id))
+                        await ReplyAsync($"{Extras.Cross} Poor, corrupted creature. *Can't find the Variant: `{variant}`*");
+
+                    LeaderboardObject boardDelete = Context.Server.Leaderboards.FirstOrDefault(l => l.Variant == variant && l.ChannelId == channel.Id);
+                    Context.Server.Leaderboards.Remove(boardDelete);
+                    await ReplyAsync($"Life is short, deal with it! *Removed `{variant}` from the Leaderboards list.* {Extras.OkHand}", save: DocumentType.Server);
+                    break;
+
+                case CommandAction.List:
+                    await ReplyAsync(!Context.Server.Leaderboards.Any()
+                        ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any leaderboards.*"
+                        : $"**Leaderboard Variants**:\n{String.Join("\n", Context.Server.Leaderboards.Select(async l => $"Variant: {l.Variant} | channel: {(await Context.Guild.GetTextChannelAsync(l.ChannelId)).Mention} | Enabled: {l.Enabled.ToString()}").ToList())}");
+                    break;
+
+                case CommandAction.Update:
+                    variant = variant.Replace(" ", "_");
+                    if (!Context.Server.Leaderboards.Any(f => f.Variant == variant))
+                        await ReplyAsync($"{Extras.Cross} Poor, corrupted creature. *Can't find the Variant `{variant}`*");
+
+                    LeaderboardObject boardUpdate = Context.Server.Leaderboards.FirstOrDefault(l => l.Variant == variant);
+                    Context.Server.Leaderboards.Remove(boardUpdate);
+                    Context.Server.Leaderboards.Add(new LeaderboardObject
+                    {
+                        Variant = variant,
+                        ChannelId = channel.Id,
+                        Enabled = enabled
+                    });
+
+                    await ReplyAsync($"Slowness lends strength to one's enemies. *Updated Leaderboard Variant: `{variant}`* {Extras.OkHand}", save: DocumentType.Server);
+                    break;
+
+                default:
+                    await ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete`, `List` or `Update`.");
+                    break;
+            }
+        }
+
+        [Command("TimedMute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
+        public Task MuteAsync(IGuildUser user, TimeSpan? time = null, [Remainder] string reason = null)
+            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, (time.HasValue ? time : TimeSpan.FromMinutes(5)), (!(reason is null) ? reason : "No reason specified."));
+
+        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@user> [reason]"), BotPermission(GuildPermission.ManageRoles)]
+        public Task MuteAsync(IGuildUser user, [Remainder] string reason = null)
+            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, TimeSpan.FromMinutes(5), (!(reason is null) ? reason : "No reason specified."));
+
+        [Command("Profanity"), Summary("Profanity <action> [word]"), Remarks("Adds or Deletes a word for the Profanity List.")]
+        public Task ProfanityAsync(CommandAction action, string word = null)
+        {
+            switch (action)
+            {
+                case CommandAction.Add:
+                    Context.Server.ProfanityList.Add(word.ToLower());
+                    return ReplyAsync($"Death to sin! *`{word}` has been added to the filter.* {Extras.OkHand}", save: DocumentType.Server);
+
+                case CommandAction.Delete:
+                    Context.Server.ProfanityList.Remove(word.ToLower());
+                    return ReplyAsync($"I like you better this way! *`{word}` has been removed from the filter.* {Extras.OkHand}", save: DocumentType.Server);
+
+                case CommandAction.List:
+                    return ReplyAsync($"`{String.Join("`,`", Context.Server.ProfanityList)}`");
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.");
+            }
+        }
+
+        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a user"), Summary("Purge [amount] [@user]"), BotPermission(GuildPermission.ManageMessages)]
+        public Task PurgeAsync(int amount = 20, IGuildUser user = null)
+        {
+            if (user is null)
+            {
+                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()))
+                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
+                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} Messages in #{Context.Channel.Name}");
+            }
+            else
+            {
+                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()).Where(x => x.Author.Id == user.Id))
+                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` of `{user}`'s messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
+                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} of {user}'s Messages #{Context.Channel.Name}");
+            }
+        }
+
+        [Command("RoleInfo"), Remarks("Displays information about a role."), Summary("RoleInfo <@role>")]
+        public Task RoleInfoAsync(IRole role)
             => ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithTitle($"{Role.Name} Information")
-                .WithFooter($"Created On: {Role.CreatedAt}")
-                .AddField("ID", Role.Id, true)
-                .AddField("Rarity", Role.Color, true)
-                .AddField("Level", Role.Position, true)
-                .AddField("Shows Separately?", Role.IsHoisted ? "Yep" : "Nope", true)
-                .AddField("Managed By Discord?", Role.IsManaged ? "Yep" : "Nope", true)
-                .AddField("Can Mention?", Role.IsMentionable ? "Yep" : "Nope", true)
-                .AddField("Skills", string.Join(", ", Role.Permissions)).Build());
+                .WithTitle($"{role.Name} Information")
+                .WithFooter($"Created On: {role.CreatedAt}")
+                .AddField("ID", role.Id, true)
+                .AddField("Rarity", role.Color, true)
+                .AddField("Level", role.Position, true)
+                .AddField("Shows Separately?", role.IsHoisted ? "Yep" : "Nope", true)
+                .AddField("Managed By Discord?", role.IsManaged ? "Yep" : "Nope", true)
+                .AddField("Can Mention?", role.IsMentionable ? "Yep" : "Nope", true)
+                .AddField("Skills", string.Join(", ", role.Permissions)).Build());
 
-        [Command("UserInfo"), Remarks("Displays information about a user."), Summary("UserInfo [@User]")]
-        public Task UserInfoAsync(SocketGuildUser User = null)
+        [Command("Rules Configure", RunMode = RunMode.Async), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("Rules Configure")]
+        public async Task RulesConfigureAsync()
         {
-            User = User ?? Context.User as SocketGuildUser;
-            return ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithAuthor($"{User.Username} Information | {User.Id}", User.GetAvatarUrl())
-                .WithThumbnailUrl(User.GetAvatarUrl())
-                .AddField("Muted?", User.IsMuted ? "Yep" : "Nope", true)
-                .AddField("Is Lieutenant?", User.IsBot ? "Yep" : "Nope", true)
-                .AddField("Creation Date", User.CreatedAt, true)
-                .AddField("Join Date", User.JoinedAt, true)
-                .AddField("Status", User.Status, true)
-                .AddField("Skills", string.Join(", ", User.GuildPermissions.ToList()), true)
-                .AddField("Classes", string.Join(", ", (User as SocketGuildUser).Roles.OrderBy(x => x.Position).Select(x => x.Name)), true).Build());
-        }
+            RuleObject rules = new RuleObject();
 
-        [Command("Case"), Remarks("Shows information about a specific case."), Summary("Case [CaseNumber]")]
-        public Task CaseAsync(int CaseNumber = 0)
-        {
-            if (CaseNumber is 0 && Context.Server.UserCases.Any())
-                CaseNumber = Context.Server.UserCases.LastOrDefault().Number;
-            var Case = Context.Server.UserCases.FirstOrDefault(x => x.Number == CaseNumber);
-            if (Case is null)
-                return ReplyAsync($"Case #{CaseNumber} doesn't exist.");
-            return ReplyAsync(embed: Extras.Embed(Extras.Case)
-                .AddField("User", $"{Case.Username} ({Case.UserId})", true)
-                .AddField("Case Type", Case.CaseType, true)
-                .AddField("Moderator", $"{Case.Moderator} ({Case.ModeratorId})", true)
-                .AddField("Reason", Case.Reason).Build());
-        }
-
-        [Command("Cases"), Remarks("Lists all of the specified cases for the guild."), Summary("Cases <CaseType>")]
-        public Task CasesAsync(CaseType CaseType)
-            => PagedReplyAsync(Context.GuildHelper.Pages(Context.Server.UserCases.Where(c => c.CaseType == CaseType).Select(c => 
-                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nUser: {c.Username}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{Context.Guild.Name} {CaseType} Cases");
-
-        [Command("Cases"), Remarks("Lists all of the cases for a specified user in the guild."), Summary("Cases <User>")]
-        public Task CasesAsync(SocketGuildUser User)
-            => PagedReplyAsync(Context.GuildHelper.Pages(Context.Server.UserCases.Where(c => c.UserId == User.Id).Select(c =>
-                $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nType: {c.CaseType}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{User.Username}'s Cases");
-
-        [Command("CaseRemove"), Remarks("Removes the specified case from the user."), Summary("CaseRemove <User> <CaseNumber>")]
-        public Task CaseRemoveAsync(SocketGuildUser User, int CaseNumber)
-        {
-            var Case = Context.Server.UserCases.FirstOrDefault(c => c.Number == CaseNumber && c.UserId == User.Id);
-            Context.Server.UserCases.Remove(Case);
-            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Case Number `{CaseNumber}` has been removed from `{User}`'s cases.* {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("ConfigureRules", RunMode = RunMode.Async), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("ConfigureRules")]
-        public async Task ConfigureRulesAsync()
-        {
-            RuleObject Rules = new RuleObject();
-
-            var Description = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the Rules description be?", Timeout: TimeSpan.FromMinutes(5)));
-            if (!Description.Item1)
+            var description = MethodHelper.CalculateResponse(await WaitAsync("What should the rules description be?", timeout: TimeSpan.FromMinutes(5)));
+            if (!description.Item1)
             {
-                await ReplyAsync(Description.Item2);
+                await ReplyAsync(description.Item2);
                 return;
             }
-            Rules.Description = Description.Item2;
 
-            var TotalFields = Context.GuildHelper.CalculateResponse(await WaitAsync("How many sections should there be?", Timeout: TimeSpan.FromMinutes(1)));
-            if (!TotalFields.Item1)
+            rules.Description = description.Item2;
+
+            var totalFields = MethodHelper.CalculateResponse(await WaitAsync("How many sections should there be?", timeout: TimeSpan.FromMinutes(1)));
+            if (!totalFields.Item1)
             {
-                await ReplyAsync(TotalFields.Item2);
+                await ReplyAsync(totalFields.Item2);
                 return;
             }
-            Rules.TotalFields = Convert.ToInt32(TotalFields.Item2);
 
-            for (int i = 0; i < Rules.TotalFields; i++)
+            rules.TotalFields = Convert.ToInt32(totalFields.Item2);
+
+            for (int i = 0; i < rules.TotalFields; i++)
             {
-                var FieldTitle = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the section be called?", Timeout: TimeSpan.FromMinutes(1)));
-                if (!FieldTitle.Item1)
+                var fieldTitle = MethodHelper.CalculateResponse(await WaitAsync("What should the section be called?", timeout: TimeSpan.FromMinutes(1)));
+                if (!fieldTitle.Item1)
                 {
-                    await ReplyAsync(FieldTitle.Item2);
+                    await ReplyAsync(fieldTitle.Item2);
                     break;
                 }
 
-                var FieldContent = Context.GuildHelper.CalculateResponse(await WaitAsync("What should the section contain?  *You can use Discord Markup*", Timeout: TimeSpan.FromMinutes(10)));
-                if (!FieldContent.Item1)
+                var fieldContent = MethodHelper.CalculateResponse(await WaitAsync("What should the section contain?  *You can use Discord Markup*", timeout: TimeSpan.FromMinutes(10)));
+                if (!fieldContent.Item1)
                 {
-                    await ReplyAsync(FieldContent.Item2);
+                    await ReplyAsync(fieldContent.Item2);
                     break;
                 }
 
-                Rules.Fields.Add(FieldTitle.Item2, FieldContent.Item2);
+                rules.Fields.Add(fieldTitle.Item2, fieldContent.Item2);
             }
 
-            Context.Server.RulesConfig = Rules;
-            SaveDocument('s');
+            Context.Server.RulesConfig = rules;
+            SaveDocument(DocumentType.Server);
 
-            var Embed = Extras.Embed(Extras.Info)
-                .WithTitle($"{Context.Guild.Name} Rules")
-                .WithDescription(Rules.Description);
+            EmbedBuilder embed = Extras.Embed(Extras.Info)
+                .WithTitle($"{Context.Guild.Name} rules")
+                .WithDescription(rules.Description);
 
-            foreach (var Field in Rules.Fields)
-                Embed.AddField(Field.Key, Field.Value, false);
+            foreach (var field in rules.Fields)
+                embed.AddField(field.Key, field.Value, false);
 
-            await ReplyAsync($"*Rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: Embed.Build());
+            await ReplyAsync($"*rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: embed.Build());
         }
 
-        [Command("PostRules"), Summary("PostRules"), Remarks("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use ConfigureRules followed by EditRules.")]
-        public async Task PostRulesAsync()
+        [Command("Rules Post"), Summary("Rules Post"), Remarks("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use Rules Configure followed by Rules Update.")]
+        public async Task RulesPostAsync()
         {
             if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
             {
                 await ReplyAsync($"{Extras.Cross} *You have no rules to post, please use confrules to set them up.*");
                 return;
             }
+
             if (Context.Server.RulesChannel is 0)
             {
                 await ReplyAsync($"{Extras.Cross} *You have not configured a rules channel.*");
                 return;
             }
 
-            var chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
-            var ruleChan = chan as IMessageChannel;
-            var Embed = Extras.Embed(Extras.Info)
-                .WithTitle($"{Context.Guild.Name} Rules")
+            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
+            IMessageChannel ruleChan = chan as IMessageChannel;
+            EmbedBuilder embed = Extras.Embed(Extras.Info)
+                .WithTitle($"{Context.Guild.Name} rules")
                 .WithDescription(Context.Server.RulesConfig.Description);
 
-            foreach (var Field in Context.Server.RulesConfig.Fields)
-                Embed.AddField(Field.Key, Field.Value, false);
+            foreach (var field in Context.Server.RulesConfig.Fields)
+                embed.AddField(field.Key, field.Value, false);
 
-            await ruleChan.SendMessageAsync(embed: Embed.Build());
-            await ReplyAsync($"*Rules have been posted.* {Extras.OkHand}");
+            await ruleChan.SendMessageAsync(embed: embed.Build());
+            await ReplyAsync($"*rules have been posted.* {Extras.OkHand}");
         }
 
-        [Command("EditRules"), Summary("EditRules"), Remarks("Edits the rules you've configured and posted to the rules channel.")]
-        public async Task EditRulesAsync()
+        [Command("Rules Update"), Summary("Rules Update"), Remarks("Updates the rules you've configured and posted to the rules channel.")]
+        public async Task RulesUpdateAsync()
         {
             if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
             {
                 await ReplyAsync($"{Extras.Cross} *You have no rules to post, please use confrules to set them up.*");
                 return;
             }
+
             if (Context.Server.RulesChannel is 0)
             {
                 await ReplyAsync($"{Extras.Cross} *You have not configured a rules channel.*");
                 return;
             }
 
-            var chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
-            var ruleChan = chan as IMessageChannel;
+            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
+            IMessageChannel ruleChan = chan as IMessageChannel;
             var msgs = await ruleChan.GetMessagesAsync().FlattenAsync();
             msgs = msgs.Where(x => x.Author.IsBot);
 
@@ -374,116 +408,172 @@
                 return;
             }
 
-            var Embed = Extras.Embed(Extras.Info)
-                .WithTitle($"{Context.Guild.Name} Rules")
+            EmbedBuilder embed = Extras.Embed(Extras.Info)
+                .WithTitle($"{Context.Guild.Name} rules")
                 .WithDescription(Context.Server.RulesConfig.Description);
 
-            foreach (var Field in Context.Server.RulesConfig.Fields)
-                Embed.AddField(Field.Key, Field.Value, false);
+            foreach (var field in Context.Server.RulesConfig.Fields)
+                embed.AddField(field.Key, field.Value, false);
 
             foreach (IUserMessage msg in msgs)
-                await msg.ModifyAsync(x => x.Embed = Embed.Build());
+                await msg.ModifyAsync(x => x.Embed = embed.Build());
 
-            await ReplyAsync($"*Rules have been edited.* {Extras.OkHand}");
+            await ReplyAsync($"*rules have been edited.* {Extras.OkHand}");
         }
 
-        [Command("Streamer Add", RunMode = RunMode.Async), Summary("Streamer Add <StreamType> <UserName> [#Channel: Defaults to #streams]"), Remarks("Adds a streamer to the Stream list. You will get `Is Live` posts in the specified channel.")]
-        public async Task StreamerAddAsync(StreamType StreamType, string UserName, SocketTextChannel Channel = null)
+        [Command("Situation"), Summary("Situation <action> <@user1> <@user2> ..."), Remarks("Adds or Delete the Situation Room role to the specified users.")]
+        public Task SituationAsync(CommandAction action, params IGuildUser[] users)
         {
-            if (Context.Server.Streams.Where(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == Channel.Id).Any())
-                await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{UserName}` is already on the `{StreamType}` list.*");
-
-            var channel = Channel ?? Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel;
-            switch (StreamType)
+            switch (action)
             {
-                case StreamType.MIXER:
-                    MixerAPI Mixer = new MixerAPI();
-                    uint UserId = await Mixer.GetUserId(UserName);
-                    uint ChanId = await Mixer.GetChannelId(UserName);
-                    if (UserId is 0 || ChanId is 0)
-                        await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No User/Channel found.*");
-                    
-                    Context.Server.Streams.Add(new StreamObject
-                    {
-                        Name = UserName,
-                        ChannelId = channel.Id,
-                        MixerUserId = UserId,
-                        MixerChannelId = ChanId,
-                        StreamType = StreamType
-                    });
+                case CommandAction.Add:
+                    foreach (IGuildUser user in users)
+                        user.AddRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
+                    return ReplyAndDeleteAsync($"Purity will prevail! *users has been added to Situation Room.* {Extras.OkHand}");
 
+                case CommandAction.Delete:
+                    foreach (IGuildUser user in users)
+                        user.RemoveRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
+                    return ReplyAndDeleteAsync($"Purity will prevail! *users has been removed from Situation Room.* {Extras.OkHand}");
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} action is either `Add` or `Delete`.");
+            }
+        }
+
+        [Command("SoftBan", RunMode = RunMode.Async), Remarks("Bans a user then unbans them."), Summary("SoftBan <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        public Task SoftBanAsync(IGuildUser user, [Remainder] string reason = null)
+        {
+            if (Context.Guild.HierarchyCheck(user))
+                return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{user}` is higher than I.");
+
+            Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
+            Context.Guild.RemoveBanAsync(user);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Softban, reason);
+            return ReplyAsync($"Go to bed, little nightmare! *`{user}` was soft banned.* {Extras.Hammer}");
+        }
+
+        [Command("Streamer", RunMode = RunMode.Async), Summary("Streamer <streamType> <userName> [#channel: Defaults to #streams]"), Remarks("Adds or Delete a streamer to the Stream list.")]
+        public async Task StreamerAsync(CommandAction action, StreamType streamType = StreamType.Mixer, string userName = null, SocketTextChannel channel = null)
+        {
+            switch (action)
+            {
+                case CommandAction.Add:
+                    if (Context.Server.Streams.Any(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == channel.Id))
+                        await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{userName}` is already on the `{streamType}` list.*");
+
+                    channel = channel ?? Context.Guild.DefaultStreamChannel() as SocketTextChannel;
+                    switch (streamType)
+                    {
+                        case StreamType.Mixer:
+                            MixerAPI mixer = new MixerAPI();
+                            uint userId = await mixer.GetUserId(userName);
+                            uint chanId = await mixer.GetChannelId(userName);
+                            if (userId is 0 || chanId is 0)
+                                await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No user/channel found.*");
+
+                            Context.Server.Streams.Add(new StreamObject
+                            {
+                                Name = userName,
+                                ChannelId = channel.Id,
+                                MixerUserId = userId,
+                                MixerChannelId = chanId,
+                                StreamType = streamType
+                            });
+
+                            break;
+
+                        case StreamType.Twitch:
+                            TwitchAPI twitchAPI = new TwitchAPI();
+                            twitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
+                            twitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
+
+                            var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName }));
+                            if (!users.Users.Any())
+                                await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *Twitch user not found.*");
+
+                            var user = users.Users[0];
+                            Context.Server.Streams.Add(new StreamObject
+                            {
+                                Name = userName,
+                                TwitchUserId = user.Id,
+                                ChannelId = channel.Id,
+                                StreamType = streamType
+                            });
+
+                            break;
+                    }
+
+                    await ReplyAsync($"I'm so good at this, I scare myself. *`{userName}` has been added to the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server);
                     break;
 
-                case StreamType.TWITCH:
-                    TwitchAPI TwitchAPI = new TwitchAPI();
-                    TwitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
-                    TwitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
+                case CommandAction.Delete:
+                    if (!Context.Server.Streams.Select(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (channel ?? Context.Guild.DefaultStreamChannel() as SocketTextChannel).Id).Any())
+                        await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{userName}` isn't on the `{streamType}` list.*");
 
-                    var users = await TwitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { UserName }));
-                    if (!users.Users.Any())
-                        await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *Twitch user not found.*");
+                    StreamObject streamer = Context.Server.Streams.FirstOrDefault(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (Context.Guild.DefaultStreamChannel() as SocketTextChannel).Id);
+                    Context.Server.Streams.Remove(streamer);
+                    await ReplyAsync($"Every death brings me life. *`{userName}` has been removed from the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server);
+                    break;
 
-                    var User = users.Users[0];
-                    Context.Server.Streams.Add(new StreamObject
-                    {
-                        Name = UserName,
-                        TwitchUserId = User.Id,
-                        ChannelId = channel.Id,
-                        StreamType = StreamType
-                    });
+                case CommandAction.List:
+                    await ReplyAsync(!Context.Server.Streams.Any()
+                        ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any streamers.*"
+                        : $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(async s => $"`{s.StreamType}`: {s.Name} {(Context.Guild.DefaultStreamChannel().Id == (await Context.Guild.GetTextChannelAsync(s.ChannelId)).Id ? "" : (await Context.Guild.GetTextChannelAsync(s.ChannelId)).Mention)}").ToList())}");
+                    break;
 
+                default:
+                    await ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.");
                     break;
             }
-
-            await ReplyAsync($"I'm so good at this, I scare myself. *`{UserName}` has been added to the `{StreamType}` list.* {Extras.OkHand}", Save: 's');
         }
 
-        [Command("Streamer MultiAdd", RunMode = RunMode.Async), Summary("Streamer MultiAdd <StreamType> <UserNames>"), Remarks("Adds a list of streamers to the Stream list. You will get `Is Live` posts in the specified channel.")]
-        public async Task StreamerMultiAddAsync(StreamType StreamType, params string[] UserNames)
+        [Command("Streamer MultiAdd", RunMode = RunMode.Async), Summary("Streamer MultiAdd <streamType> <userNames>"), Remarks("Adds a list of streamers to the Stream list.")]
+        public async Task StreamerMultiAddAsync(StreamType streamType, params string[] userNames)
         {
-            var Channel = Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel;
+            SocketTextChannel channel = Context.Guild.DefaultStreamChannel() as SocketTextChannel;
 
-            foreach(var UserName in UserNames)
+            foreach (string userName in userNames)
             {
-                if (Context.Server.Streams.Where(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == Channel.Id).Any())
-                    await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{UserName}` is already on the `{StreamType}` list.*");
+                if (Context.Server.Streams.Any(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == channel.Id))
+                    await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{userName}` is already on the `{streamType}` list.*");
 
-                switch (StreamType)
+                switch (streamType)
                 {
-                    case StreamType.MIXER:
-                        MixerAPI Mixer = new MixerAPI();
-                        uint UserId = await Mixer.GetUserId(UserName);
-                        uint ChanId = await Mixer.GetChannelId(UserName);
-                        if (UserId is 0 || ChanId is 0)
-                            await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No User/Channel found.*");
+                    case StreamType.Mixer:
+                        MixerAPI mixer = new MixerAPI();
+                        uint userId = await mixer.GetUserId(userName);
+                        uint chanId = await mixer.GetChannelId(userName);
+                        if (userId is 0 || chanId is 0)
+                            await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No user/channel found.*");
 
                         Context.Server.Streams.Add(new StreamObject
                         {
-                            Name = UserName,
-                            ChannelId = Channel.Id,
-                            MixerUserId = UserId,
-                            MixerChannelId = ChanId,
-                            StreamType = StreamType
+                            Name = userName,
+                            ChannelId = channel.Id,
+                            MixerUserId = userId,
+                            MixerChannelId = chanId,
+                            StreamType = streamType
                         });
 
                         break;
 
-                    case StreamType.TWITCH:
-                        TwitchAPI TwitchAPI = new TwitchAPI();
-                        TwitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
-                        TwitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
+                    case StreamType.Twitch:
+                        TwitchAPI twitchAPI = new TwitchAPI();
+                        twitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
+                        twitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
 
-                        var users = await TwitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { UserName }));
+                        var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName }));
                         if (!users.Users.Any())
                             await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *Twitch user not found.*");
 
-                        var User = users.Users[0];
+                        var user = users.Users[0];
                         Context.Server.Streams.Add(new StreamObject
                         {
-                            Name = UserName,
-                            TwitchUserId = User.Id,
-                            ChannelId = Channel.Id,
-                            StreamType = StreamType
+                            Name = userName,
+                            TwitchUserId = user.Id,
+                            ChannelId = channel.Id,
+                            StreamType = streamType
                         });
 
                         break;
@@ -492,105 +582,64 @@
                 await Task.Delay(1000);
             }
 
-            await ReplyAsync($"I'm so good at this, I scare myself. *`{String.Join(", ", UserNames)}` has been added to the `{StreamType}` list.* {Extras.OkHand}", Save: 's');
+            await ReplyAsync($"I'm so good at this, I scare myself. *`{String.Join(", ", userNames)}` has been added to the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Streamer Remove"), Remarks("Remove a Streamer"), Summary("Streamer Remove <StreamType> <UserName> [#Channel: Defaults to #streams]")]
-        public Task StreamerRemoveAsync(StreamType StreamType, string UserName, SocketTextChannel Channel = null)
+        [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
+        public async Task UnbanAsync(ulong id)
         {
-            if (!Context.Server.Streams.Select(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == (Channel ?? 
-                Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id).Any())
-                return ReplyAsync($"{Extras.Cross} My spirit is spent. *`{UserName}` isn't on the `{StreamType}` list.*");
-            var streamer = Context.Server.Streams.FirstOrDefault(s => s.StreamType == StreamType && s.Name == UserName && s.ChannelId == (Context.GuildHelper.DefaultStreamChannel(Context.Guild) as SocketTextChannel).Id);
-            Context.Server.Streams.Remove(streamer);
-            return ReplyAsync($"Every death brings me life. *`{UserName}` has been removed from the `{StreamType}` list.* {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Streamers"), Remarks("Shows a list of all Streamers"), Summary("Streamers")]
-        public Task StreamersAsync()
-            => ReplyAsync(!Context.Server.Streams.Any() ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any streamers.*" : 
-                $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(s => $"`{s.StreamType}`: {s.Name} {(Context.GuildHelper.DefaultStreamChannel(Context.Guild).Id == Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Id ? "" : Context.Guild.GetTextChannelAsync(s.ChannelId).GetAwaiter().GetResult().Mention)}").ToList())}");
-
-        [Command("Leaderboard Add"), Summary("Leaderboard Add <#Channel> <Enabled: True, False> <Variant>"), Remarks("Add Leaderboard Variant. You will get live feed from specified Leaderboard Variant.")]
-        public async Task LeaderboardAddAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
-        {
-            Variant = Variant.Replace(" ", "_");
-            if (Context.Server.Leaderboards.Where(f => f.Variant == Variant && f.ChannelId == Channel.Id).Any())
-                await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{Variant}` is already in the list.*");
-            Context.Server.Leaderboards.Add(new LeaderboardObject
+            bool check = (await Context.Guild.GetBansAsync()).Any(x => x.User.Id == id);
+            if (!check)
             {
-                Variant = Variant,
-                ChannelId = Channel.Id,
-                Enabled = Enabled
-            });
-            await ReplyAsync($"Slowness lends strength to one's enemies. *`{Variant}` has been added to Leaderboard list.* {Extras.OkHand}", Save: 's');
+                await ReplyAsync($"{Extras.Cross} I have nothing more to give. *No user with `{id}` found.*");
+                return;
+            }
+            await Context.Guild.RemoveBanAsync(id).ContinueWith(x => ReplyAsync($"It seems there's still glory in the old Empire yet! *Unbanned user with `{id}`* {Extras.OkHand}", save: DocumentType.Server));
         }
 
-        [Command("Leaderboard Update"), Summary("Leaderboard Update <#Channel> <Enabled: True, False> <Variant>"), Remarks("Update Leaderboard Variant. You can not edit the Variant name, just Channel and Enabled.")]
-        public Task LeaderboardUpdateAsync(SocketTextChannel Channel, bool Enabled, [Remainder] string Variant)
+        [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@user>"), BotPermission(GuildPermission.ManageRoles)]
+        public Task UnMuteAsync(IGuildUser user)
+            => GuildHelper.UnmuteUserAsync(Context, user);
+
+        [Command("UserInfo"), Remarks("Displays information about a user."), Summary("UserInfo [@user]")]
+        public Task UserInfoAsync(SocketGuildUser user = null)
         {
-            Variant = Variant.Replace(" ", "_");
-            if (!Context.Server.Leaderboards.Where(f => f.Variant == Variant).Any())
-                return ReplyAsync($"{Extras.Cross} Poor, corrupted creature. *Can't find the Variant `{Variant}`*");
-            var leaderboard = Context.Server.Leaderboards.FirstOrDefault(l => l.Variant == Variant);
-            Context.Server.Leaderboards.Remove(leaderboard);
-            Context.Server.Leaderboards.Add(new LeaderboardObject
-            {
-                Variant = Variant,
-                ChannelId = Channel.Id,
-                Enabled = Enabled
-            });
-            return ReplyAsync($"Slowness lends strength to one's enemies. *Updated Leaderboard Variant: `{Variant}`* {Extras.OkHand}", Save: 's');
+            user = user ?? Context.User as SocketGuildUser;
+            return ReplyAsync(embed: Extras.Embed(Extras.Info)
+                .WithAuthor($"{user.Username} Information | {user.Id}", user.GetAvatarUrl())
+                .WithThumbnailUrl(user.GetAvatarUrl())
+                .AddField("Muted?", user.IsMuted ? "Yep" : "Nope", true)
+                .AddField("Is Lieutenant?", user.IsBot ? "Yep" : "Nope", true)
+                .AddField("Creation Date", user.CreatedAt, true)
+                .AddField("Join Date", user.JoinedAt, true)
+                .AddField("Status", user.Status, true)
+                .AddField("Skills", string.Join(", ", user.GuildPermissions.ToList()), true)
+                .AddField("Classes", string.Join(", ", (user as SocketGuildUser).Roles.OrderBy(x => x.Position).Select(x => x.Name)), true).Build());
         }
 
-        [Command("Leaderboard Remove"), Summary("Leaderboard Remove <#Channel> <Variant>"), Remarks("Remove Leaderboard Variant.")]
-        public Task LeaderboardRemove(SocketTextChannel Channel, [Remainder] string Variant)
+        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@user> <reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
+        public Task WarnAysnc(IGuildUser user, [Remainder] string reason)
+            => GuildHelper.WarnUserAsync(Context, user, reason);
+
+        [Command("WarnDelete"), Remarks("Deletes a number of users warnings."), Summary("WarnDelete <@user> <amount>"), RequirePermission]
+        public Task WarnDeleteAsync(IGuildUser user, int amount = 1)
         {
-            Variant = Variant.Replace(" ", "_");
-            if (!Context.Server.Leaderboards.Select(l => l.Variant == Variant && l.ChannelId == Channel.Id).Any())
-                return ReplyAsync($"{Extras.Cross} Poor, corrupted creature. *Can't find the Variant: `{Variant}`*");
-            var leaderboard = Context.Server.Leaderboards.FirstOrDefault(l => l.Variant == Variant && l.ChannelId == Channel.Id);
-            Context.Server.Leaderboards.Remove(leaderboard);
-            return ReplyAsync($"Life is short, deal with it! *Removed `{Variant}` from the Leaderboards list.* {Extras.OkHand}", Save: 's');
+            ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);
+            if (amount > profile.Warnings)
+                return ReplyAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` doesn't have `{amount}` warnings to remove.*");
+
+            profile.Warnings = profile.Warnings - amount;
+            GuildHelper.SaveProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id, profile);
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{amount}` Warnings has been removed for `{user}`* {Extras.OkHand}");
         }
 
-        [Command("Leaderboard List"), Summary("Leaderboard List"), Remarks("Shows all the Leaderboard Variants this server is watching.")]
-        public Task LeaderboardAsync()
-            => ReplyAsync(!Context.Server.Leaderboards.Any() ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any leaderboards.*" :
-                $"**Leaderboard Variants**:\n{String.Join("\n", Context.Server.Leaderboards.Select(l => $"Variant: {l.Variant} | Channel: {Context.Guild.GetTextChannelAsync(l.ChannelId).GetAwaiter().GetResult().Mention} | Enabled: {l.Enabled.ToString()}").ToList())}");
-
-        [Command("Situation Add"), Summary("Situation Add <@User1> <@User2> ..."), Remarks("Adds the Situation Room role to the specified users.")]
-        public Task SituationAddAsync(params IGuildUser[] Users)
+        [Command("WarnReset"), Remarks("Resets users warnings."), Summary("WarnReset <@user>"), RequirePermission]
+        public Task WarnResetAsync(IGuildUser user)
         {
-            foreach (var User in Users)
-                User.AddRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
-            return ReplyAndDeleteAsync($"Purity will prevail! *Users has been added to Situation Room.* {Extras.OkHand}");
+            ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);
+            profile.Warnings = 0;
+            GuildHelper.SaveProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id, profile);
+            return ReplyAsync($"It seems there's still glory in the old Empire yet! *Warnings has been reset for `{user}`* {Extras.OkHand}");
         }
-
-        [Command("Situation Remove"), Summary("Situation Remove <@User1> <@User2> ..."), Remarks("Removes the Situation Room role to the specified users.")]
-        public Task SituationRemoveAsync(params IGuildUser[] Users)
-        {
-            foreach (var User in Users)
-                User.RemoveRoleAsync(Context.Guild.Roles.FirstOrDefault(r => r.Name is "Situation Room"));
-            return ReplyAndDeleteAsync($"Purity will prevail! *Users has been removed from Situation Room.* {Extras.OkHand}");
-        }
-
-        [Command("Profanity Add"), Summary("Profanity Add <Word>"), Remarks("Adds a word to the Profanity List.")]
-        public Task ProfanityAddAsync(string Word)
-        {
-            Context.Server.ProfanityList.Add(Word.ToLower());
-            return ReplyAsync($"Death to sin! *`{Word}` has been added to the filter.* {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Profanity Remove"), Summary("Profanity Remove <Word>"), Remarks("Removes a word from the Profanity List.")]
-        public Task ProfanityRemoveAsync(string Word)
-        {
-            Context.Server.ProfanityList.Remove(Word.ToLower());
-            return ReplyAsync($"I like you better this way! *`{Word}` has been removed from the filter.* {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Profanity List"), Summary("Profanity List"), Remarks("Lists all words in the Profanity List.")]
-        public Task ProfanityListAsync()
-            => ReplyAsync($"`{String.Join("`,`", Context.Server.ProfanityList)}`");
     }
 }

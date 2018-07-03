@@ -5,7 +5,7 @@
 
     public class ReactionCriteria : ICriteria<SocketReaction>
     {
-        public Task<bool> JudgeAsync(IContext Context, SocketReaction Param)
-            => Task.FromResult(Param.UserId == Context.User.Id);
+        public Task<bool> JudgeAsync(Context context, SocketReaction param)
+            => Task.FromResult(param.UserId == context.User.Id);
     }
 }

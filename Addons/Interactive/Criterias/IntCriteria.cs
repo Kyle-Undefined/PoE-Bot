@@ -5,7 +5,7 @@
 
     public class IntCriteria : ICriteria<SocketMessage>
     {
-        public Task<bool> JudgeAsync(IContext Context, SocketMessage Param)
-            => Task.FromResult(int.TryParse(Param.Content, out _));
+        public Task<bool> JudgeAsync(Context context, SocketMessage param)
+            => Task.FromResult(int.TryParse(param.Content, out _));
     }
 }

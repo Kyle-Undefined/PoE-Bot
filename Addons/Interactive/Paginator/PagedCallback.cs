@@ -1,43 +1,53 @@
 ﻿namespace PoE.Bot.Addons.Interactive.Paginator
 {
-    using System;
+    using Criterias;
     using Discord;
-    using System.Linq;
     using Discord.Commands;
     using Discord.WebSocket;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using PoE.Bot.Addons.Interactive.Criterias;
 
     public class PagedCallback : IReactionCallback
     {
-        int Page = 1;
-        readonly int Pages;
-        public IContext Context { get; }
-        readonly PagedMessage Paged;
-        PageOptions Options => Paged.Options;
-        public RunMode RunMode => RunMode.Sync;
-        public TimeSpan? Timeout => Options.Timeout;
-        public IUserMessage Message { get; private set; }
-        public ICriteria<SocketReaction> Criteria { get; }
-        public InteractiveService Interactive { get; private set; }
+        private readonly PagedMessage pagedMessage;
+        private readonly int pages;
+        private int page = 1;
 
-        public PagedCallback(InteractiveService service, IContext context, PagedMessage paged, ICriteria<SocketReaction> criteria = null)
+        public PagedCallback(InteractiveService service, Context context, PagedMessage paged, ICriteria<SocketReaction> criteria = null)
         {
-            Paged = paged;
+            pagedMessage = paged;
             Context = context;
             Interactive = service;
-            Pages = Paged.Pages.Count();
+            pages = paged.Pages.Count();
             Criteria = criteria ?? new EmptyCriteria<SocketReaction>();
         }
 
-        public async Task DisplayAsync(PagedMessage Paged, bool Delete)
+        public Context Context { get; }
+        public ICriteria<SocketReaction> Criteria { get; }
+
+        private Embed Embed
+            => Extras.Embed(Extras.Info)
+            .WithAuthor(pagedMessage.Author)
+            .WithDescription($"{pagedMessage.Pages.ElementAt(page - 1)}")
+            .WithFooter(x => x.Text = string.Format(PageOptions.FooterFormat, page, pages)).Build();
+
+        public InteractiveService Interactive { get; private set; }
+        public IUserMessage Message { get; private set; }
+
+        private PageOptions Options => pagedMessage.Options;
+        public RunMode RunMode => RunMode.Sync;
+        private TimeSpan? Timeout => Options.Timeout;
+
+        public async Task DisplayAsync(PagedMessage paged, bool delete)
         {
-            var message = await Context.Channel.SendMessageAsync(embed: Embed).ConfigureAwait(false);
+            IUserMessage message = await Context.Channel.SendMessageAsync(embed: Embed).ConfigureAwait(false);
             Message = message;
             Interactive.AddReactionCallback(message, this);
+
             _ = Task.Run(async () =>
             {
-                if (Paged.Pages.Count() > 1)
+                if (paged.Pages.Count() > 1)
                 {
                     await message.AddReactionAsync(Options.Back);
                     await message.AddReactionAsync(Options.Next);
@@ -48,24 +58,27 @@
             _ = Task.Delay(Timeout.Value).ContinueWith(_ =>
             {
                 Interactive.RemoveReactionCallback(message);
-                _ = Delete ? Message.DeleteAsync() : Message.RemoveAllReactionsAsync();
+                if (delete)
+                    Message.DeleteAsync();
+                else
+                    Message.RemoveAllReactionsAsync();
             });
         }
 
         public async Task<bool> HandleCallbackAsync(SocketReaction reaction)
         {
-            var emote = reaction.Emote;
+            IEmote emote = reaction.Emote;
             if (emote.Equals(Options.Next))
             {
-                if (Page >= Pages)
+                if (page >= pages)
                     return false;
-                ++Page;
+                ++page;
             }
             else if (emote.Equals(Options.Back))
             {
-                if (Page <= 1)
+                if (page <= 1)
                     return false;
-                --Page;
+                --page;
             }
             else if (emote.Equals(Options.Stop))
             {
@@ -76,11 +89,6 @@
             await RenderAsync().ConfigureAwait(false);
             return false;
         }
-
-        Embed Embed => Extras.Embed(Extras.Info)
-            .WithAuthor(Paged.Author)
-            .WithDescription($"{Paged.Pages.ElementAt(Page - 1)}")
-            .WithFooter(x => x.Text = string.Format(Options.FooterFormat, Page, Pages)).Build();
 
         private async Task RenderAsync()
             => await Message.ModifyAsync(x => x.Embed = Embed).ConfigureAwait(false);

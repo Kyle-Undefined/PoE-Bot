@@ -5,10 +5,12 @@
 
     public class FromChannel : ICriteria<IMessage>
     {
-        ulong ChannelID { get; }
-        public FromChannel(IMessageChannel Channel) => ChannelID = Channel.Id;
+        public FromChannel(IMessageChannel channel)
+            => ChannelID = channel.Id;
 
-        public Task<bool> JudgeAsync(IContext Context, IMessage Param)
-            => Task.FromResult(ChannelID == Param.Channel.Id);
+        private ulong ChannelID { get; }
+
+        public Task<bool> JudgeAsync(Context context, IMessage param)
+            => Task.FromResult(ChannelID == param.Channel.Id);
     }
 }

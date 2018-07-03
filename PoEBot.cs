@@ -1,53 +1,55 @@
 ﻿namespace PoE.Bot
 {
-    using System;
+    using Addons.Interactive;
     using Discord;
-    using PoE.Bot.Helpers;
-    using System.Net.Http;
-    using PoE.Bot.Handlers;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Addons.Interactive;
+    using Handlers;
+    using Helpers;
     using Microsoft.Extensions.DependencyInjection;
+    using Objects;
+    using System;
+    using System.Net.Http;
+    using System.Threading.Tasks;
 
-    class PoE_Bot
+    internal class PoE_Bot
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
-            var Services = new ServiceCollection()
-                .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
-                {
-                    MessageCacheSize = 50,
-                    AlwaysDownloadUsers = true,
-                    LogLevel = LogSeverity.Warning
-                }))
-                .AddSingleton(new CommandService(new CommandServiceConfig
-                {
-                    ThrowOnError = false,
-                    IgnoreExtraArgs = false,
-                    DefaultRunMode = RunMode.Sync,
-                    CaseSensitiveCommands = false
-                }))
-                .AddSingleton(new CommandService())
-                .AddSingleton<HttpClient>()
-                .AddSingleton<DatabaseHandler>()
-                .AddSingleton<JobHandler>()
-                .AddSingleton<GuildHelper>()
-                .AddSingleton<EventHelper>()
-                .AddSingleton<MainHandler>()
-                .AddSingleton<InteractiveService>()
-                .AddSingleton<Handlers.EventHandler>()
-                .AddSingleton(new Random(Guid.NewGuid().GetHashCode()))
-                .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.LOAD, Id: "Config"));
+            using (DiscordSocketClient discordSocketClient = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                MessageCacheSize = 50,
+                AlwaysDownloadUsers = true,
+                LogLevel = LogSeverity.Warning
+            }))
+            {
+                IServiceCollection Services = new ServiceCollection()
+                    .AddSingleton(discordSocketClient)
+                    .AddSingleton(new CommandService(new CommandServiceConfig
+                    {
+                        ThrowOnError = false,
+                        IgnoreExtraArgs = false,
+                        DefaultRunMode = RunMode.Sync,
+                        CaseSensitiveCommands = false
+                    }))
+                    .AddSingleton(new CommandService())
+                    .AddSingleton<HttpClient>()
+                    .AddSingleton<DatabaseHandler>()
+                    .AddSingleton<JobHandler>()
+                    .AddSingleton<EventHelper>()
+                    .AddSingleton<MainHandler>()
+                    .AddSingleton<InteractiveService>()
+                    .AddSingleton<Handlers.EventHandler>()
+                    .AddSingleton(new Random(Guid.NewGuid().GetHashCode()))
+                    .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.Load, Id: nameof(Config)));
 
-            var Provider = Services.BuildServiceProvider();
-            await Provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
-            await Provider.GetRequiredService<MainHandler>().InitializeAsync();
-            await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
-            Provider.GetRequiredService<JobHandler>().Initialize();
-            await Task.Delay(-1);
+                ServiceProvider Provider = Services.BuildServiceProvider();
+                await Provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
+                await Provider.GetRequiredService<MainHandler>().InitializeAsync();
+                await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
+                Provider.GetRequiredService<JobHandler>().Initialize();
+                await Task.Delay(-1);
+            }
         }
     }
 }

@@ -5,7 +5,7 @@
 
     public class SourceUser : ICriteria<IMessage>
     {
-        public Task<bool> JudgeAsync(IContext Context, IMessage Param)
-            => Task.FromResult(Context.User.Id == Param.Author.Id);
+        public Task<bool> JudgeAsync(Context context, IMessage param)
+            => Task.FromResult(context.User.Id == param.Author.Id);
     }
 }

@@ -4,11 +4,11 @@
     {
         public ItemSlots(string name, int itemID)
         {
-            Name = name;
             ItemID = itemID;
+            Name = name;
         }
 
-        public string Name { get; private set; }
         public int ItemID { get; private set; }
+        public string Name { get; private set; }
     }
 }

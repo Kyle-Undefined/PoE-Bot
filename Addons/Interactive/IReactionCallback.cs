@@ -1,17 +1,16 @@
 ﻿namespace PoE.Bot.Addons.Interactive
 {
-    using System;
+    using Criterias;
     using Discord.Commands;
     using Discord.WebSocket;
     using System.Threading.Tasks;
-    using PoE.Bot.Addons.Interactive.Criterias;
 
     public interface IReactionCallback
     {
-        IContext Context { get; }
-        TimeSpan? Timeout { get; }
-        RunMode RunMode { get; }
+        Context Context { get; }
         ICriteria<SocketReaction> Criteria { get; }
+        RunMode RunMode { get; }
+
         Task<bool> HandleCallbackAsync(SocketReaction reaction);
     }
 }

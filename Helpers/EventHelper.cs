@@ -1,67 +1,69 @@
 ﻿namespace PoE.Bot.Helpers
 {
-    using System;
+    using Addons;
     using Discord;
-    using System.Linq;
-    using PoE.Bot.Handlers;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
+    using Handlers;
+    using Objects;
     using Raven.Client.Extensions;
-    using PoE.Bot.Objects;
-    using System.Collections.Concurrent;
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     public class EventHelper
     {
-        DatabaseHandler DB { get; }
-        Random Random { get; }
-        GuildHelper GuildHelper { get; }
-        public TimeSpan GlobalTimeout { get; }
-        ConcurrentDictionary<ulong, DateTime> WaitList { get; }
-
-        public EventHelper(DatabaseHandler dB, Random random, GuildHelper helper)
+        public EventHelper(DatabaseHandler databaseHandler, Random random)
         {
-            DB = dB;
+            DatabaseHandler = databaseHandler;
             Random = random;
-            GuildHelper = helper;
             GlobalTimeout = TimeSpan.FromSeconds(30);
-            WaitList = new ConcurrentDictionary<ulong, DateTime>();
         }
 
-        internal async Task CheckStateAsync(DiscordSocketClient Client)
+        public TimeSpan GlobalTimeout { get; }
+        private DatabaseHandler DatabaseHandler { get; }
+        private Random Random { get; }
+
+        internal async Task CheckStateAsync(DiscordSocketClient client)
         {
-            if (Client.ConnectionState is ConnectionState.Connected)
+            if (client.ConnectionState is ConnectionState.Connected)
                 return;
-            var Timeout = Task.Delay(GlobalTimeout);
-            var Connect = Client.StartAsync();
-            var LocalTask = await Task.WhenAny(Timeout, Connect);
-            if (LocalTask == Timeout || Connect.IsFaulted)
+
+            Task timeout = Task.Delay(GlobalTimeout);
+            Task connect = client.StartAsync();
+            Task localTask = await Task.WhenAny(timeout, connect);
+            if (localTask == timeout || connect.IsFaulted)
                 return;
-            else if (Connect.IsCompletedSuccessfully)
+            if (connect.IsCompletedSuccessfully)
                 return;
-            else Environment.Exit(1);
+
+            Environment.Exit(1);
         }
 
-        internal void RunTasks(SocketUserMessage Message, GuildObject Server)
+        internal void RunTasks(SocketUserMessage message, Context context)
             => Task.Run(async ()
                 =>
             {
-                await AFKHandler(Message, Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
-                await ModeratorAsync(Message, Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
+                await AFKHandler(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
+                await ModeratorAsync(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
             });
 
-        Task AFKHandler(SocketMessage Message, GuildObject Server)
+        private Task AFKHandler(SocketMessage message, GuildObject server)
         {
-            if (!Message.MentionedUsers.Any(x => Server.AFK.ContainsKey(x.Id)))
+            if (!message.MentionedUsers.Any(x => server.AFK.ContainsKey(x.Id)))
                 return Task.CompletedTask;
-            string Reason = null;
-            var User = Message.MentionedUsers.FirstOrDefault(u => Server.AFK.TryGetValue(u.Id, out Reason));
-            return User is null ? Task.CompletedTask : Message.Channel.SendMessageAsync($"**{User.Username} has left an AFK Message:**  {Reason}");
+
+            string reason = null;
+            SocketUser user = message.MentionedUsers.FirstOrDefault(u => server.AFK.TryGetValue(u.Id, out reason));
+            return user is null
+                ? Task.CompletedTask
+                : message.Channel.SendMessageAsync($"**{user.Username} has left an AFK Message:**  {reason}");
         }
 
-        Task ModeratorAsync(SocketUserMessage Message, GuildObject Server)
+        private Task ModeratorAsync(SocketMessage message, GuildObject server)
         {
-            if (GuildHelper.ProfanityMatch(Message.Content, Server.ProfanityList) && Server.AntiProfanity)
-                return GuildHelper.WarnUserAsync(Message, Server, DB, $"{Message.Author.Mention}, Refrain from using profanity. You've been warned.");
+            if (message.Content.ProfanityMatch(server.ProfanityList) && server.AntiProfanity)
+                return GuildHelper.WarnUserAsync(message, server, DatabaseHandler, $"{message.Author.Mention}, Refrain from using profanity. You've been warned.");
+
             return Task.CompletedTask;
         }
     }

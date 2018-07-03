@@ -1,43 +1,45 @@
 ﻿namespace PoE.Bot.Addons.Preconditions
 {
-    using System;
-    using System.Linq;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
+    using Helpers;
+    using System;
     using System.Collections.Concurrent;
-    using PoE.Bot.Helpers;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     public class Ratelimit : PreconditionAttribute
     {
-        readonly ConcurrentDictionary<ulong, DateTime> Timeout = new ConcurrentDictionary<ulong, DateTime>();
+        private readonly ConcurrentDictionary<ulong, DateTime> timeout = new ConcurrentDictionary<ulong, DateTime>();
 
-        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Services)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            PreconditionResult Result;
+            PreconditionResult result;
 
-            if (Context.User.Id == MethodHelper.RunSync(Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == Context.Guild.OwnerId ||
-                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild)
+            if (context.User.Id == MethodHelper.RunSync(context.Client.GetApplicationInfoAsync()).Owner.Id || context.User.Id == context.Guild.OwnerId ||
+                (context.User as SocketGuildUser).GuildPermissions.Administrator || (context.User as SocketGuildUser).GuildPermissions.ManageGuild)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if (!Timeout.ContainsKey(Context.User.Id))
+            if (!timeout.ContainsKey(context.User.Id))
             {
-                Timeout.TryAdd(Context.User.Id, DateTime.Now);
-                Result = PreconditionResult.FromSuccess();
+                timeout.TryAdd(context.User.Id, DateTime.Now);
+                result = PreconditionResult.FromSuccess();
             }
-            else if (Timeout[Context.User.Id].AddSeconds(3) > DateTime.Now)
-                Result = PreconditionResult.FromError($"{Extras.Cross} Too. Much. Clutter. *3 Second Cooldown*");
+            else if (timeout[context.User.Id].AddSeconds(3) > DateTime.Now)
+                result = PreconditionResult.FromError($"{Extras.Cross} Too. Much. Clutter. *3 Second Cooldown*");
             else
             {
-                Timeout.AddOrUpdate(Context.User.Id, DateTime.Now, (key, value) => value = DateTime.Now);
-                Result = PreconditionResult.FromSuccess();
+                timeout.AddOrUpdate(context.User.Id, DateTime.Now, (key, value) => value = DateTime.Now);
+                result = PreconditionResult.FromSuccess();
             }
+
             Task.Run(() =>
             {
-                foreach (var user in Timeout.OrderByDescending(x => x.Value).Where(x => !(x.Value.AddSeconds(3) > DateTime.Now)))
-                    Timeout.TryRemove(user.Key, out _);
+                foreach (var user in timeout.OrderByDescending(x => x.Value).Where(x => !(x.Value.AddSeconds(3) > DateTime.Now)))
+                    timeout.TryRemove(user.Key, out _);
             });
-            return Task.FromResult(Result);
+
+            return Task.FromResult(result);
         }
     }
 }

@@ -1,40 +1,40 @@
 ﻿namespace PoE.Bot.Helpers
 {
-    using System;
     using Discord;
-    using System.Linq;
-    using System.Text;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using System.Collections.Generic;
+    using HtmlAgilityPack;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using HtmlAgilityPack;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Text;
+    using System.Threading.Tasks;
 
     public class WikiHelper
     {
         public static async Task<Embed> WikiGetItemAsync(string item)
         {
-            string SearchURL = "http://pathofexile.gamepedia.com/api.php?action=opensearch&search=";
-            string ParseURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&page=";
-            string SectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=sections&format=json&page=";
-            string ParseSectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&section={0}&page={1}";
+            string searchURL = "http://pathofexile.gamepedia.com/api.php?action=opensearch&search=";
+            string parseURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&page=";
+            string sectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=sections&format=json&page=";
+            string parseSectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&section={0}&page={1}";
 
-            using (var httpClient = new HttpClient())
+            using (HttpClient httpClient = new HttpClient())
             {
-                var jsonSearch = await httpClient.GetStringAsync(SearchURL + WebUtility.UrlEncode(item));
+                string jsonSearch = await httpClient.GetStringAsync(searchURL + WebUtility.UrlEncode(item));
 
                 JArray jsonSearchArray = JArray.Parse(jsonSearch);
-                dynamic jObj = JsonConvert.DeserializeObject(jsonSearchArray[1].ToString());
+                dynamic jsonObj = JsonConvert.DeserializeObject(jsonSearchArray[1].ToString());
 
-                if (jObj.Count > 0)
+                if (jsonObj.Count > 0)
                 {
                     int wikiMultiIndex = 0;
 
-                    if (jObj.Count > 1)
+                    if (jsonObj.Count > 1)
                     {
-                        for (int i = 0; i < jObj.Count; i++)
+                        for (int i = 0; i < jsonObj.Count; i++)
                         {
                             if (jsonSearchArray[1][i].ToString().ToLower() == item.ToLower())
                             {
@@ -44,29 +44,26 @@
                         }
                     }
 
-                    string itemName = (wikiMultiIndex > 0 ? jsonSearchArray[1][wikiMultiIndex].ToString() : jsonSearchArray[1].First.ToString());
-                    string itemURL = (wikiMultiIndex > 0 ? jsonSearchArray[3][wikiMultiIndex].ToString() : jsonSearchArray[3].First.ToString());
+                    string itemName = wikiMultiIndex > 0 ? jsonSearchArray[1][wikiMultiIndex].ToString() : jsonSearchArray[1].First.ToString();
+                    string itemURL = wikiMultiIndex > 0 ? jsonSearchArray[3][wikiMultiIndex].ToString() : jsonSearchArray[3].First.ToString();
                     string wikiPage = itemURL.Remove(0, itemURL.LastIndexOf('/') + 1);
-
-                    var jsonParse = await httpClient.GetStringAsync(ParseURL + wikiPage);
+                    string jsonParse = await httpClient.GetStringAsync(parseURL + wikiPage);
 
                     if (jsonParse.Contains("Redirect"))
                     {
-                        JObject rJson = JObject.Parse(jsonParse);
-                        var rHtmlDoc = new HtmlDocument();
-                        rHtmlDoc.LoadHtml(rJson["parse"]["text"]["*"].ToString());
-                        wikiPage = rHtmlDoc.DocumentNode.SelectSingleNode("//ul[@class=\"redirectText\"]//a").InnerText.Replace(" ", "_");
-                        jsonParse = await httpClient.GetStringAsync(ParseURL + wikiPage);
+                        JObject redirectJson = JObject.Parse(jsonParse);
+                        HtmlDocument redirectHtmlDoc = new HtmlDocument();
+                        redirectHtmlDoc.LoadHtml(redirectJson["parse"]["text"]["*"].ToString());
+                        wikiPage = redirectHtmlDoc.DocumentNode.SelectSingleNode("//ul[@class=\"redirectText\"]//a").InnerText.Replace(" ", "_");
+                        jsonParse = await httpClient.GetStringAsync(parseURL + wikiPage);
                     }
 
                     JObject json = JObject.Parse(jsonParse);
-
                     EmbedBuilder builder = new EmbedBuilder();
-
-                    var endstring = json["parse"]["text"]["*"].ToString();
+                    string endstring = json["parse"]["text"]["*"].ToString();
                     int itemType = 0;
 
-                    var rarityList = new string[]
+                    string[] rarityList = new string[]
                     {
                     "item-box -normal",
                     "item-box -unique",
@@ -75,7 +72,7 @@
                     "item-box -currency"
                     };
 
-                    var rarityColors = new Color[]
+                    Color[] rarityColors = new Color[]
                     {
                     Color.LightGrey,
                     Color.Red,
@@ -93,7 +90,7 @@
                         }
                     }
 
-                    var htmlDoc = new HtmlDocument();
+                    HtmlDocument htmlDoc = new HtmlDocument();
                     htmlDoc.LoadHtml(endstring);
 
                     string title = string.Empty;
@@ -104,18 +101,22 @@
                         case 0:
                             title = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"header -single\"]").InnerHtml;
                             break;
+
                         case 1:
                             title = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"header -double\"]").InnerHtml.Replace("<br>", " ");
                             description = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"group -textwrap tc -flavour\"]").InnerHtml.Replace("<br>", " ");
                             break;
+
                         case 2:
                             title = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-header\"]").InnerHtml.Replace("<br>", " ");
-                            description = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-flavour text-color -flavour\"]").InnerHtml.Replace("<br>", " ").Replace("<span>", "").Replace("</span>", "");
+                            description = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-flavour text-color -flavour\"]").InnerHtml.Replace("<br>", " ").Replace("<span>", string.Empty).Replace("</span>", string.Empty);
                             break;
+
                         case 3:
                             title = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"header -single\"]").InnerHtml;
                             description = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"group -textwrap tc -gemdesc\"]").InnerHtml.Replace("&#39;", "'");
                             break;
+
                         case 4:
                             title = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"header -single\"]").InnerHtml;
                             break;
@@ -125,34 +126,34 @@
 
                     if (itemType is 2)
                     {
-                        var stackNumber = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-stack\"]").InnerHtml.Replace("<br>", " ");
-                        var reward = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-reward\"]").InnerText;
+                        string stackNumber = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-stack\"]").InnerHtml.Replace("<br>", " ");
+                        string reward = htmlDoc.DocumentNode.SelectSingleNode("//span[@class=\"divicard-reward\"]").InnerText;
                         image = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"divicard-art\"]//img");
 
                         builder.AddField("Stack", $"```{stackNumber.Trim()}```")
                             .AddField("Reward", $"```{AddSpacesToSentence(reward.Trim())}```");
 
-                        var jsonParseSections = await httpClient.GetStringAsync(SectionsURL + wikiPage);
-                        JObject jSectionsObj = JObject.Parse(jsonParseSections);
+                        string jsonParseSections = await httpClient.GetStringAsync(sectionsURL + wikiPage);
+                        JObject jsonSectionsObj = JObject.Parse(jsonParseSections);
                         string sectionNumber = string.Empty;
 
-                        for (var i = 0; i < jSectionsObj["parse"]["sections"].Count(); i++)
+                        for (int i = 0; i < jsonSectionsObj["parse"]["sections"].Count(); i++)
                         {
-                            if (jSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Drop restriction"))
-                                sectionNumber = jSectionsObj["parse"]["sections"][i]["index"].ToString();
+                            if (jsonSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Drop restriction"))
+                                sectionNumber = jsonSectionsObj["parse"]["sections"][i]["index"].ToString();
                         }
 
                         if (!string.IsNullOrEmpty(sectionNumber))
                         {
-                            var jsonSection = await httpClient.GetStringAsync(String.Format(ParseSectionsURL, sectionNumber, wikiPage));
-                            JObject jSection = JObject.Parse(jsonSection);
+                            string jsonSection = await httpClient.GetStringAsync(string.Format(parseSectionsURL, sectionNumber, wikiPage));
+                            JObject jsonObjectSection = JObject.Parse(jsonSection);
 
-                            var sectionstring = jSection["parse"]["text"]["*"].ToString();
-                            var htmlSectionDoc = new HtmlDocument();
+                            string sectionstring = jsonObjectSection["parse"]["text"]["*"].ToString();
+                            HtmlDocument htmlSectionDoc = new HtmlDocument();
                             bool dropOverride = false;
                             htmlSectionDoc.LoadHtml(sectionstring);
 
-                            var dropAreas = htmlSectionDoc.DocumentNode.SelectNodes("//ul//li");
+                            HtmlNodeCollection dropAreas = htmlSectionDoc.DocumentNode.SelectNodes("//ul//li");
 
                             if (dropAreas is null)
                             {
@@ -162,9 +163,9 @@
 
                             StringBuilder dropSB = new StringBuilder();
 
-                            foreach (var drop in dropAreas)
+                            foreach (HtmlNode drop in dropAreas)
                             {
-                                var htmlDropSectionDoc = new HtmlDocument();
+                                HtmlDocument htmlDropSectionDoc = new HtmlDocument();
                                 string dropStr = drop.InnerHtml;
                                 string d;
 
@@ -176,7 +177,7 @@
                                 }
                                 catch
                                 {
-                                    d = (dropOverride) ? drop.InnerText : drop.InnerText.Substring(1);
+                                    d = dropOverride ? drop.InnerText : drop.InnerText.Substring(1);
                                 }
 
                                 dropSB.AppendLine(d);
@@ -186,10 +187,10 @@
                         }
                         else
                         {
-                            var acquisition = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"group -textwrap\"]//a");
+                            HtmlNodeCollection acquisition = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"group -textwrap\"]//a");
                             StringBuilder dropSB = new StringBuilder();
 
-                            foreach (var drop in acquisition)
+                            foreach (HtmlNode drop in acquisition)
                                 dropSB.AppendLine(drop.InnerText);
 
                             builder.AddField("Drop Restrictions", $"```{dropSB.ToString().Trim()}```");
@@ -197,23 +198,22 @@
                     }
                     else
                     {
-                        var itemMods = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -default\"]");
+                        HtmlNodeCollection itemMods = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -default\"]");
                         string vaalsouls = string.Empty;
 
                         if (itemType is 3 && title.Contains("Vaal"))
                         {
-                            var vaal = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -value\"]");
+                            HtmlNodeCollection vaal = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//em[@class=\"tc -value\"]");
                             vaalsouls = vaal[1].InnerText + vaal[2].InnerText;
                         }
 
-                        var modRolls = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//span[@class=\"group -textwrap tc -mod\"]");
+                        HtmlNodeCollection modRolls = htmlDoc.DocumentNode.SelectNodes("//span[@class=\"infobox-page-container\"]//span[@class=\"group -textwrap tc -mod\"]");
                         image = htmlDoc.DocumentNode.SelectNodes("//a[@class=\"image\"]//img");
                         List<string> itemModsArray = new List<string>();
-                        List<string> Mods = new List<string>();
 
                         if (!(itemMods is null))
                         {
-                            foreach (var mod in itemMods)
+                            foreach (HtmlNode mod in itemMods)
                             {
                                 if (!mod.InnerText.Contains("uality") && !mod.InnerText.StartsWith("Level"))
                                 {
@@ -222,7 +222,7 @@
                                 }
                             }
 
-                            foreach (var imod in itemModsArray)
+                            foreach (string imod in itemModsArray)
                             {
                                 string[] s = imod.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -237,9 +237,9 @@
 
                         if (!(modRolls is null))
                         {
-                            foreach (var modRoll in modRolls)
+                            foreach (HtmlNode modRoll in modRolls)
                             {
-                                var str = modRoll.InnerHtml;
+                                string str = modRoll.InnerHtml;
                                 str = str.Replace("<br>", Environment.NewLine);
                                 str = StripTagsCharArray(str);
                                 sb.AppendLine(str);
@@ -248,40 +248,40 @@
                             builder.AddField("Mods", $"```{sb.ToString().Trim()}```");
                         }
 
-                        var jsonParseSections = await httpClient.GetStringAsync(SectionsURL + wikiPage);
-                        JObject jSectionsObj = JObject.Parse(jsonParseSections);
+                        string jsonParseSections = await httpClient.GetStringAsync(sectionsURL + wikiPage);
+                        JObject jsonSectionsObj = JObject.Parse(jsonParseSections);
                         string sectionNumber = string.Empty;
                         bool hasDivCards = false;
                         bool hasVendorRecipe = false;
 
-                        for (var i = 0; i < jSectionsObj["parse"]["sections"].Count(); i++)
+                        for (int i = 0; i < jsonSectionsObj["parse"]["sections"].Count(); i++)
                         {
-                            if (jSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Divination card"))
+                            if (jsonSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Divination card"))
                             {
                                 hasDivCards = true;
-                                sectionNumber = jSectionsObj["parse"]["sections"][i]["index"].ToString();
+                                sectionNumber = jsonSectionsObj["parse"]["sections"][i]["index"].ToString();
                             }
-                            else if (jSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Vendor recipe"))
+                            else if (jsonSectionsObj["parse"]["sections"][i]["line"].ToString().Contains("Vendor recipe"))
                                 hasVendorRecipe = true;
                         }
 
                         if (hasDivCards)
                         {
-                            var jsonSection = await httpClient.GetStringAsync(String.Format(ParseSectionsURL, sectionNumber, wikiPage));
-                            JObject jSection = JObject.Parse(jsonSection);
+                            string jsonSection = await httpClient.GetStringAsync(string.Format(parseSectionsURL, sectionNumber, wikiPage));
+                            JObject jsonObjectSection = JObject.Parse(jsonSection);
 
-                            var sectionstring = jSection["parse"]["text"]["*"].ToString();
-                            var htmlSectionDoc = new HtmlDocument();
+                            string sectionstring = jsonObjectSection["parse"]["text"]["*"].ToString();
+                            HtmlDocument htmlSectionDoc = new HtmlDocument();
                             htmlSectionDoc.LoadHtml(sectionstring);
 
-                            var divCards = htmlSectionDoc.DocumentNode.SelectNodes("//ul//li");
+                            HtmlNodeCollection divCards = htmlSectionDoc.DocumentNode.SelectNodes("//ul//li");
 
                             StringBuilder cardSB = new StringBuilder();
 
-                            foreach (var card in divCards)
+                            foreach (HtmlNode card in divCards)
                             {
-                                var htmlDivSectionDoc = new HtmlDocument();
-                                var fullString = card.InnerHtml;
+                                HtmlDocument htmlDivSectionDoc = new HtmlDocument();
+                                string fullString = card.InnerHtml;
                                 string beginningString;
                                 string cardName;
 
@@ -303,7 +303,6 @@
                             }
 
                             builder.AddField("Divination Cards", $"```{cardSB.ToString().Trim()}```");
-
                         }
 
                         if (hasVendorRecipe)
@@ -315,7 +314,7 @@
                         .WithCurrentTimestamp()
                         .WithUrl(itemURL);
 
-                    var imageURL = image[0].OuterHtml.Substring(0, image[0].OuterHtml.IndexOf("width") - 2);
+                    string imageURL = image[0].OuterHtml.Substring(0, image[0].OuterHtml.IndexOf("width") - 2);
                     imageURL = imageURL.Substring(image[0].OuterHtml.IndexOf("src") + 5);
                     builder.WithImageUrl(imageURL);
 
@@ -333,6 +332,21 @@
                     return builder.Build();
                 }
             }
+        }
+
+        private static string AddSpacesToSentence(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+            StringBuilder newText = new StringBuilder(text.Length * 2);
+            newText.Append(text[0]);
+            for (int i = 1; i < text.Length; i++)
+            {
+                if (char.IsUpper(text[i]) && !(text[i - 1] is ' '))
+                    newText.Append(' ');
+                newText.Append(text[i]);
+            }
+            return newText.ToString();
         }
 
         private static string StripTagsCharArray(string source)
@@ -361,21 +375,6 @@
                 }
             }
             return new string(array, 0, arrayIndex);
-        }
-
-        private static string AddSpacesToSentence(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return "";
-            StringBuilder newText = new StringBuilder(text.Length * 2);
-            newText.Append(text[0]);
-            for (int i = 1; i < text.Length; i++)
-            {
-                if (char.IsUpper(text[i]) && !(text[i - 1] is ' '))
-                    newText.Append(' ');
-                newText.Append(text[i]);
-            }
-            return newText.ToString();
         }
     }
 }

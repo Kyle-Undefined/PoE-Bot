@@ -4,11 +4,11 @@
     {
         public Items(int iD, string content)
         {
-            ID = iD;
             Content = content;
+            ID = iD;
         }
 
-        public int ID { get; }
         public string Content { get; }
+        public int ID { get; }
     }
 }

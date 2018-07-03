@@ -1,269 +1,349 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using System;
+    using Addons;
+    using Addons.Preconditions;
     using Discord;
-    using Discord.WebSocket;
-    using System.Linq;
-    using PoE.Bot.Addons;
-    using PoE.Bot.Helpers;
     using Discord.Commands;
+    using Discord.WebSocket;
+    using Helpers;
+    using Objects;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Addons.Preconditions;
 
     [Name("Admin Commands"), RequireAdmin, Ratelimit]
     public class AdminModule : BotBase
     {
+        public enum Setting
+        {
+            AllLog,
+            BotChan,
+            DevChan,
+            MainRole,
+            MaxWarnMute,
+            MaxWarnPermMute,
+            ModLog,
+            MuteRole,
+            Prefix,
+            RoleChan,
+            RptLog,
+            RuleChan,
+            TradeMuteRole
+        }
+
+        public enum ToggleType
+        {
+            Leaderboard,
+            MessageLog,
+            MixerFeed,
+            Profanity,
+            RssFeed,
+            TwitchFeed
+        }
+
+        [Command("Rss"), Remarks("Add or Delete an rss feed, also List all feeds."), Summary("Rss <action> [rss] [#channel] [tag]")]
+        public async Task RssAsync(CommandAction action, string rss = null, SocketTextChannel channel = null, string tag = null)
+        {
+            switch (action)
+            {
+                case CommandAction.Add:
+                    if (Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
+                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` already exists.");
+
+                    Context.Server.RssFeeds.Add(new RssObject
+                    {
+                        FeedUri = new Uri(rss),
+                        ChannelId = channel.Id,
+                        Tag = tag
+                    });
+
+                    await ReplyAsync($"`{rss}` has been added to server's Rss Feed {Extras.OkHand}", save: DocumentType.Server);
+                    break;
+
+                case CommandAction.Delete:
+                    if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
+                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.");
+
+                    RssObject rssObject = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id);
+                    Context.Server.RssFeeds.Remove(rssObject);
+                    await ReplyAsync($"`{rss}` has been removed from server's Rss Feed {Extras.OkHand}", save: DocumentType.Server);
+                    break;
+
+                case CommandAction.List:
+                    await ReplyAsync(!Context.Server.RssFeeds.Any()
+                        ? $"{Extras.Cross}This server isn't subscribed to any feeds."
+                        : $"**Subbed To Following rss Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(async f => $"Feed: {f.FeedUri} | channel: {(await Context.Guild.GetTextChannelAsync(f.ChannelId)).Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");
+                    break;
+
+                default:
+                    await ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.");
+                    break;
+            }
+        }
+
+        [Command("RssRoles"), Remarks("Add or Delete role(s) for a rss Feed."), Summary("RssRoles <rss> <#channel> <@role1> <@role2> ...")]
+        public Task RssRolesAsync(string rss, SocketTextChannel channel, params IRole[] roles)
+        {
+            if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
+                return ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.");
+
+            RssObject rssObject = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id);
+            Context.Server.RssFeeds.Remove(rssObject);
+            rssObject.RoleIds = roles.Select(r => r.Id).ToList();
+            Context.Server.RssFeeds.Add(rssObject);
+
+            return ReplyAsync($"{String.Join(", ", roles.Select(r => r.Name))} have been added to the `{rss}` feed {Extras.OkHand}", save: DocumentType.Server);
+        }
+
+        [Command("SelfRole"), Remarks("Add or Delete a role for users to Self Assign"), Summary("SelfRole <action> <role>")]
+        public Task SelfRoleAsync(CommandAction action, IRole role)
+        {
+            switch (action)
+            {
+                case CommandAction.Add:
+                    if (role == Context.Guild.EveryoneRole)
+                        return ReplyAsync($"{Extras.Cross} role cannot be the everyone role.");
+
+                    Context.Server.SelfRoles.Add(role.Id);
+                    return ReplyAsync($"`{role}` has been added to Self roles {Extras.OkHand}", save: DocumentType.Server);
+
+                case CommandAction.Delete:
+                    if (!Context.Server.SelfRoles.Contains(role.Id))
+                        return ReplyAsync($"{Extras.Cross} role is not assigned as a Self role.");
+
+                    Context.Server.SelfRoles.Remove(role.Id);
+                    return ReplyAsync($"`{role}` has been removed from Self roles {Extras.OkHand}", save: DocumentType.Server);
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} action is either `Add` or `Remove`.");
+            }
+        }
+
+        [Command("Set"), Remarks("Sets certain values for current server's config."), Summary("Set <setting> [value]")]
+        public Task SetAsync(Setting setting, [Remainder] string value = null)
+        {
+            ulong channel = Context.Guild.FindChannel(value);
+            ulong role = Context.Guild.FindRole(value);
+            switch (setting)
+            {
+                case Setting.Prefix:
+                    if (string.IsNullOrWhiteSpace(value) || value.Length > 2)
+                        return ReplyAsync($"{Extras.Cross} Prefix can't be greater than 1 characters and can't be empty.");
+                    Context.Server.Prefix = char.Parse(value);
+                    break;
+
+                case Setting.ModLog:
+                    Context.Server.ModLog = channel;
+                    break;
+
+                case Setting.AllLog:
+                    Context.Server.AllLog = channel;
+                    break;
+
+                case Setting.RptLog:
+                    Context.Server.RepLog = channel;
+                    break;
+
+                case Setting.RuleChan:
+                    Context.Server.RulesChannel = channel;
+                    break;
+
+                case Setting.BotChan:
+                    Context.Server.BotChangeChannel = channel;
+                    break;
+
+                case Setting.DevChan:
+                    Context.Server.DevChannel = channel;
+                    break;
+
+                case Setting.RoleChan:
+                    Context.Server.RoleSetChannel = channel;
+                    break;
+
+                case Setting.MainRole:
+                    Context.Server.MainRole = role;
+                    break;
+
+                case Setting.MuteRole:
+                    Context.Server.MuteRole = role;
+                    break;
+
+                case Setting.TradeMuteRole:
+                    Context.Server.TradeMuteRole = role;
+                    break;
+
+                case Setting.MaxWarnPermMute:
+                    if (!int.TryParse(value, out int parsedK) || parsedK > 10)
+                        return ReplyAsync($"{Extras.Cross} value provided in incorrect format. Must be an number no greater than 10.");
+                    Context.Server.MaxWarningsToPermMute = parsedK;
+                    break;
+
+                case Setting.MaxWarnMute:
+                    if (!int.TryParse(value, out int parsedM) || parsedM > 10)
+                        return ReplyAsync($"{Extras.Cross} value provided in incorrect format. Must be an number no greater than 10.");
+                    Context.Server.MaxWarningsToMute = parsedM;
+                    break;
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} Invalid settings option! Here are the current settings options:\n" +
+                       "`Prefix` Changes server's prefix\n" +
+                       "`ModLog` Changes modlog channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`AllLog` Changes log channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`RptLog` Changes reports channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`RuleChan` Changes reports channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`BotChan` Changes bot change channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`DevChan` Changes developer channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`RoleChan` Changes the role channel (Mention channel. Leave empty to set it to null)\n" +
+                       "`MainRole` Changes role users get when they agree to rules (Mention role)\n" +
+                       "`MuteRole` Changes mute role (Mention role)\n" +
+                       "`TradeMuteRole` Changes trade board mute role (Mention role)\n" +
+                       "`MaxWarnPermMute` Changes max number of warnings before Perm Mute (0 = Disabled)\n" +
+                       "`MaxWarnMute` Changes max number of warnings before Mute (0 = Disabled)\n");
+            }
+            return ReplyAsync($"`{setting}` has been updated {Extras.OkHand}", save: DocumentType.Server);
+        }
+
         [Command("Settings", RunMode = RunMode.Async), Remarks("Displays guilds settings."), Summary("Settings")]
         public Task SettingsAsync()
         {
-            var Pages = new[] {
-                 $"```ebnf\n- General Information\n\n" +
+            string[] pages = new[] {
+                "```ebnf\n- General Information\n\n" +
                 $"Prefix             : {Context.Server.Prefix}\n" +
-                $"Mod Log Channel    : {StringHelper.ValidateChannel(Context.Guild , Context.Server.ModLog)}\n" +
-                $"All Log Channel    : {StringHelper.ValidateChannel(Context.Guild , Context.Server.AllLog)}\n" +
-                $"Report Channel     : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RepLog)}\n" +
-                $"Rules Channel      : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RulesChannel)}\n" +
-                $"Bot Change Channel : {StringHelper.ValidateChannel(Context.Guild , Context.Server.BotChangeChannel)}\n" +
-                $"Developer Channel  : {StringHelper.ValidateChannel(Context.Guild , Context.Server.DevChannel)}\n" +
-                $"Role Set Channel   : {StringHelper.ValidateChannel(Context.Guild , Context.Server.RoleSetChannel)}\n" +
+                $"Mod Log channel    : {Context.Guild.ValidateChannel(Context.Server.ModLog)}\n" +
+                $"All Log channel    : {Context.Guild.ValidateChannel(Context.Server.AllLog)}\n" +
+                $"Report channel     : {Context.Guild.ValidateChannel(Context.Server.RepLog)}\n" +
+                $"Rules channel      : {Context.Guild.ValidateChannel(Context.Server.RulesChannel)}\n" +
+                $"Bot Change channel : {Context.Guild.ValidateChannel(Context.Server.BotChangeChannel)}\n" +
+                $"Developer channel  : {Context.Guild.ValidateChannel(Context.Server.DevChannel)}\n" +
+                $"role Set channel   : {Context.Guild.ValidateChannel(Context.Server.RoleSetChannel)}\n" +
                 $"AFK Users          : {Context.Server.AFK.Count}\n" +
-                $"```",
+                "```",
 
-                 $"```diff\n- Mod Information\n\n" +
-                $"+ Main Role                  : {StringHelper.ValidateRole(Context.Guild , Context.Server.MainRole)}\n" +
-                $"+ Mute Role                  : {StringHelper.ValidateRole(Context.Guild , Context.Server.MuteRole)}\n" +
-                $"+ Trade Mute Role            : {StringHelper.ValidateRole(Context.Guild , Context.Server.TradeMuteRole)}\n" +
+                "```diff\n- Mod Information\n\n" +
+                $"+ Main role                  : {Context.Guild.ValidateRole(Context.Server.MainRole)}\n" +
+                $"+ Mute role                  : {Context.Guild.ValidateRole(Context.Server.MuteRole)}\n" +
+                $"+ Trade Mute role            : {Context.Guild.ValidateRole(Context.Server.TradeMuteRole)}\n" +
                 $"+ Log Messages               : {(Context.Server.LogDeleted ? "Enabled" : "Disabled")} (Deleted Messages)\n" +
                 $"+ Profanity Check            : {(Context.Server.AntiProfanity ? "Enabled" : "Disabled")}\n" +
-                $"+ RSS Feed                   : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
+                $"+ Rss Feed                   : {(Context.Server.RssFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Mixer                      : {(Context.Server.MixerFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Twitch                     : {(Context.Server.TwitchFeed ? "Enabled" : "Disabled")}\n" +
                 $"+ Leaderboard                : {(Context.Server.LeaderboardFeed ? "Enabled" : "Disabled")}\n" +
-                $"+ RSS Feeds                  : {Context.Server.RssFeeds.Count}\n" +
-                $"+ Mixer Streams              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}\n" +
-                $"+ Twitch Stream              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}\n" +
+                $"+ Rss Feeds                  : {Context.Server.RssFeeds.Count}\n" +
+                $"+ Mixer Streams              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.Mixer)}\n" +
+                $"+ Twitch Stream              : {Context.Server.Streams.Count(s => s.StreamType is StreamType.Twitch)}\n" +
                 $"+ Leaderboard Variants       : {Context.Server.Leaderboards.Count}\n" +
                 $"+ Max Warnings (Mute)        : {Context.Server.MaxWarningsToMute}\n" +
                 $"+ Max Warnings (Perm Mute)   : {Context.Server.MaxWarningsToPermMute}\n" +
-                $"```",
+                "```",
 
-                 $"```diff\n+ Server Statistics\n\n" +
-                $"- Users Banned          : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.BAN).Count()}\n" +
-                $"- Users Mass Banned     : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.BANS).Count()}\n" +
-                $"- Users Soft Banned     : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.SOFTBAN).Count()}\n" +
-                $"- Users Kicked          : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.KICK).Count()}\n" +
-                $"- Users Mass Kicked     : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.KICKS).Count()}\n" +
-                $"- Users Warned          : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.WARNING).Count()}\n" +
-                $"- Users Muted           : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.MUTE).Count()}\n" +
-                $"- Auto Mod Perm Mutes   : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.AUTOMODPERMMUTE).Count()}\n" +
-                $"- Auto Mod Mutes        : {Context.Server.UserCases.Where(x => x.CaseType is CaseType.AUTOMODMUTE).Count()}\n" +
+                "```diff\n+ Server Statistics\n\n" +
+                $"- Users Banned          : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Ban)}\n" +
+                $"- Users Mass Banned     : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Bans)}\n" +
+                $"- Users Soft Banned     : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Softban)}\n" +
+                $"- Users Kicked          : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Kick)}\n" +
+                $"- Users Mass Kicked     : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Kicks)}\n" +
+                $"- Users Warned          : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Warning)}\n" +
+                $"- Users Muted           : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.Mute)}\n" +
+                $"- Auto Mod Perm Mutes   : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.AutoModPermMute)}\n" +
+                $"- Auto Mod Mutes        : {Context.Server.UserCases.Count(x => x.CaseType is CaseType.AutoModMute)}\n" +
                 $"- Total Currencies      : {Context.Server.Prices.Count}\n" +
                 $"- Total Shop Items      : {Context.Server.Shops.Count}\n" +
                 $"- Total Tags            : {Context.Server.Tags.Count}\n" +
                 $"- Total Mod Cases       : {Context.Server.UserCases.Count}\n" +
                 $"- Blacklisted Users     : {Context.Config.Blacklist.Count}\n" +
-                $"```"
+                "```"
             };
-            return PagedReplyAsync(Pages, $"{Context.Guild.Name} Settings");
+            return PagedReplyAsync(pages, $"{Context.Guild.Name} Settings");
         }
 
         [Command("Setup", RunMode = RunMode.Async), Remarks("Set ups PoE Bot for your server."), Summary("Setup")]
         public async Task SetupAsync()
         {
-            if (Context.Server.IsConfigured is true)
+            if (Context.Server.IsConfigured)
             {
                 await ReplyAsync($"{Extras.Cross} {Context.Guild} has already been configured.");
                 return;
             }
-            var Channels = await Context.Guild.GetTextChannelsAsync();
-            var SetupMessage = await ReplyAsync($"Initializing *{Context.Guild}'s* config .... ");
+            var channels = await Context.Guild.GetTextChannelsAsync();
+            IUserMessage setupMessage = await ReplyAsync($"Initializing *{Context.Guild}'s* config .... ");
 
-            var ModLogChannel = Channels.FirstOrDefault(x => x.Name is "cases") ?? await Context.Guild.CreateTextChannelAsync("cases");
-            var LogChannel = Channels.FirstOrDefault(x => x.Name is "logs") ?? await Context.Guild.CreateTextChannelAsync("logs");
-            var ReportChannel = Channels.FirstOrDefault(x => x.Name is "reports") ?? await Context.Guild.CreateTextChannelAsync("reports");
-            var RulesChannel = Channels.FirstOrDefault(x => x.Name is "rules") ?? await Context.Guild.CreateTextChannelAsync("rules");
-            var StreamChannel = Channels.FirstOrDefault(x => x.Name is "streams") ?? await Context.Guild.CreateTextChannelAsync("streams");
-            var RoleSetChannel = Channels.FirstOrDefault(x => x.Name is "role-setup") ?? await Context.Guild.CreateTextChannelAsync("role-setup");
+            ITextChannel modLogChannel = channels.FirstOrDefault(x => x.Name is "cases") ?? await Context.Guild.CreateTextChannelAsync("cases");
+            ITextChannel logChannel = channels.FirstOrDefault(x => x.Name is "logs") ?? await Context.Guild.CreateTextChannelAsync("logs");
+            ITextChannel reportChannel = channels.FirstOrDefault(x => x.Name is "reports") ?? await Context.Guild.CreateTextChannelAsync("reports");
+            ITextChannel rulesChannel = channels.FirstOrDefault(x => x.Name is "rules") ?? await Context.Guild.CreateTextChannelAsync("rules");
+            ITextChannel streamChannel = channels.FirstOrDefault(x => x.Name is "streams") ?? await Context.Guild.CreateTextChannelAsync("streams");
+            ITextChannel roleSetChannel = channels.FirstOrDefault(x => x.Name is "role-setup") ?? await Context.Guild.CreateTextChannelAsync("role-setup");
 
-            Context.Server.ModLog = ModLogChannel.Id;
-            Context.Server.AllLog = LogChannel.Id;
-            Context.Server.RepLog = ReportChannel.Id;
-            Context.Server.RulesChannel = RulesChannel.Id;
-            Context.Server.RoleSetChannel = RoleSetChannel.Id;
+            Context.Server.ModLog = modLogChannel.Id;
+            Context.Server.AllLog = logChannel.Id;
+            Context.Server.RepLog = reportChannel.Id;
+            Context.Server.RulesChannel = rulesChannel.Id;
+            Context.Server.RoleSetChannel = roleSetChannel.Id;
 
             Context.Server.LogDeleted = true;
             Context.Server.AntiProfanity = true;
 
-            var MainRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Exile") ?? await Context.Guild.CreateRoleAsync("Exile", permissions: new GuildPermissions(sendMessages: true, readMessageHistory: true, viewChannel: true, mentionEveryone: false));
-            Context.Server.MainRole = MainRole.Id;
-            var MuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ?? await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
-            Context.Server.MuteRole = MuteRole.Id;
-            var TradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ?? await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
-            Context.Server.TradeMuteRole = TradeMuteRole.Id;
+            IRole mainRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Exile") ??
+                await Context.Guild.CreateRoleAsync("Exile", permissions: new GuildPermissions(sendMessages: true, readMessageHistory: true, viewChannel: true, mentionEveryone: false));
+            Context.Server.MainRole = mainRole.Id;
+
+            IRole muteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ??
+                await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
+            Context.Server.MuteRole = muteRole.Id;
+
+            IRole tradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ??
+                await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
+            Context.Server.TradeMuteRole = tradeMuteRole.Id;
 
             Context.Server.MaxWarningsToPermMute = 6;
             Context.Server.MaxWarningsToMute = 3;
 
             Context.Server.IsConfigured = true;
-            SaveDocument('s');
-            await SetupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}");
+            SaveDocument(DocumentType.Server);
+            await setupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}");
         }
 
-        [Command("Toggle"), Remarks("Sets certain values for current server's config. ToggleTypes: profanity, log, rssfeed, mixerfeed, twitchfeed, leaderboard"), Summary("Toggle <ToggleType>")]
-        public Task SetAsync(string ToggleType)
+        [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <toggleType>")]
+        public Task ToggleAsync(ToggleType toggleType)
         {
-            string State, ToggleName = null;
-            switch (ToggleType.ToLower())
+            string state;
+            switch (toggleType)
             {
-                case "profanity":
+                case ToggleType.Profanity:
                     Context.Server.AntiProfanity = !Context.Server.AntiProfanity;
-                    State = Context.Server.AntiProfanity ? "enabled" : "disabled";
-                    ToggleName = "Anti profanity";
+                    state = Context.Server.AntiProfanity ? "enabled" : "disabled";
                     break;
-                case "log":
+
+                case ToggleType.MessageLog:
                     Context.Server.LogDeleted = !Context.Server.LogDeleted;
-                    State = Context.Server.LogDeleted ? "enabled" : "disabled";
-                    ToggleName = "Deleted messages logging";
+                    state = Context.Server.LogDeleted ? "enabled" : "disabled";
                     break;
-                case "rssfeed":
+
+                case ToggleType.RssFeed:
                     Context.Server.RssFeed = !Context.Server.RssFeed;
-                    State = Context.Server.RssFeed ? "enabled" : "disabled";
-                    ToggleName = "Live RSS Feed";
+                    state = Context.Server.RssFeed ? "enabled" : "disabled";
                     break;
-                case "mixerfeed":
+
+                case ToggleType.MixerFeed:
                     Context.Server.MixerFeed = !Context.Server.MixerFeed;
-                    State = Context.Server.MixerFeed ? "enabled" : "disabled";
-                    ToggleName = "Live Mixer Feed";
+                    state = Context.Server.MixerFeed ? "enabled" : "disabled";
                     break;
-                case "twitchfeed":
+
+                case ToggleType.TwitchFeed:
                     Context.Server.TwitchFeed = !Context.Server.TwitchFeed;
-                    State = Context.Server.TwitchFeed ? "enabled" : "disabled";
-                    ToggleName = "Live Twitch Feed";
+                    state = Context.Server.TwitchFeed ? "enabled" : "disabled";
                     break;
-                case "leaderboard":
+
+                case ToggleType.Leaderboard:
                     Context.Server.LeaderboardFeed = !Context.Server.LeaderboardFeed;
-                    State = Context.Server.LeaderboardFeed ? "enabled" : "disabled";
-                    ToggleName = "Live Leaderboard Feed";
+                    state = Context.Server.LeaderboardFeed ? "enabled" : "disabled";
                     break;
+
                 default:
-                    return ReplyAsync($"{Extras.Cross} Current Toggle Types Are:\n`PROFANITY` Toggles profanity filter\n`LOG` Logs deleted messages\n`RSSFEED` Toggles RSS live feed\n`MIXERFEED` Toggles Mixer live announcements\n"+
-               $"`TWITCHFEED` Toggles Twitch live announcements\n`LEADERBOARD` Toggles Leaderboard tracking");
+                    return ReplyAsync($"{Extras.Cross} Current Toggle Types Are:\n`{String.Join("`,`", Enum.GetNames(typeof(ToggleType)).ToList())}`");
             }
-            return ReplyAsync($"`{ToggleName}` has been {State} {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Set"), Remarks("Sets certain values for current server's config. Settings: prefix, modlog, alllog, rptlog, rulechan, botchan, devchan, rolechan, mainrole, muterole, trademuterole, maxwarnpermmute, maxwarnmute"), Summary("Set <Setting> [Value]")]
-        public Task SetAsync(string Setting, [Remainder] string Value = null)
-        {
-            string SettingName = null;
-            switch (Setting.ToLower())
-            {
-                case "prefix":
-                    if (string.IsNullOrWhiteSpace(Value) || Value.Length > 2)
-                        return ReplyAsync($"{Extras.Cross} Prefix can't be greater than 1 characters and can't be empty.");
-                    Context.Server.Prefix = char.Parse(Value);
-                    SettingName = "Guild Prefix";
-                    break;
-                case "modlog": Context.Server.ModLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Mod Log Channel"; break;
-                case "alllog": Context.Server.AllLog = Context.GuildHelper.ParseUlong(Value); SettingName = "All Log Channel"; break;
-                case "rptlog": Context.Server.RepLog = Context.GuildHelper.ParseUlong(Value); SettingName = "Report Log Channel"; break;
-                case "rulechan": Context.Server.RulesChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Rule Channel"; break;
-                case "botchan": Context.Server.BotChangeChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Bot Change Channel"; break;
-                case "devchan": Context.Server.DevChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Developer Channel"; break;
-                case "rolechan": Context.Server.RoleSetChannel = Context.GuildHelper.ParseUlong(Value); SettingName = "Role Set Channel"; break;
-                case "mainrole": Context.Server.MainRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Main Role"; break;
-                case "muterole": Context.Server.MuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Mute Role"; break;
-                case "trademuterole": Context.Server.TradeMuteRole = Context.GuildHelper.ParseUlong(Value); SettingName = "Trade Board Mute Role"; break;
-                case "maxwarnpermmute":
-                    if (!int.TryParse(Value, out int ParsedK) || ParsedK > 10)
-                        return ReplyAsync($"{Extras.Cross} Value provided in incorrect format. Must be an number no greater than 10.");
-                    Context.Server.MaxWarningsToPermMute = ParsedK;
-                    SettingName = "Max Warnings To Perm Mute";
-                    break;
-                case "maxwarnmute":
-                    if (!int.TryParse(Value, out int ParsedM) || ParsedM > 10)
-                        return ReplyAsync($"{Extras.Cross} Value provided in incorrect format. Must be an number no greater than 10.");
-                    Context.Server.MaxWarningsToMute = ParsedM;
-                    SettingName = "Max Warnings To Mute";
-                    break;
-                default:
-                    return ReplyAsync($"{Extras.Cross} Invalid settings option! Here are the current settings options:\n" +
-               $"`PREFIX` Changes server's prefix\n" +
-               $"`MODLOG` Changes modlog channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`ALLLOG` Changes log channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`RPTLOG` Changes reports channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`RULECHAN` Changes reports channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`BOTCHAN` Changes bot change channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`DEVCHAN` Changes developer channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`ROLECHAN` Changes the role channel (Mention Channel. Leave empty to set it to null)\n" +
-               $"`MAINROLE` Changes role users get when they agree to rules (Mention Role)\n" +
-               $"`MUTEROLE` Changes mute role (Mention Role)\n" +
-               $"`TRADEMUTEROLE` Changes trade board mute role (Mention Role)\n" +
-               $"`PRICEROLE` Changes price checker role (Mention Role)\n" +
-               $"`MAXWARNKICK` Changes max number of warnings before Kick (0 = Disabled)\n" +
-               $"`MAXWARNMUTE` Changes max number of warnings before Mute (0 = Disabled)\n");
-            }
-            return ReplyAsync($"`{SettingName}` has been updated {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Rss Add"), Remarks("Add RSS. You will get live feed from specified RSS feeds."), Summary("Rss Add <RSS> <#Channel> [Tag]")]
-        public Task RssAddAsync(string RSS, SocketTextChannel Channel, string Tag = null)
-        {
-            if (Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any())
-                return ReplyAsync($"{Extras.Cross} `{RSS}` for `{Channel.Name}` already exists.");
-            Context.Server.RssFeeds.Add(new RssObject
-            {
-                FeedUri = new Uri(RSS),
-                ChannelId = Channel.Id,
-                Tag = Tag
-            });
-            return ReplyAsync($"`{RSS}` has been added to server's Rss Feed {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Rss Roles"), Remarks("Adds Role(s) to an Rss Feed."), Summary("Rss Roles <RSS> <#Channel> <@Role1> <@Role2> ...")]
-        public Task RssRolesAsync(string RSS, SocketTextChannel Channel, params IRole[] Roles)
-        {
-            if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any())
-                return ReplyAsync($"{Extras.Cross} `{RSS}` for `{Channel.Name}` doesn't exist.");
-            var Rss = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id);
-            Context.Server.RssFeeds.Remove(Rss);
-            Rss.RoleIds = Roles.Select(r => r.Id).ToList();
-            Context.Server.RssFeeds.Add(Rss);
-            return ReplyAsync($"{String.Join(", ", Roles.Select(r => r.Name))} have been added to the `{RSS}` feed {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Rss Remove"), Remarks("Remove RSS."), Summary("Rss Remove <RSS> <#Channel>")]
-        public Task RssRemoveAsync(string RSS, SocketTextChannel Channel)
-        {
-            if (!Context.Server.RssFeeds.Where(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id).Any())
-                return ReplyAsync($"{Extras.Cross} `{RSS}` for `{Channel.Name}` doesn't exist.");
-            var Rss = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(RSS) && f.ChannelId == Channel.Id);
-            Context.Server.RssFeeds.Remove(Rss);
-            return ReplyAsync($"`{RSS}` has been removed from server's Rss Feed {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("Rss List"), Remarks("Shows all the RSS feeds this server is subbed to."), Summary("Rss List")]
-        public Task RssAsync()
-            => ReplyAsync(!Context.Server.RssFeeds.Any() ? $"This server isn't subscribed to any feeds {Extras.Cross}" :
-                $"**Subbed To Following RSS Feeds**:\n{String.Join("\n", Context.Server.RssFeeds.Select(f => $"Feed: {f.FeedUri} | Channel: {Context.Guild.GetTextChannelAsync(f.ChannelId).GetAwaiter().GetResult().Mention}{(!string.IsNullOrEmpty(f.Tag) ? " | Tag: " + f.Tag : "")}{(f.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => f.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}").ToList())}`");
-
-        [Command("SelfRole Add"), Remarks("Adds Role for users to Self Assign"), Summary("SelfRole Add <Role>")]
-        public Task SelfRoleAddAsync(IRole Role)
-        {
-            if (Role == Context.Guild.EveryoneRole)
-                return ReplyAsync($"{Extras.Cross} Role cannot be the everyone role.");
-            Context.Server.SelfRoles.Add(Role.Id);
-            return ReplyAsync($"`{Role}` has been added to Self Roles {Extras.OkHand}", Save: 's');
-        }
-
-        [Command("SelfRole Remove"), Remarks("Removes Role for users to Self Assign"), Summary("SelfRole Remove <Role>")]
-        public Task SelfRoleRemoveAsync(IRole Role)
-        {
-            if (!Context.Server.SelfRoles.Contains(Role.Id))
-                return ReplyAsync($"{Extras.Cross} Role is not assigned as a Self Role.");
-            Context.Server.SelfRoles.Remove(Role.Id);
-            return ReplyAsync($"`{Role}` has been removed from Self Roles {Extras.OkHand}", Save: 's');
+            return ReplyAsync($"`{toggleType}` has been {state} {Extras.OkHand}", save: DocumentType.Server);
         }
     }
 }

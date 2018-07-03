@@ -13,7 +13,7 @@
         {
             foreach (var item in minionStats)
             {
-                if (!_props.TryGetValue(item.Key, out var prop))
+                if (!_props.TryGetValue(item.Key, out PropertyInfo prop))
                     continue;
 
                 object value = null;
@@ -31,16 +31,14 @@
         }
 
         public float AverageDamage { get; private set; }
-        public float Speed { get; private set; }
-        public float TotalDPS { get; private set; }
-        public float TotalDot { get; private set; }
         public float IgniteDPS { get; private set; }
-        public float WithPoisonDPS { get; private set; }
-
-        public float NetLifeRegen { get; private set; }
-
         public int Life { get; private set; }
-        public float LifeRegen { get; private set; }
         public float LifeLeechGainRate { get; private set; }
+        public float LifeRegen { get; private set; }
+        public float NetLifeRegen { get; private set; }
+        public float Speed { get; private set; }
+        public float TotalDot { get; private set; }
+        public float TotalDPS { get; private set; }
+        public float WithPoisonDPS { get; private set; }
     }
 }

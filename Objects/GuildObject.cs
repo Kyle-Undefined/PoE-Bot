@@ -1,53 +1,52 @@
 ﻿namespace PoE.Bot.Objects
 {
     using System;
-    using System.Collections.Generic;
     using System.Collections.Concurrent;
-
-    public class GuildObject
-    {
-        public string Id { get; set; }
-        public RuleObject RulesConfig { get; set; }
-        public char Prefix { get; set; }
-        public bool AntiProfanity { get; set; }
-        public bool LogDeleted { get; set; }
-        public bool RssFeed { get; set; }
-        public bool MixerFeed { get; set; }
-        public bool TwitchFeed { get; set; }
-        public bool LeaderboardFeed { get; set; }
-        public bool IsConfigured { get; set; }        
-        public int MaxWarningsToMute { get; set; }
-        public int MaxWarningsToPermMute { get; set; }
-        public ulong BotChangeChannel { get; set; }
-        public ulong DevChannel { get; set; }
-        public ulong RoleSetChannel { get; set; }
-        public ulong MainRole { get; set; }
-        public ulong MuteRole { get; set; }
-        public ulong TradeMuteRole { get; set; }
-        public ulong ModLog { get; set; }
-        public ulong RepLog { get; set; }
-        public ulong AllLog { get; set; }
-        public ulong RulesChannel { get; set; }
-
-        public IList<ShopObject> Shops { get; set; } = new List<ShopObject>();
-        public IList<PriceObject> Prices { get; set; } = new List<PriceObject>();
-        public IList<RssObject> RssFeeds { get; set; } = new List<RssObject>();
-        public IList<StreamObject> Streams { get; set; } = new List<StreamObject>();
-        public IList<LeaderboardObject> Leaderboards { get; set; } = new List<LeaderboardObject>();
-        public IList<TagObject> Tags { get; set; } = new List<TagObject>();
-        public IList<ulong> SelfRoles { get; set; } = new List<ulong>();
-        public IList<CaseObject> UserCases { get; set; } = new List<CaseObject>();
-        public IList<MessageObject> DeletedMessages { get; set; } = new List<MessageObject>();
-        public IList<string> ProfanityList { get; set; } = new List<string>();
-        public Dictionary<ulong, string> AFK { get; set; } = new Dictionary<ulong, string>();
-        public Dictionary<ulong, ProfileObject> Profiles { get; set; } = new Dictionary<ulong, ProfileObject>();
-        public ConcurrentDictionary<ulong, DateTime> Muted { get; set; } = new ConcurrentDictionary<ulong, DateTime>();
-        public ConcurrentDictionary<ulong, List<RemindObject>> Reminders { get; set; } = new ConcurrentDictionary<ulong, List<RemindObject>>();
-    }
+    using System.Collections.Generic;
 
     public enum MuteType
     {
-        TRADE,
-        MOD
+        Trade,
+        Mod
+    }
+
+    public class GuildObject
+    {
+        public Dictionary<ulong, string> AFK { get; } = new Dictionary<ulong, string>();
+        public ulong AllLog { get; set; }
+        public bool AntiProfanity { get; set; }
+        public ulong BotChangeChannel { get; set; }
+        public IList<MessageObject> DeletedMessages { get; } = new List<MessageObject>();
+        public ulong DevChannel { get; set; }
+        public string Id { get; set; }
+        public bool IsConfigured { get; set; }
+        public bool LeaderboardFeed { get; set; }
+        public IList<LeaderboardObject> Leaderboards { get; } = new List<LeaderboardObject>();
+        public bool LogDeleted { get; set; }
+        public ulong MainRole { get; set; }
+        public int MaxWarningsToMute { get; set; }
+        public int MaxWarningsToPermMute { get; set; }
+        public bool MixerFeed { get; set; }
+        public ulong ModLog { get; set; }
+        public ConcurrentDictionary<ulong, DateTime> Muted { get; } = new ConcurrentDictionary<ulong, DateTime>();
+        public ulong MuteRole { get; set; }
+        public char Prefix { get; set; }
+        public IList<PriceObject> Prices { get; } = new List<PriceObject>();
+        public IList<string> ProfanityList { get; } = new List<string>();
+        public Dictionary<ulong, ProfileObject> Profiles { get; } = new Dictionary<ulong, ProfileObject>();
+        public ConcurrentDictionary<ulong, List<RemindObject>> Reminders { get; } = new ConcurrentDictionary<ulong, List<RemindObject>>();
+        public ulong RepLog { get; set; }
+        public ulong RoleSetChannel { get; set; }
+        public bool RssFeed { get; set; }
+        public IList<RssObject> RssFeeds { get; } = new List<RssObject>();
+        public ulong RulesChannel { get; set; }
+        public RuleObject RulesConfig { get; set; }
+        public IList<ulong> SelfRoles { get; } = new List<ulong>();
+        public IList<ShopObject> Shops { get; } = new List<ShopObject>();
+        public IList<StreamObject> Streams { get; } = new List<StreamObject>();
+        public IList<TagObject> Tags { get; } = new List<TagObject>();
+        public ulong TradeMuteRole { get; set; }
+        public bool TwitchFeed { get; set; }
+        public IList<CaseObject> UserCases { get; } = new List<CaseObject>();
     }
 }

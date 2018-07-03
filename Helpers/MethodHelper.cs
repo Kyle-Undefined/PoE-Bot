@@ -1,54 +1,60 @@
 ﻿namespace PoE.Bot.Helpers
 {
+    using Addons;
+    using Discord.WebSocket;
+    using Raven.Client.Extensions;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using PoE.Bot.Addons;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client.Extensions;
-    using System.Collections.Generic;
 
-    public class MethodHelper
+    public static class MethodHelper
     {
-        public static CancellationToken Cancellation(TimeSpan Time)
-            => new CancellationTokenSource(Time).Token;
-
-        public static T RunSync<T>(Task<T> AsyncTask)
-            => Task.Run(async ()
-                => await AsyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10)))).GetAwaiter().GetResult();
-
-        public static void RunSync(Task AsyncTask) => Task.Run(async () =>
-        {
-            try
-            {
-                await AsyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10)));
-            }
-            catch { }
-        });
-
         public static IEnumerable<Assembly> Assemblies
         {
             get
             {
-                var Entries = Assembly.GetEntryAssembly().GetReferencedAssemblies();
-                foreach (var Ass in Entries)
-                    yield return Assembly.Load(Ass);
+                AssemblyName[] assemblies = Assembly.GetEntryAssembly().GetReferencedAssemblies();
+                foreach (AssemblyName assembly in assemblies)
+                    yield return Assembly.Load(assembly);
                 yield return Assembly.GetEntryAssembly();
                 yield return typeof(ILookup<string, string>).GetTypeInfo().Assembly;
             }
         }
 
-        public static (bool, string) CollectionCheck<T>(IList<T> Collection, object Value, string ObjectName, string CollectionName)
+        public static (bool, string) CalculateResponse(SocketMessage message)
+            => message is null || string.IsNullOrWhiteSpace(message.Content)
+            ? (false, $"{Extras.Cross} There is a fine line between consideration and hesitation. The former is wisdom, the latter is fear. *Request Timed Out*")
+            : message.Content.ToLower().Equals("c")
+                ? (false, $"Understood, Exile {Extras.OkHand}")
+                : (true, message.Content);
+
+        public static CancellationToken Cancellation(TimeSpan time)
+            => new CancellationTokenSource(time).Token;
+
+        public static (bool, string) CollectionCheck<T>(IList<T> collection, object value, string objectName, string collectionName)
         {
-            var check = Collection.Contains((T)Value);
-            if (Collection.Contains((T)Value))
-                return (false, $"{Extras.Cross} I don't know how to use this yet. `{ObjectName}` already exists in {CollectionName}.");
-            else if (Collection.Count == (Collection as List<T>).Capacity)
+            if (collection.Contains((T)value))
+                return (false, $"{Extras.Cross} I don't know how to use this yet. `{objectName}` already exists in {collectionName}.");
+            else if (collection.Count == (collection as List<T>).Capacity)
                 return (false, $"{Extras.Cross} I don't know how to use this yet. Reached max number of entries.");
-            else if (typeof(T) == typeof(string) && $"{Value}".Length >= 300)
-                return (false, $"{Extras.Cross} I don't know how to use this yet. Message way too large.");
-            return (true, $"`{ObjectName}` has been added to {CollectionName}");
+            return typeof(T) == typeof(string) && $"{value}".Length >= 300
+                ? (false, $"{Extras.Cross} I don't know how to use this yet. Message way too large.")
+                : (true, $"`{objectName}` has been added to {collectionName}");
         }
+
+        public static IEnumerable<string> Pages<T>(IEnumerable<T> collection)
+        {
+            var collectionList = collection.ToList();
+            var buildPages = new List<string>(collectionList.Count());
+            for (int i = 0; i <= collectionList.Count(); i += 10)
+                buildPages.Add(string.Join("\n", collectionList.Skip(i).Take(10)));
+            return buildPages;
+        }
+
+        public static T RunSync<T>(Task<T> asyncTask)
+            => Task.Run(async () => await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10)))).GetAwaiter().GetResult();
     }
 }

@@ -2,21 +2,21 @@
 {
     using Discord;
     using Discord.WebSocket;
+    using Objects;
     using System.Threading.Tasks;
-    using PoE.Bot.Objects;
 
     public class MainHandler
     {
-        ConfigObject Config { get; }
-        EventHandler Event { get; }
-        DiscordSocketClient Client { get; }
-
         public MainHandler(DiscordSocketClient client, EventHandler events, ConfigObject config)
         {
             Client = client;
             Event = events;
             Config = config;
         }
+
+        private DiscordSocketClient Client { get; }
+        private ConfigObject Config { get; }
+        private EventHandler Event { get; }
 
         public async Task InitializeAsync()
         {

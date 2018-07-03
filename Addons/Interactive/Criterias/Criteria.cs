@@ -1,23 +1,20 @@
 ﻿namespace PoE.Bot.Addons.Interactive.Criterias
 {
-    using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public class Criteria<T> : ICriteria<T>
     {
-        readonly List<ICriteria<T>> Criterias = new List<ICriteria<T>>();
+        private readonly List<ICriteria<T>> criterias = new List<ICriteria<T>>();
 
-        public Criteria<T> AddCriteria(ICriteria<T> criteria)
-        {
-            Criterias.Add(criteria);
-            return this;
-        }
+        public void AddCriteria(ICriteria<T> criteria)
+            => criterias.Add(criteria);
 
-        public async Task<bool> JudgeAsync(IContext Context, T Param)
+        public async Task<bool> JudgeAsync(Context context, T param)
         {
-            foreach (var Crit in Criterias)
+            foreach (var criteria in criterias)
             {
-                var result = await Crit.JudgeAsync(Context, Param).ConfigureAwait(false);
+                bool result = await criteria.JudgeAsync(context, param).ConfigureAwait(false);
                 if (!result)
                     return false;
             }

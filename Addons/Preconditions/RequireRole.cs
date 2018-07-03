@@ -1,57 +1,55 @@
 ﻿namespace PoE.Bot.Addons.Preconditions
 {
-    using System;
-    using System.Linq;
     using Discord.Commands;
     using Discord.WebSocket;
+    using Helpers;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using PoE.Bot.Helpers;
 
-    public class RequireRole : PreconditionAttribute
+    public partial class RequireAdmin : PreconditionAttribute
     {
-        private readonly string _requiredRole;
-
-        public RequireRole(string requiredRole)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            _requiredRole = requiredRole;
-        }
-
-        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Provider)
-        {
-            if (Context.User.Id == MethodHelper.RunSync(Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == Context.Guild.OwnerId ||
-                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild)
+            if (context.User.Id == MethodHelper.RunSync(context.Client.GetApplicationInfoAsync()).Owner.Id || context.User.Id == context.Guild.OwnerId ||
+                (context.User as SocketGuildUser).GuildPermissions.Administrator || (context.User as SocketGuildUser).GuildPermissions.ManageGuild)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if ((Context.User as SocketGuildUser).Roles.Any(r => r.Name == _requiredRole))
-                return Task.FromResult(PreconditionResult.FromSuccess());
-
-            return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `{_requiredRole}` Role*"));
+            return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `Admin`*"));
         }
     }
 
-    public class RequireModerator : PreconditionAttribute
+    public partial class RequireModerator : PreconditionAttribute
     {
-        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Services)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            if (Context.User.Id == MethodHelper.RunSync(Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == Context.Guild.OwnerId ||
-                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild || 
-                (Context.User as SocketGuildUser).GuildPermissions.ManageChannels || (Context.User as SocketGuildUser).GuildPermissions.ManageRoles ||
-                (Context.User as SocketGuildUser).GuildPermissions.BanMembers || (Context.User as SocketGuildUser).GuildPermissions.KickMembers)
+            if (context.User.Id == MethodHelper.RunSync(context.Client.GetApplicationInfoAsync()).Owner.Id || context.User.Id == context.Guild.OwnerId ||
+                (context.User as SocketGuildUser).GuildPermissions.Administrator || (context.User as SocketGuildUser).GuildPermissions.ManageGuild ||
+                (context.User as SocketGuildUser).GuildPermissions.ManageChannels || (context.User as SocketGuildUser).GuildPermissions.ManageRoles ||
+                (context.User as SocketGuildUser).GuildPermissions.BanMembers || (context.User as SocketGuildUser).GuildPermissions.KickMembers)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `Moderator`*"));
         }
     }
 
-    public class RequireAdmin : PreconditionAttribute
+    public partial class RequireRole : PreconditionAttribute
     {
-        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext Context, CommandInfo Command, IServiceProvider Services)
+        private string roleName;
+
+        public RequireRole(string requiredRole)
+            => roleName = requiredRole;
+
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider provider)
         {
-            if (Context.User.Id == MethodHelper.RunSync(Context.Client.GetApplicationInfoAsync()).Owner.Id || Context.User.Id == Context.Guild.OwnerId ||
-                (Context.User as SocketGuildUser).GuildPermissions.Administrator || (Context.User as SocketGuildUser).GuildPermissions.ManageGuild)
+            if (context.User.Id == MethodHelper.RunSync(context.Client.GetApplicationInfoAsync()).Owner.Id || context.User.Id == context.Guild.OwnerId ||
+                (context.User as SocketGuildUser).GuildPermissions.Administrator || (context.User as SocketGuildUser).GuildPermissions.ManageGuild)
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `Admin`*"));
+            if ((context.User as SocketGuildUser).Roles.Any(r => r.Name == roleName))
+                return Task.FromResult(PreconditionResult.FromSuccess());
+
+            return Task.FromResult(PreconditionResult.FromError($"{Extras.Cross} I am sorry, God. We must learn not to abuse your creations. *Requires `{roleName}` Role*"));
         }
     }
 }

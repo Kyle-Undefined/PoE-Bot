@@ -2,30 +2,30 @@
 {
     using System;
 
-    public class CaseObject
-    {
-        public int Number { get; set; }
-        public ulong UserId { get; set; }
-        public string Reason { get; set; }
-        public string Username { get; set; }
-        public ulong MessageId { get; set; }
-        public string Moderator { get; set; }
-        public CaseType CaseType { get; set; }
-        public DateTime CaseDate { get; set; }
-        public ulong ModeratorId { get; set; }
-    }
-
     public enum CaseType
     {
-        BAN,
-        KICK,
-        BANS,
-        KICKS,
-        SOFTBAN,
-        MUTE,
-        WARNING,
-        AUTOMODPERMMUTE,
-        AUTOMODMUTE,
-        PURGE
+        AutoModMute,
+        AutoModPermMute,
+        Ban,
+        Bans,
+        Kick,
+        Kicks,
+        Mute,
+        Purge,
+        Softban,
+        Warning
+    }
+
+    public class CaseObject
+    {
+        public DateTime CaseDate { get; set; }
+        public CaseType CaseType { get; set; }
+        public ulong MessageId { get; set; }
+        public string Moderator { get; set; }
+        public ulong ModeratorId { get; set; }
+        public int Number { get; set; }
+        public string Reason { get; set; }
+        public ulong UserId { get; set; }
+        public string Username { get; set; }
     }
 }

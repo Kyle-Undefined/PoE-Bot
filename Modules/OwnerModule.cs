@@ -1,82 +1,63 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using System;
+    using Addons;
     using Discord;
-    using System.Linq;
-    using PoE.Bot.Addons;
-    using PoE.Bot.Helpers;
     using Discord.Commands;
     using Discord.WebSocket;
-    using System.Diagnostics;
-    using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using Microsoft.CodeAnalysis.Scripting;
+    using Helpers;
     using Microsoft.CodeAnalysis.CSharp.Scripting;
+    using Microsoft.CodeAnalysis.Scripting;
+    using Objects;
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     [Name("Owner Commands"), RequireOwner]
     public class OwnerModule : BotBase
     {
-        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information. Action: a: avatar, u: username, s: status, n: nickname, f: feedback channel, t: twitchauth, p: prefix"), Summary("Update <Action> [Value]")]
-        public async Task UpdateAsync(char Action, [Remainder] string Value = null)
+        public enum Setting
         {
-            char Save = 'n';
-            switch (Action)
-            {
-                case 'a':
-                    var ImagePath = string.IsNullOrWhiteSpace(Value) ?
-                        await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync()).IconUrl) : Value;
-                    await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ImagePath));
-                    break;
-                case 'u': await Context.Client.CurrentUser.ModifyAsync(x => x.Username = Value); break;
-                case 's':
-                    var Split = Value.Split(':');
-                    await (Context.Client as DiscordSocketClient).SetActivityAsync(new Game(Split[1], (ActivityType)Enum.Parse(typeof(ActivityType), Split[0]))).ConfigureAwait(false);
-                    break;
-                case 'n':
-                    await (await Context.Guild.GetCurrentUserAsync(CacheMode.AllowDownload)).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(Value) ? Context.Client.CurrentUser.Username : Value);
-                    break;
-                case 'f':
-                    Context.Config.FeedbackChannel = string.IsNullOrWhiteSpace(Value) ? 0 : Context.GuildHelper.ParseUlong(Value);
-                    Save = 'c';
-                    break;
-                case 't':
-                    var Tokens = Value.Split(':');
-                    Context.Config.APIKeys["TC"] = Tokens[0];
-                    Context.Config.APIKeys["TA"] = Tokens[1];
-                    Save = 'c';
-                    break;
-                case 'p': Context.Config.Prefix = Value; Save = 'c'; break;
-            }
-            await ReplyAsync($"Bot has been updated {Extras.OkHand}", Save: Save);
+            Activity,
+            Avatar,
+            FeedbackChannel,
+            Nickname,
+            Prefix,
+            TwitchToken,
+            Username,
         }
 
-        [Command("Blacklist"), Remarks("Adds or removes a user from the blacklist."), Summary("Blacklist <Action> <@User>")]
-        public Task BlaclistAsync(char Action, IUser User)
+        [Command("Blacklist"), Remarks("Adds or Deletes a user from the blacklist."), Summary("Blacklist <action> <@user>")]
+        public Task BlaclistAsync(CommandAction action, IUser user)
         {
-            switch (Action)
+            switch (action)
             {
-                case 'a':
-                    if (Context.Config.Blacklist.Contains(User.Id))
-                        return ReplyAsync($"{Extras.Cross} {User} is already in blacklisted.");
-                    Context.Config.Blacklist.Add(User.Id);
-                    return ReplyAsync($"`{User}` has been added to global blacklist.", Save: 'c');
-                case 'r':
-                    if (!Context.Config.Blacklist.Contains(User.Id))
-                        return ReplyAsync($"{Extras.Cross} {User} isn't blacklisted.");
-                    Context.Config.Blacklist.Remove(User.Id);
-                    return ReplyAsync($"`{User}` has been removed from global blacklist.", Save: 'c');
-                default: return Task.CompletedTask;
+                case CommandAction.Add:
+                    if (Context.Config.Blacklist.Contains(user.Id))
+                        return ReplyAsync($"{Extras.Cross} {user} is already in blacklisted.");
+                    Context.Config.Blacklist.Add(user.Id);
+                    return ReplyAsync($"`{user}` has been added to global blacklist.", save: DocumentType.Config);
+
+                case CommandAction.Delete:
+                    if (!Context.Config.Blacklist.Contains(user.Id))
+                        return ReplyAsync($"{Extras.Cross} {user} isn't blacklisted.");
+                    Context.Config.Blacklist.Remove(user.Id);
+                    return ReplyAsync($"`{user}` has been removed from global blacklist.", save: DocumentType.Config);
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} Action is either `Add` or `Delete`.");
             }
         }
 
-        [Command("Eval", RunMode = RunMode.Async), Remarks("Evaluates C# code."), Summary("Eval <Code>")]
-        public async Task EvalAsync([Remainder] string Code)
+        [Command("Eval", RunMode = RunMode.Async), Remarks("Evaluates C# code."), Summary("Eval <code>")]
+        public async Task EvalAsync([Remainder] string code)
         {
-            var Message = await ReplyAsync("Debugging ...");
-            var Imports = Context.Config.Namespaces.Any() ? Context.Config.Namespaces :
-                new[] { "System", "System.Linq", "System.Collections.Generic", "System.IO", "System.Threading.Tasks" }.ToList();
-            var Options = ScriptOptions.Default.AddReferences(MethodHelper.Assemblies).AddImports(Imports);
-            var Globals = new EvalObject
+            IUserMessage message = await ReplyAsync("Debugging ...");
+            var imports = Context.Config.Namespaces.Any()
+                ? Context.Config.Namespaces
+                : new[] { "System", "System.Linq", "System.Collections.Generic", "System.IO", "System.Threading.Tasks" }.ToList();
+            ScriptOptions options = ScriptOptions.Default.AddReferences(MethodHelper.Assemblies).AddImports(imports);
+            EvalObject globals = new EvalObject
             {
                 Context = Context,
                 Guild = Context.Guild as SocketGuild,
@@ -84,69 +65,122 @@
                 Client = Context.Client as DiscordSocketClient,
                 Channel = Context.Channel as SocketGuildChannel
             };
+
             try
             {
-                var Eval = await CSharpScript.EvaluateAsync(Code.Replace("```", ""), Options, Globals, typeof(EvalObject));
-                await Message.ModifyAsync(x => x.Content = $"{Eval ?? "No Result Produced."}");
+                object eval = await CSharpScript.EvaluateAsync(code.Replace("```", string.Empty), options, globals, typeof(EvalObject));
+                await message.ModifyAsync(x => x.Content = $"{eval ?? "No Result Produced."}");
             }
-            catch (CompilationErrorException Ex)
+            catch (CompilationErrorException ex)
             {
-                await Message.ModifyAsync(x => x.Content = Ex.Message ?? Ex.StackTrace);
+                await message.ModifyAsync(x => x.Content = ex.Message ?? ex.StackTrace);
             }
         }
 
-        [Command("Namespaces", RunMode = RunMode.Async), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace")]
-        public Task NamespacesAsync()
-            => !Context.Config.Namespaces.Any() ? ReplyAsync($"Uhm.. I couldn't find any namespaces.") :
-            PagedReplyAsync(Context.GuildHelper.Pages(Context.Config.Namespaces), "Current Namespaces");
-
-        [Command("Namespace"), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace <Action> <Namespace>")]
-        public Task NamespaceAsync(char Action, string Namespace)
+        [Command("Namespace"), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace <action> <namespace>")]
+        public Task NamespaceAsync(CommandAction action, string namespaceName = null)
         {
-            switch (Action)
+            switch (action)
             {
-                case 'a':
-                    if (Context.Config.Namespaces.Contains(Namespace))
-                        return ReplyAsync($"{Extras.Cross} {Namespace} namespace already exists.");
-                    Context.Config.Namespaces.Add(Namespace);
-                    return ReplyAsync($"`{Namespace}` has been added.", Save: 'c');
-                case 'r':
-                    if (!Context.Config.Namespaces.Contains(Namespace))
-                        return ReplyAsync($"{Extras.Cross} {Namespace} namespace doesn't exist.");
-                    Context.Config.Namespaces.Remove(Namespace);
-                    return ReplyAsync($"`{Namespace}` has been removed.", Save: 'c');
-                default: return Task.CompletedTask;
+                case CommandAction.Add:
+                    if (Context.Config.Namespaces.Contains(namespaceName))
+                        return ReplyAsync($"{Extras.Cross} {namespaceName} namespace already exists.");
+
+                    Context.Config.Namespaces.Add(namespaceName);
+                    return ReplyAsync($"`{namespaceName}` has been added.", save: DocumentType.Config);
+
+                case CommandAction.Delete:
+                    if (!Context.Config.Namespaces.Contains(namespaceName))
+                        return ReplyAsync($"{Extras.Cross} {namespaceName} namespace doesn't exist.");
+
+                    Context.Config.Namespaces.Remove(namespaceName);
+                    return ReplyAsync($"`{namespaceName}` has been removed.", save: DocumentType.Config);
+
+                case CommandAction.List:
+                    return !Context.Config.Namespaces.Any()
+                        ? ReplyAsync("Couldn't find any Namespaces")
+                        : PagedReplyAsync(MethodHelper.Pages(Context.Config.Namespaces), "Current Namespaces");
+
+                default:
+                    return ReplyAsync($"{Extras.Cross} Action is either `Add`, `Delete` or `List`.");
             }
         }
 
         [Command("Stats", RunMode = RunMode.Async), Remarks("Displays information about PoE Bot and its stats."), Summary("Stats")]
         public async Task StatsAsync()
         {
-            var Client = Context.Client as DiscordSocketClient;
-            var Servers = Context.DBHandler.Servers();
-            var Embed = Extras.Embed(Extras.Info)
+            DiscordSocketClient client = Context.Client as DiscordSocketClient;
+            GuildObject[] servers = Context.DatabaseHandler.Servers();
+            Embed embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription((await Client.GetApplicationInfoAsync()).Description)
+                .WithDescription((await client.GetApplicationInfoAsync()).Description)
                 .AddField("Channels",
-                $"Text: {Client.Guilds.Sum(x => x.TextChannels.Count)}\n" +
-                $"Voice: {Client.Guilds.Sum(x => x.VoiceChannels.Count)}\n" +
-                $"Total: {Client.Guilds.Sum(x => x.Channels.Count)}", true)
+                    $"Categories: {client.Guilds.Sum(x => x.CategoryChannels.Count)}\n" +
+                    $"Text: {client.Guilds.Sum(x => x.TextChannels.Count - x.CategoryChannels.Count)}\n" +
+                    $"Voice: {client.Guilds.Sum(x => x.VoiceChannels.Count)}\n" +
+                    $"Total: {client.Guilds.Sum(x => x.Channels.Count)}", true)
                 .AddField("Members",
-                $"Bot: {Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot is true).Count())}\n" +
-                $"Human: { Client.Guilds.Sum(x => x.Users.Where(z => z.IsBot is false).Count())}\n" +
-                $"Total: {Client.Guilds.Sum(x => x.Users.Count)}", true)
+                    $"Bot: {client.Guilds.Sum(x => x.Users.Count(z => z.IsBot is true))}\n" +
+                    $"Human: { client.Guilds.Sum(x => x.Users.Count(z => z.IsBot is false))}\n" +
+                    $"Total: {client.Guilds.Sum(x => x.Users.Count)}", true)
                 .AddField("Database",
-                $"Tags: {Servers.Sum(x => x.Tags.Count)}\n" +
-                $"Currencies: {Servers.Sum(x => x.Prices.Count)}\n" +
-                $"Shop Items: {Servers.Sum(x => x.Shops.Count)}", true)
-                .AddField("Mixer", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.MIXER)}", true)
-                .AddField("Twitch", $"Streams: {Context.Server.Streams.Count(s => s.StreamType is StreamType.TWITCH)}", true)
-                .AddField("Leaderboard", $"Variants: {Context.Server.Leaderboards.Count}", true)
+                    $"Tags: {servers.Sum(x => x.Tags.Count)}\n" +
+                    $"Currencies: {servers.Sum(x => x.Prices.Count)}\n" +
+                    $"Shop Items: {servers.Sum(x => x.Shops.Count)}", true)
+                .AddField("Mixer", $"Streams: {servers.Sum(x => x.Streams.Count(s => s.StreamType is StreamType.Mixer))}", true)
+                .AddField("Twitch", $"Streams: {servers.Sum(x => x.Streams.Count(s => s.StreamType is StreamType.Twitch))}", true)
+                .AddField("Leaderboard", $"Variants: {servers.Sum(x => x.Leaderboards.Count)}", true)
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
                 .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
-            await ReplyAsync(Embed: Embed);
+            await ReplyAsync(embed: embed);
+        }
+
+        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information."), Summary("Update <setting> <value>")]
+        public async Task UpdateAsync(Setting setting, [Remainder] string value = null)
+        {
+            DocumentType save = DocumentType.None;
+            switch (setting)
+            {
+                case Setting.Avatar:
+                    string imagePath = string.IsNullOrWhiteSpace(value)
+                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync()).IconUrl)
+                        : value;
+                    await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imagePath));
+                    break;
+
+                case Setting.Username:
+                    await Context.Client.CurrentUser.ModifyAsync(x => x.Username = value);
+                    break;
+
+                case Setting.Activity:
+                    string[] split = value.Split(':');
+                    await (Context.Client as DiscordSocketClient).SetActivityAsync(new Game(split[1], (ActivityType)Enum.Parse(typeof(ActivityType), split[0]))).ConfigureAwait(false);
+                    break;
+
+                case Setting.Nickname:
+                    await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(value) ? Context.Client.CurrentUser.Username : value);
+                    break;
+
+                case Setting.FeedbackChannel:
+                    Context.Config.FeedbackChannel = string.IsNullOrWhiteSpace(value) ? 0 : value.ParseULong();
+                    save = DocumentType.Config;
+                    break;
+
+                case Setting.TwitchToken:
+                    string[] tokens = value.Split(':');
+                    Context.Config.APIKeys["TC"] = tokens[0];
+                    Context.Config.APIKeys["TA"] = tokens[1];
+                    save = DocumentType.Config;
+                    break;
+
+                case Setting.Prefix:
+                    Context.Config.Prefix = value;
+                    save = DocumentType.Config;
+                    break;
+            }
+            await ReplyAsync($"Bot has been updated {Extras.OkHand}", save: save);
         }
     }
 }

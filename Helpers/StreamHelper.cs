@@ -1,127 +1,24 @@
 ﻿namespace PoE.Bot.Helpers
 {
+    using Addons;
+    using Discord;
     using Discord.WebSocket;
-    using System.Threading.Tasks;
-    using System.Net.Http;
-    using System.Linq;
-    using System.Collections.Generic;
+    using Handlers;
     using Newtonsoft.Json.Linq;
-    using PoE.Bot.Objects;
-    using PoE.Bot.Handlers;
-    using PoE.Bot.Addons;
+    using Objects;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Threading.Tasks;
     using TwitchLib.Api;
 
-    public class StreamHelper
+    public partial class MixerAPI
     {
-        public static async Task BuildAndSend(StreamObject Stream, SocketGuild Guild, GuildObject Server, ConfigObject Config, DatabaseHandler DB)
-        {
-            var streamWasLive = Stream.IsLive;
-
-            switch (Stream.StreamType)
-            {
-                case StreamType.MIXER:
-                    if (!Server.MixerFeed)
-                        return;
-
-                    MixerAPI Mixer = new MixerAPI();
-                    string chanJson = await Mixer.GetChannel(Stream.MixerChannelId);
-                    bool chanIsLive = Mixer.IsChannelLive(chanJson);
-                    if (!chanIsLive)
-                        Stream.IsLive = false;
-
-                    if (chanIsLive && !Stream.IsLive)
-                    {
-                        var Embed = Extras.Embed(Extras.Mixer)
-                            .WithTitle(Mixer.GetChannelTitle(chanJson))
-                            .WithDescription($"\n**{Stream.Name}** is playing **{Mixer.GetChannelGame(chanJson)}** for {Mixer.GetViewerCount(chanJson).ToString()} viewers!\n\n**https://mixer.com/{Stream.Name}**")
-                            .WithAuthor(Stream.Name, Mixer.GetUserAvatar(Stream.MixerUserId), $"https://mixer.com/{Stream.Name}")
-                            .WithThumbnailUrl(Mixer.GetChannelGameCover(chanJson))
-                            .WithImageUrl(Mixer.GetChannelThumbnail(chanJson)).Build();
-
-                        var Channel = Guild.GetChannel(Stream.ChannelId) as SocketTextChannel;
-                        await Channel.SendMessageAsync(embed: Embed);
-
-                        Stream.IsLive = true;
-                        DB.Save<GuildObject>(Server, Guild.Id);
-                    }
-                    break;
-
-                case StreamType.TWITCH:
-                    if (!Server.TwitchFeed)
-                        return;
-
-                    TwitchAPI TwitchAPI = new TwitchAPI();
-                    TwitchAPI.Settings.ClientId = Config.APIKeys["TC"];
-                    TwitchAPI.Settings.AccessToken = Config.APIKeys["TA"];
-
-                    var StreamData = await TwitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { Stream.TwitchUserId }), null);
-                    if (!StreamData.Streams.Any())
-                        Stream.IsLive = false;
-
-                    if (StreamData.Streams.Any())
-                    {
-                        foreach (var stream in StreamData.Streams)
-                        {
-                            if (!Stream.IsLive)
-                            {
-                                var TwitchUser = await TwitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
-                                var TwitchGame = await TwitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
-                                var Embed = Extras.Embed(Extras.Twitch)
-                                    .WithTitle(stream.Title)
-                                    .WithDescription($"\n**{TwitchUser.Users[0].DisplayName}** is playing **{TwitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{TwitchUser.Users[0].DisplayName}**")
-                                    .WithAuthor(TwitchUser.Users[0].DisplayName, TwitchUser.Users[0].ProfileImageUrl, $"http://www.twitch.tv/{TwitchUser.Users[0].DisplayName}")
-                                    .WithThumbnailUrl(TwitchGame.Games[0].BoxArtUrl.Replace("{width}x{height}", "285x380"))
-                                    .WithImageUrl(stream.ThumbnailUrl.Replace("{width}x{height}", "640x360"))
-                                    .Build();
-
-                                var Channel = Guild.GetChannel(Stream.ChannelId) as SocketTextChannel;
-                                await Channel.SendMessageAsync(embed: Embed);
-
-                                Stream.IsLive = true;
-                                DB.Save<GuildObject>(Server, Guild.Id);
-                            }
-                        }
-                    }
-                    break;
-            }
-
-            if (streamWasLive && !Stream.IsLive)
-                DB.Save<GuildObject>(Server, Guild.Id);
-        }
-    }
-
-    public class MixerAPI
-    {
-        public MixerAPI() { }
-
         private const string MIXER_API_URL = "https://mixer.com/api/v1/";
 
-        public async Task<uint> GetUserId(string username)
+        public MixerAPI()
         {
-            uint ID = 0;
-            using (HttpClient client = new HttpClient())
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
-                if (response.IsSuccessStatusCode)
-                {
-                    var ja = JArray.Parse(await response.Content.ReadAsStringAsync());
-                    var jo = JObject.Parse(ja[0].ToString());
-                    ID = (uint)jo["id"];
-                }
-            return ID;
-        }
-
-        public async Task<uint> GetChannelId(string username)
-        {
-            uint ID = 0;
-            using (HttpClient client = new HttpClient())
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
-                if (response.IsSuccessStatusCode)
-                {
-                    var jo = JObject.Parse(await response.Content.ReadAsStringAsync());
-                    ID = (uint)jo["id"];
-                }
-
-            return ID;
         }
 
         public async Task<string> GetChannel(uint id)
@@ -131,7 +28,48 @@
                 if (response.IsSuccessStatusCode)
                     return await response.Content.ReadAsStringAsync();
 
-                return null;
+            return null;
+        }
+
+        public string GetChannelGame(string json)
+        {
+            JObject jo = JObject.Parse(json);
+            return (string)jo["type"]["name"];
+        }
+
+        public string GetChannelGameCover(string json)
+        {
+            JObject jo = JObject.Parse(json);
+            return (string)jo["type"]["coverUrl"];
+        }
+
+        public async Task<uint> GetChannelId(string username)
+        {
+            uint id = 0;
+            using (HttpClient client = new HttpClient())
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
+                {
+                    JObject jo = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    id = (uint)jo["id"];
+                }
+
+            return id;
+        }
+
+        public string GetChannelThumbnail(string json)
+        {
+            JObject jo = JObject.Parse(json);
+            if (jo["thumbnail"].HasValues)
+                return (string)jo["thumbnail"]["url"];
+            else
+                return (string)jo["bannerUrl"];
+        }
+
+        public string GetChannelTitle(string json)
+        {
+            JObject jo = JObject.Parse(json);
+            return (string)jo["name"];
         }
 
         public async Task<string> GetUser(uint id)
@@ -147,47 +85,115 @@
         public string GetUserAvatar(uint id)
         {
             string json = GetUser(id).GetAwaiter().GetResult();
-            var jo = JObject.Parse(json);
+            JObject jo = JObject.Parse(json);
             return (string)jo["avatarUrl"];
         }
 
-        public string GetChannelTitle(string json)
+        public async Task<uint> GetUserId(string username)
         {
-            var jo = JObject.Parse(json);
-            return (string)jo["name"];
-        }
-
-        public bool IsChannelLive(string json)
-        {
-            var jo = JObject.Parse(json);
-            return (bool)jo["online"];
+            uint id = 0;
+            using (HttpClient client = new HttpClient())
+            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
+                if (response.IsSuccessStatusCode)
+                {
+                    JArray ja = JArray.Parse(await response.Content.ReadAsStringAsync());
+                    JObject jo = JObject.Parse(ja[0].ToString());
+                    id = (uint)jo["id"];
+                }
+            return id;
         }
 
         public int GetViewerCount(string json)
         {
-            var jo = JObject.Parse(json);
+            JObject jo = JObject.Parse(json);
             return (int)jo["viewersCurrent"];
         }
 
-        public string GetChannelThumbnail(string json)
+        public bool IsChannelLive(string json)
         {
-            var jo = JObject.Parse(json);
-            if (jo["thumbnail"].HasValues)
-                return (string)jo["thumbnail"]["url"];
-            else
-                return (string)jo["bannerUrl"];
+            JObject jo = JObject.Parse(json);
+            return (bool)jo["online"];
         }
+    }
 
-        public string GetChannelGame(string json)
+    public partial class StreamHelper
+    {
+        public static async Task<IAsyncResult> BuildAndSend(StreamObject streamObject, SocketGuild guild, GuildObject server, ConfigObject config, DatabaseHandler dbHandler)
         {
-            var jo = JObject.Parse(json);
-            return (string)jo["type"]["name"];
-        }
+            bool streamWasLive = streamObject.IsLive;
 
-        public string GetChannelGameCover(string json)
-        {
-            var jo = JObject.Parse(json);
-            return (string)jo["type"]["coverUrl"];
+            switch (streamObject.StreamType)
+            {
+                case StreamType.Mixer:
+                    if (!server.MixerFeed)
+                        return Task.CompletedTask;
+
+                    MixerAPI mixer = new MixerAPI();
+                    string chanJson = await mixer.GetChannel(streamObject.MixerChannelId);
+                    bool chanIsLive = mixer.IsChannelLive(chanJson);
+                    if (!chanIsLive)
+                        streamObject.IsLive = false;
+
+                    if (chanIsLive && !streamObject.IsLive)
+                    {
+                        Embed embed = Extras.Embed(Extras.Mixer)
+                            .WithTitle(mixer.GetChannelTitle(chanJson))
+                            .WithDescription($"\n**{streamObject.Name}** is playing **{mixer.GetChannelGame(chanJson)}** for {mixer.GetViewerCount(chanJson).ToString()} viewers!\n\n**https://mixer.com/{streamObject.Name}**")
+                            .WithAuthor(streamObject.Name, mixer.GetUserAvatar(streamObject.MixerUserId), $"https://mixer.com/{streamObject.Name}")
+                            .WithThumbnailUrl(mixer.GetChannelGameCover(chanJson))
+                            .WithImageUrl(mixer.GetChannelThumbnail(chanJson)).Build();
+
+                        SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
+                        await channel.SendMessageAsync(embed: embed);
+
+                        streamObject.IsLive = true;
+                        dbHandler.Save<GuildObject>(server, guild.Id);
+                    }
+                    break;
+
+                case StreamType.Twitch:
+                    if (!server.TwitchFeed)
+                        return Task.CompletedTask;
+
+                    TwitchAPI twitchAPI = new TwitchAPI();
+                    twitchAPI.Settings.ClientId = config.APIKeys["TC"];
+                    twitchAPI.Settings.AccessToken = config.APIKeys["TA"];
+
+                    var streamData = await twitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { streamObject.TwitchUserId }), null);
+                    if (!streamData.Streams.Any())
+                        streamObject.IsLive = false;
+
+                    if (streamData.Streams.Any())
+                    {
+                        foreach (var stream in streamData.Streams)
+                        {
+                            if (!streamObject.IsLive)
+                            {
+                                var twitchUser = await twitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
+                                var twitchGame = await twitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
+                                Embed embed = Extras.Embed(Extras.Twitch)
+                                    .WithTitle(stream.Title)
+                                    .WithDescription($"\n**{twitchUser.Users[0].DisplayName}** is playing **{twitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{twitchUser.Users[0].DisplayName}**")
+                                    .WithAuthor(twitchUser.Users[0].DisplayName, twitchUser.Users[0].ProfileImageUrl, $"http://www.twitch.tv/{twitchUser.Users[0].DisplayName}")
+                                    .WithThumbnailUrl(twitchGame.Games[0].BoxArtUrl.Replace("{width}x{height}", "285x380"))
+                                    .WithImageUrl(stream.ThumbnailUrl.Replace("{width}x{height}", "640x360"))
+                                    .Build();
+
+                                SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
+                                await channel.SendMessageAsync(embed: embed);
+
+                                streamObject.IsLive = true;
+                                dbHandler.Save<GuildObject>(server, guild.Id);
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            if (streamWasLive && !streamObject.IsLive)
+                dbHandler.Save<GuildObject>(server, guild.Id);
+
+            return Task.CompletedTask;
         }
     }
 }

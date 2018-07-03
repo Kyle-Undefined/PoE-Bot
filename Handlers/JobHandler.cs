@@ -1,103 +1,106 @@
 ﻿namespace PoE.Bot.Handlers
 {
+    using Discord.WebSocket;
+    using FluentScheduler;
+    using Helpers;
+    using Objects;
     using System;
     using System.Linq;
-    using System.Collections.Generic;
-    using PoE.Bot.Helpers;
-    using FluentScheduler;
-    using Discord.WebSocket;
-    using PoE.Bot.Objects;
 
     public class JobHandler : Registry
     {
-        DatabaseHandler DB { get; }
-        DiscordSocketClient Client { get; }
-        public JobHandler(DatabaseHandler dB, DiscordSocketClient client)
+        public JobHandler(DatabaseHandler databaseHandler, DiscordSocketClient client)
         {
-            DB = dB;
+            DatabaseHandler = databaseHandler;
             Client = client;
             JobManager.JobException += (Info)
-                => LogHandler.Write(Source.EXC, $"Exception ocurred in {Info.Name} job.\n{Info.Exception.Message}\n{Info.Exception.StackTrace}");
+                => LogHandler.Write(Source.Exception, $"Exception ocurred in {Info.Name} job.\n{Info.Exception.Message}\n{Info.Exception.StackTrace}");
         }
+
+        private DiscordSocketClient Client { get; }
+        private DatabaseHandler DatabaseHandler { get; }
 
         public void Initialize()
         {
-            Schedule(()=> LogHandler.ForceGC()).ToRunEvery(10).Minutes();
+            Schedule(() => LogHandler.ForceGC()).ToRunEvery(10).Minutes();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers().Where(x => !x.Muted.IsEmpty))
-                    foreach (var Mute in Server.Muted.Where(x => x.Value < DateTime.Now))
+                foreach (GuildObject server in DatabaseHandler.Servers().Where(x => !x.Muted.IsEmpty))
+                    foreach (var mute in server.Muted.Where(x => x.Value < DateTime.Now))
                     {
-                        Server.Muted.TryRemove(Mute.Key, out _);
-                        MethodHelper.RunSync(GuildHelper.UnmuteUserAsync(Mute.Key, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server));
-                        DB.Save<GuildObject>(Server, Server.Id);
+                        server.Muted.TryRemove(mute.Key, out _);
+                        MethodHelper.RunSync(GuildHelper.UnmuteUserAsync(mute.Key, Client.GetGuild(Convert.ToUInt64(server.Id)), server));
+                        DatabaseHandler.Save<GuildObject>(server, server.Id);
                     }
-            }).WithName("mute").ToRunEvery(1).Minutes().DelayFor(2).Seconds();
+            }).WithName("mute").ToRunEvery(1).Minutes();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers().Where(x => !x.Reminders.IsEmpty))
+                foreach (GuildObject server in DatabaseHandler.Servers().Where(x => !x.Reminders.IsEmpty))
                 {
-                    var RemindersCount = Server.Reminders.Count;
-                    foreach (var Reminder in Server.Reminders.Where(x => x.Value.Any()))
+                    foreach (var kvpReminder in server.Reminders.Where(x => x.Value.Any()))
                     {
-                        var Reminders = new List<RemindObject>();
-                        Server.Reminders.TryGetValue(Reminder.Key, out Reminders);
-                        for (int i = 0; i < Reminders.Count; i++)
+                        server.Reminders.TryGetValue(kvpReminder.Key, out var reminders);
+                        foreach(RemindObject reminder in reminders.ToList())
                         {
-                            if (!(Reminders[i].ExpiryDate <= DateTime.Now))
+                            if (!(reminder.ExpiryDate <= DateTime.Now))
                                 continue;
-                            var Guild = Client.GetGuild(Convert.ToUInt64(Server.Id));
-                            var User = Guild.GetUser(Reminder.Key) ?? Client.GetUser(Reminder.Key);
-                            if (Guild is null && User is null)
-                                Server.Reminders.TryRemove(Reminder.Key, out _);
-                            else if(Guild is null && !(User is null))
-                            {
-                                MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)}) {Reminders[i].Message}");
-                                Reminders.Remove(Reminders[i]);
-                                Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
-                            }
-                            else
-                            {
-                                var Channel = Guild.GetTextChannel(Reminders[i].TextChannel);
-                                if(Channel is null)
-                                    MethodHelper.RunSync(User.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)}) {Reminders[i].Message}");
-                                else
-                                    MethodHelper.RunSync(Channel.SendMessageAsync($"{User.Mention}, {StringHelper.FormatTimeSpan(Reminders[i].ExpiryDate - Reminders[i].RequestedDate)} ago you asked me to remind you about {Reminders[i].Message}"));
-                                Reminders.Remove(Reminders[i]);
-                                Server.Reminders.TryUpdate(Reminder.Key, Reminders, Reminder.Value);
-                            }
-                            if(!Reminder.Value.Any())
-                                Server.Reminders.TryRemove(Reminder.Key, out _);
 
+                            SocketGuild guild = Client.GetGuild(Convert.ToUInt64(server.Id));
+                            SocketUser user = guild.GetUser(kvpReminder.Key) ?? Client.GetUser(kvpReminder.Key);
+
+                            switch (guild)
+                            {
+                                case null when user is null:
+                                    server.Reminders.TryRemove(kvpReminder.Key, out _);
+                                    break;
+
+                                case null when !(user is null):
+                                    MethodHelper.RunSync(user.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)}) {reminder.Message}");
+                                    reminders.Remove(reminder);
+                                    server.Reminders.TryUpdate(kvpReminder.Key, reminders, kvpReminder.Value);
+                                    break;
+
+                                default:
+                                    SocketTextChannel Channel = guild.GetTextChannel(reminder.TextChannel);
+                                    if (Channel is null)
+                                        MethodHelper.RunSync(user.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)}) {reminder.Message}");
+                                    else
+                                        MethodHelper.RunSync(Channel.SendMessageAsync($"{user.Mention}, {StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)} ago you asked me to remind you about {reminder.Message}"));
+
+                                    reminders.Remove(reminder);
+                                    server.Reminders.TryUpdate(kvpReminder.Key, reminders, kvpReminder.Value);
+                                    break;
+                            }
+                            if (!kvpReminder.Value.Any())
+                                server.Reminders.TryRemove(kvpReminder.Key, out _);
                         }
-                        if (RemindersCount != Server.Reminders.Count)
-                            DB.Save<GuildObject>(Server, Server.Id);
+                        DatabaseHandler.Save<GuildObject>(server, server.Id);
                     }
                 }
             }).WithName("reminders").ToRunEvery(1).Minutes();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers().Where(x => x.LeaderboardFeed && x.Leaderboards.Any()))
-                    foreach (var Leaderboard in Server.Leaderboards.Where(l => l.Enabled))
-                        MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(Leaderboard, Client.GetGuild(Convert.ToUInt64(Server.Id))));
+                foreach (GuildObject server in DatabaseHandler.Servers().Where(x => x.LeaderboardFeed && x.Leaderboards.Any()))
+                    foreach (LeaderboardObject leaderboard in server.Leaderboards.Where(l => l.Enabled))
+                        MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(leaderboard, Client.GetGuild(Convert.ToUInt64(server.Id))));
             }).WithName("leaderboards").ToRunEvery(30).Minutes();
 
             Schedule(() =>
             {
-                var Config = DB.Execute<ConfigObject>(Operation.LOAD, Id: "Config");
-                foreach (var Server in DB.Servers().Where(s => (s.TwitchFeed || s.MixerFeed) && s.Streams.Any()))
-                    foreach (var Stream in Server.Streams)
-                        MethodHelper.RunSync(StreamHelper.BuildAndSend(Stream, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, Config, DB));
-            }).WithName("streams").ToRunEvery(5).Minutes().DelayFor(10).Seconds();
+                ConfigObject Config = DatabaseHandler.Execute<ConfigObject>(Operation.Load, Id: "Config");
+                foreach (GuildObject server in DatabaseHandler.Servers().Where(s => (s.TwitchFeed || s.MixerFeed) && s.Streams.Any()))
+                    foreach (StreamObject stream in server.Streams)
+                        MethodHelper.RunSync(StreamHelper.BuildAndSend(stream, Client.GetGuild(Convert.ToUInt64(server.Id)), server, Config, DatabaseHandler));
+            }).WithName("streams").ToRunEvery(5).Minutes();
 
             Schedule(() =>
             {
-                foreach (var Server in DB.Servers().Where(x => x.RssFeed && x.RssFeeds.Any()))
-                    foreach (var Feed in Server.RssFeeds)
-                        MethodHelper.RunSync(RssHelper.BuildAndSend(Feed, Client.GetGuild(Convert.ToUInt64(Server.Id)), Server, DB));
+                foreach (GuildObject server in DatabaseHandler.Servers().Where(x => x.RssFeed && x.RssFeeds.Any()))
+                    foreach (RssObject feed in server.RssFeeds)
+                        MethodHelper.RunSync(RssHelper.BuildAndSend(feed, Client.GetGuild(Convert.ToUInt64(server.Id)), server, DatabaseHandler));
             }).WithName("rss").ToRunEvery(5).Minutes();
 
             JobManager.Initialize(this);

@@ -1,328 +1,305 @@
 ﻿namespace PoE.Bot.Helpers
 {
-    using System;
+    using Addons;
     using Discord;
-    using System.Linq;
-    using PoE.Bot.Addons;
-    using PoE.Bot.Handlers;
     using Discord.WebSocket;
+    using Handlers;
+    using Objects;
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
-    using PoE.Bot.Objects;
-    using System.Collections.Generic;
-    using System.Text.RegularExpressions;
 
-    public class GuildHelper
+    public static class GuildHelper
     {
-        public bool ProfanityMatch(string Message, IList<string> ProfanityList)
-            => DoesStringHaveProfanity(Message, ProfanityList);
-
-        public Regex CheckMatch(string Pattern = null)
-            => new Regex(Pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
-
-        public IMessageChannel DefaultChannel(IGuild guild)
+        public static IMessageChannel DefaultChannel(this IGuild iguild)
         {
-            var Guild = guild as SocketGuild;
-            var ValidNames = new[] { "general", "chat", "lobby", "discussion", "lobby" };
-            return Guild.TextChannels.Where(
-                x => Guild.CurrentUser.GetPermissions(x).SendMessages).FirstOrDefault(
-                x => ValidNames.Contains(x.Name) || x.Id == Guild.Id) ?? Guild.DefaultChannel;
+            SocketGuild guild = iguild as SocketGuild;
+            string[] validNames = new[] { "general", "chat", "lobby", "discussion" };
+            return guild.TextChannels.Where(x => guild.CurrentUser.GetPermissions(x).SendMessages).FirstOrDefault(x => validNames.Contains(x.Name) || x.Id == guild.Id) ?? guild.DefaultChannel;
         }
 
-        public IMessageChannel DefaultStreamChannel(IGuild guild)
+        public static IMessageChannel DefaultStreamChannel(this IGuild iguild)
         {
-            var Guild = guild as SocketGuild;
-            var ValidNames = new[] { "streams", "streamers", "live" };
-            return Guild.TextChannels.Where(
-                x => Guild.CurrentUser.GetPermissions(x).SendMessages).FirstOrDefault(
-                x => ValidNames.Contains(x.Name)) ?? Guild.DefaultChannel;
+            SocketGuild guild = iguild as SocketGuild;
+            string[] validNames = new[] { "streams", "streamers", "live" };
+            return guild.TextChannels.Where(x => guild.CurrentUser.GetPermissions(x).SendMessages).FirstOrDefault(x => validNames.Contains(x.Name)) ?? guild.DefaultChannel;
         }
 
-        public async Task LogAsync(DatabaseHandler DB, IGuild Guild, IUser User, IUser Mod, CaseType CaseType, string Reason)
+        public static ulong FindChannel(this IGuild guild, string name)
         {
-            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: Guild.Id);
-            Reason = string.IsNullOrWhiteSpace(Reason) ? $"*Exile, please type `{Server.Prefix}Reason {Server.UserCases.Count + 1} <Reason>`*" : Reason;
-            var ModChannel = await Guild.GetTextChannelAsync(Server.ModLog);
-            IUserMessage Message = null;
-            if (!(ModChannel is null))
+            ulong parse = name.ParseULong();
+            if (!(parse is 0))
+                return parse;
+
+            SocketTextChannel chn = (guild as SocketGuild).TextChannels?.FirstOrDefault(x => x.Name == name.ToLower());
+            return chn?.Id ?? 0;
+        }
+
+        public static ulong FindRole(this IGuild guild, string name)
+        {
+            ulong parse = name.ParseULong();
+            if (!(parse is 0))
+                return parse;
+
+            IRole role = guild.Roles?.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            return role?.Id ?? 0;
+        }
+
+        public static ProfileObject GetProfile(DatabaseHandler databaseHandler, ulong guildId, ulong userId)
+        {
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guildId);
+            if (server.Profiles.ContainsKey(userId))
+                return server.Profiles[userId];
+
+            server.Profiles.Add(userId, new ProfileObject());
+            databaseHandler.Save<GuildObject>(server, guildId);
+            return server.Profiles[userId];
+        }
+
+        public static bool HierarchyCheck(this IGuild guild, IGuildUser user)
+        {
+            int highestRole = (guild as SocketGuild).CurrentUser.Roles.OrderByDescending(x => x.Position).FirstOrDefault().Position;
+            return (user as SocketGuildUser).Roles.Any(x => x.Position >= highestRole);
+        }
+
+        public static async Task LogAsync(DatabaseHandler databaseHandler, IGuild guild, IUser user, IUser mod, CaseType caseType, string reason)
+        {
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guild.Id);
+            reason = string.IsNullOrWhiteSpace(reason) ? $"*Exile, please type `{server.Prefix}Reason {server.UserCases.Count + 1} <reason>`*" : reason;
+            ITextChannel modChannel = await guild.GetTextChannelAsync(server.ModLog);
+            IUserMessage message = null;
+            if (!(modChannel is null))
             {
-                var UserCases = Server.UserCases.Where(x => x.UserId == User.Id);
-                var Embed = Extras.Embed(Extras.Case)
-                    .WithAuthor($"Case Number: {Server.UserCases.Count + 1}")
-                    .WithTitle(CaseType.ToString())
-                    .AddField("User", $"{User.Mention} `{User}` ({User.Id})")
-                    .AddField("History", $"Cases: {UserCases.Count()}\nWarnings: {UserCases.Where(x => x.CaseType == CaseType.WARNING).Count()}\n" +
-                        $"Mutes: {UserCases.Where(x => x.CaseType == CaseType.MUTE).Count()}\nAuto Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODMUTE).Count()}\n" +
-                        $"Auto Perm Mutes: {UserCases.Where(x => x.CaseType == CaseType.AUTOMODPERMMUTE).Count()}")
-                    .AddField("Reason", Reason)
-                    .AddField("Moderator", $"{Mod}")
+                var userCases = server.UserCases.Where(x => x.UserId == user.Id);
+                Embed embed = Extras.Embed(Extras.Case)
+                    .WithAuthor($"Case Number: {server.UserCases.Count + 1}")
+                    .WithTitle(caseType.ToString())
+                    .AddField("User", $"{user.Mention} `{user}` ({user.Id})")
+                    .AddField("History",
+                        $"Cases: {userCases.Count()}\n" +
+                        $"Warnings: {userCases.Count(x => x.CaseType == CaseType.Warning)}\n" +
+                        $"Mutes: {userCases.Count(x => x.CaseType == CaseType.Mute)}\n" +
+                        $"Auto Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModMute)}\n" +
+                        $"Auto Perm Mutes: {userCases.Count(x => x.CaseType == CaseType.AutoModPermMute)}")
+                    .AddField("Reason", reason)
+                    .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()
                     .Build();
-                Message = await ModChannel.SendMessageAsync(embed: Embed);
+                message = await modChannel.SendMessageAsync(embed: embed);
             }
-            Server.UserCases.Add(new CaseObject
+
+            server.UserCases.Add(new CaseObject
             {
-                UserId = User.Id,
-                Reason = Reason,
-                CaseType = CaseType,
-                Username = $"{User}",
-                Moderator = $"{Mod}",
-                ModeratorId = Mod.Id,
+                UserId = user.Id,
+                Reason = reason,
+                CaseType = caseType,
+                Username = $"{user}",
+                Moderator = $"{mod}",
+                ModeratorId = mod.Id,
                 CaseDate = DateTime.Now,
-                Number = Server.UserCases.Count + 1,
-                MessageId = Message is null ? 0 : Message.Id
+                Number = server.UserCases.Count + 1,
+                MessageId = message?.Id ?? 0
             });
-            DB.Save<GuildObject>(Server, Guild.Id);
+
+            databaseHandler.Save<GuildObject>(server, guild.Id);
         }
 
-        public bool HierarchyCheck(IGuild IGuild, IGuildUser User)
-        {
-            var Guild = IGuild as SocketGuild;
-            var HighestRole = Guild.CurrentUser.Roles.OrderByDescending(x => x.Position).FirstOrDefault().Position;
-            return (User as SocketGuildUser).Roles.Any(x => x.Position >= HighestRole);
-        }
-
-        public ProfileObject GetProfile(DatabaseHandler DB, ulong GuildId, ulong UserId)
-        {
-            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: GuildId);
-            if (!Server.Profiles.ContainsKey(UserId))
+        public static async Task MuteUserAsync(Context context, MuteType muteType, IGuildUser user, TimeSpan? time, string message, bool logMute = true)
+            => await context.Message.DeleteAsync().ContinueWith(async _ =>
             {
-                Server.Profiles.Add(UserId, new ProfileObject());
-                DB.Save<GuildObject>(Server, GuildId);
-                return Server.Profiles[UserId];
-            }
-            return Server.Profiles[UserId];
-        }
+                if ((context.Server.MuteRole is 0 && muteType == MuteType.Mod) || (context.Server.TradeMuteRole is 0 && muteType == MuteType.Trade))
+                    return context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*");
+                if (user.RoleIds.Contains(context.Server.MuteRole) || user.RoleIds.Contains(context.Server.TradeMuteRole))
+                    return context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` is already muted.*");
+                if (context.Guild.HierarchyCheck(user))
+                    return context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*");
 
-        public void SaveProfile(DatabaseHandler DB, ulong GuildId, ulong UserId, ProfileObject Profile)
+                switch (muteType)
+                {
+                    case MuteType.Mod:
+                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.MuteRole));
+                        context.Server.Muted.TryAdd(user.Id, DateTime.Now.Add((TimeSpan)time));
+                        context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
+                        break;
+
+                    case MuteType.Trade:
+                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.TradeMuteRole));
+                        context.Server.Muted.TryAdd(user.Id, DateTime.Now.Add((TimeSpan)time));
+                        context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
+                        break;
+                }
+
+                if (logMute)
+                    await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Mute, $"{message} ({StringHelper.FormatTimeSpan((TimeSpan)time)})");
+
+                await context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{user}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)time)}* {Extras.OkHand}");
+
+                Embed embed = Extras.Embed(Extras.Info)
+                    .WithAuthor(context.User)
+                    .WithTitle("Mod Action")
+                    .WithDescription($"You were muted in the {context.Guild.Name} server.")
+                    .WithThumbnailUrl(context.User.GetAvatarUrl())
+                    .WithFooter($"You can PM {context.User.Username} directly to resolve the issue.")
+                    .AddField("Reason", message)
+                    .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)time))
+                    .Build();
+
+                return (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+            });
+
+        public static async Task MuteUserAsync(DatabaseHandler databaseHandler, SocketMessage message, GuildObject server, IGuildUser user, CaseType caseType, TimeSpan time, string reason)
         {
-            var Server = DB.Execute<GuildObject>(Operation.LOAD, Id: GuildId);
-            Server.Profiles[UserId] = Profile;
-            DB.Save<GuildObject>(Server, GuildId);
-        }
+            SocketGuild guild = (message.Author as SocketGuildUser).Guild;
 
-        public ulong ParseUlong(string Value)
-        {
-            if (string.IsNullOrWhiteSpace(Value))
-                return 0;
-            return Convert.ToUInt64(string.Join("", CheckMatch("[0-9]").Matches(Value).Select(x => x.Value)));
-        }
+            await user.AddRoleAsync(guild.GetRole(server.MuteRole));
+            server.Muted.TryAdd(user.Id, DateTime.Now.Add(time));
+            databaseHandler.Save<GuildObject>(server, guild.Id);
 
-        public IList<string> Pages<T>(IEnumerable<T> Collection)
-        {
-            var BuildPages = new List<string>(Collection.Count());
-            for (int i = 0; i <= Collection.Count(); i += 10)
-                BuildPages.Add(string.Join("\n", Collection.Skip(i).Take(10)));
-            return BuildPages;
-        }
+            await LogAsync(databaseHandler, guild, user, guild.CurrentUser, caseType, $"{reason} ({StringHelper.FormatTimeSpan(time)})");
 
-        public (bool, string) CalculateResponse(SocketMessage Message)
-            => (Message is null || string.IsNullOrWhiteSpace(Message.Content)) ?
-            (false, $"{Extras.Cross} There is a fine line between consideration and hesitation. The former is wisdom, the latter is fear. *Request Timed Out*")
-            : Message.Content.ToLower().Equals("c") ? (false, $"Understood, Exile {Extras.OkHand}") : (true, Message.Content);
-
-        public bool DoesStringHaveProfanity(string Data, IList<string> BadWords)
-        {
-            foreach (var Word in BadWords)
-            {
-                var Expword = ExpandBadWordToIncludeIntentionalMisspellings(Word);
-                Regex r = new Regex(Expword, RegexOptions.IgnoreCase | RegexOptions.Multiline);
-                var Match = r.Match(Data);
-                if (Match.Success)
-                    return Match.Success;
-            }
-            return false;
-        }
-
-        public string ExpandBadWordToIncludeIntentionalMisspellings(string Word)
-        {
-            var Chars = Word.ToCharArray();
-            var op = @"(^|\s)[" + string.Join("][", Chars) + @"](\s|$)";
-
-            return op
-                .Replace("[a]", "[aA@]+")
-                .Replace("[b]", "(?:(I3)|(l3)|(i3)|(13)|[bB])+")
-                .Replace("[c]", "(?:[cC\\(]|[kK])+")
-                .Replace("[d]", "[dD]+")
-                .Replace("[e]", "[eE3]+")
-                .Replace("[f]", "(?:[fF]|[pPhH])+")
-                .Replace("[g]", "[gG6]+")
-                .Replace("[h]", "[hH]+")
-                .Replace("[i]", "[iIl!1]+")
-                .Replace("[j]", "[jJ]+")
-                .Replace("[k]", "(?:[cC\\(]|[kK])+")
-                .Replace("[l]", "[lL1!i]+")
-                .Replace("[m]", "[mM]+")
-                .Replace("[n]", "[nN]+")
-                .Replace("[o]", "[oO0]+")
-                .Replace("[p]", "[pP]+")
-                .Replace("[q]", "[qQ9]+")
-                .Replace("[r]", "[rR]+")
-                .Replace("[s]", "[sS$5]+")
-                .Replace("[t]", "[tT7]+")
-                .Replace("[u]", "[uUvV]+")
-                .Replace("[v]", "[vVuU]+")
-                .Replace("[w]", "[wWvvVV]+")
-                .Replace("[x]", "[xX]+")
-                .Replace("[y]", "[yY]+")
-                .Replace("[z]", "[zZ2]+")
-                ;
-        }
-
-        public async Task MuteUserAsync(IContext Context, MuteType MuteType, IGuildUser User, TimeSpan? Time, string Message, bool LogMute = true)
-        {
-            await Context.Message.DeleteAsync();
-
-            if((Context.Server.MuteRole is 0 && MuteType == MuteType.MOD) || (Context.Server.TradeMuteRole is 0 && MuteType == MuteType.TRADE))
-            {
-                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*");
-                return;
-            }
-            if (User.RoleIds.Contains(Context.Server.MuteRole) || User.RoleIds.Contains(Context.Server.TradeMuteRole))
-            {
-                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` is already muted.*");
-                return;
-            }
-            if (Context.GuildHelper.HierarchyCheck(Context.Guild, User))
-            {
-                await Context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{User}` is higher than I.*");
-                return;
-            }
-            switch (MuteType)
-            {
-                case MuteType.MOD:
-                    await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.MuteRole));
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
-                    Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
-                    break;
-                case MuteType.TRADE:
-                    await User.AddRoleAsync(Context.Guild.GetRole(Context.Server.TradeMuteRole));
-                    Context.Server.Muted.TryAdd(User.Id, DateTime.Now.Add((TimeSpan)Time));
-                    Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
-                    break;
-            }
-            if (LogMute)
-                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.MUTE, $"{Message} ({StringHelper.FormatTimeSpan((TimeSpan)Time)})");
-            await Context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{User}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)Time)}* {Extras.OkHand}");
-
-            var Embed = Extras.Embed(Extras.Info)
-                .WithAuthor(Context.User)
+            Embed embed = Extras.Embed(Extras.Info)
+                .WithAuthor(guild.CurrentUser)
                 .WithTitle("Mod Action")
-                .WithDescription($"You were muted in the {Context.Guild.Name} server.")
-                .WithThumbnailUrl(Context.User.GetAvatarUrl())
-                .WithFooter($"You can PM {Context.User.Username} directly to resolve the issue.")
-                .AddField("Reason", Message)
-                .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)Time))
-                .Build();
-
-            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
-        }
-
-        public async Task MuteUserAsync(DatabaseHandler DB, SocketUserMessage Message, GuildObject Server, IGuildUser User, CaseType CaseType, TimeSpan Time, string Reason)
-        {
-            var Guild = (Message.Author as SocketGuildUser).Guild;
-
-            await User.AddRoleAsync(Guild.GetRole(Server.MuteRole));
-            Server.Muted.TryAdd(User.Id, DateTime.Now.Add(Time));
-            DB.Save<GuildObject>(Server, Guild.Id);
-
-            await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType, $"{Reason} ({StringHelper.FormatTimeSpan(Time)})");
-
-            var Embed = Extras.Embed(Extras.Info)
-                .WithAuthor(Guild.CurrentUser)
-                .WithTitle("Mod Action")
-                .WithDescription($"You were muted in the {Guild.Name} server.")
-                .WithThumbnailUrl(Guild.CurrentUser.GetAvatarUrl())
+                .WithDescription($"You were muted in the {guild.Name} server.")
+                .WithThumbnailUrl(guild.CurrentUser.GetAvatarUrl())
                 .WithFooter($"You can PM any Moderator directly to resolve the issue.")
-                .AddField("Reason", Reason)
-                .AddField("Duration", StringHelper.FormatTimeSpan(Time))
+                .AddField("Reason", reason)
+                .AddField("Duration", StringHelper.FormatTimeSpan(time))
                 .Build();
 
-            await (await User.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: Embed);
+            await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
         }
 
-        public async Task UnmuteUserAsync(IContext Context, IGuildUser User)
+        public static void SaveProfile(DatabaseHandler databaseHandler, ulong guildId, ulong userId, ProfileObject profile)
         {
-            var MuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
-            var TradeMuteRole = Context.Guild.GetRole(Context.Server.MuteRole) ?? Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
-            if (!User.RoleIds.Contains(MuteRole.Id) && !User.RoleIds.Contains(TradeMuteRole.Id))
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guildId);
+            server.Profiles[userId] = profile;
+            databaseHandler.Save<GuildObject>(server, guildId);
+        }
+
+        public static async Task<IAsyncResult> UnmuteUserAsync(ulong userId, SocketGuild guild, GuildObject server)
+        {
+            SocketGuildUser user = guild.GetUser(userId);
+            SocketRole muteRole = guild.GetRole(server.MuteRole) ?? guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            SocketRole tradeMuteRole = guild.GetRole(server.TradeMuteRole) ?? guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!user.Roles.Contains(muteRole) && !user.Roles.Contains(tradeMuteRole))
+                return Task.CompletedTask;
+            if (user.Roles.Contains(muteRole))
+                await user.RemoveRoleAsync(muteRole);
+            else if (user.Roles.Contains(tradeMuteRole))
+                await user.RemoveRoleAsync(tradeMuteRole);
+
+            return Task.CompletedTask;
+        }
+
+        public static async Task UnmuteUserAsync(Context context, IGuildUser user)
+        {
+            IRole muteRole = context.Guild.GetRole(context.Server.MuteRole) ?? context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
+            IRole tradeMuteRole = context.Guild.GetRole(context.Server.MuteRole) ?? context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
+            if (!user.RoleIds.Contains(muteRole.Id) && !user.RoleIds.Contains(tradeMuteRole.Id))
             {
-                await Context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{User}` doesn't have any mute role.*");
+                await context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` doesn't have any mute role.*");
                 return;
             }
-            if (User.RoleIds.Contains(MuteRole.Id))
-                await User.RemoveRoleAsync(MuteRole);
-            else if (User.RoleIds.Contains(TradeMuteRole.Id))
-                await User.RemoveRoleAsync(TradeMuteRole);
-            if (Context.Server.Muted.ContainsKey(User.Id))
-                Context.Server.Muted.TryRemove(User.Id, out _);
-            Context.DBHandler.Save<GuildObject>(Context.Server, Context.Guild.Id);
-            await Context.Channel.SendMessageAsync($"It seems there's still glory in the old Empire yet! *`{User}` has been unmuted.* {Extras.OkHand}");
+
+            if (user.RoleIds.Contains(muteRole.Id))
+                await user.RemoveRoleAsync(muteRole);
+            else if (user.RoleIds.Contains(tradeMuteRole.Id))
+                await user.RemoveRoleAsync(tradeMuteRole);
+
+            if (context.Server.Muted.ContainsKey(user.Id))
+                context.Server.Muted.TryRemove(user.Id, out _);
+
+            context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
+            await context.Channel.SendMessageAsync($"It seems there's still glory in the old Empire yet! *`{user}` has been unmuted.* {Extras.OkHand}");
         }
 
-        public static async Task UnmuteUserAsync(ulong UserId, SocketGuild Guild, GuildObject Server)
+        public static string ValidateChannel(this IGuild guild, ulong id)
         {
-            var User = Guild.GetUser(UserId);
-            var MuteRole = Guild.GetRole(Server.MuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Muted");
-            var TradeMuteRole = Guild.GetRole(Server.TradeMuteRole) ?? Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
-            if (!User.Roles.Contains(MuteRole) && !User.Roles.Contains(TradeMuteRole))
-                return;
-            if (User.Roles.Contains(MuteRole))
-                await User.RemoveRoleAsync(MuteRole);
-            else if (User.Roles.Contains(TradeMuteRole))
-                await User.RemoveRoleAsync(TradeMuteRole);
+            if (id is 0)
+                return "Not Set.";
+
+            SocketTextChannel channel = (guild as SocketGuild)?.GetTextChannel(id);
+            return channel is null
+                ? $"Unknown ({id})"
+                : channel.Name;
         }
 
-        public async Task WarnUserAsync(IContext Context, IGuildUser User, string Reason, MuteType MuteType = MuteType.MOD)
+        public static string ValidateRole(this IGuild guild, ulong id)
         {
-            if (Context.Server.MaxWarningsToMute is 0 || Context.Server.MaxWarningsToPermMute is 0 || User.Id == Context.Guild.OwnerId ||
-                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.GuildPermissions.ManageChannels ||
-                User.GuildPermissions.ManageRoles || User.GuildPermissions.BanMembers || User.GuildPermissions.KickMembers)
+            if (id is 0)
+                return "Not Set";
+
+            IRole role = guild.GetRole(id);
+            return role is null
+                ? $"Unknown ({id})"
+                : role.Name;
+        }
+
+        public static string ValidateUser(this IGuild guild, ulong id)
+        {
+            SocketGuildUser user = (guild as SocketGuild)?.GetUser(id);
+            return user is null
+                ? "Unknown User"
+                : user.Username;
+        }
+
+        public static async Task WarnUserAsync(Context context, IGuildUser user, string reason, MuteType muteType = MuteType.Mod)
+        {
+            if (context.Server.MaxWarningsToMute is 0 || context.Server.MaxWarningsToPermMute is 0 || user.Id == context.Guild.OwnerId ||
+                user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
+                user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
                 return;
-            var Profile = GetProfile(Context.DBHandler, Context.Guild.Id, User.Id);
-            Profile.Warnings++;
-            if (Profile.Warnings >= Context.Server.MaxWarningsToPermMute)
+
+            ProfileObject profile = GetProfile(context.DatabaseHandler, context.Guild.Id, user.Id);
+            profile.Warnings++;
+
+            if (profile.Warnings >= context.Server.MaxWarningsToPermMute)
             {
-                DateTime Now = DateTime.Now;
-                TimeSpan Span = Now.AddYears(999) - Now;
-                await MuteUserAsync(Context, MuteType, User, Span, $"Muted permanently for reaching Max number of warnings. {Reason}", false);
-                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODPERMMUTE, $"Muted permanently due to reaching max number of warnings. {Reason}");
+                DateTime now = DateTime.Now;
+                TimeSpan span = now.AddYears(999) - now;
+                await MuteUserAsync(context, muteType, user, span, $"Muted permanently for reaching Max number of warnings. {reason}", false);
+                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModPermMute, $"Muted permanently due to reaching max number of warnings. {reason}");
             }
-            else if (Profile.Warnings >= Context.Server.MaxWarningsToMute)
+            else if (profile.Warnings >= context.Server.MaxWarningsToMute)
             {
-                await MuteUserAsync(Context, MuteType, User, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {Reason}", false);
-                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.AUTOMODMUTE, $"Muted for 1 day due to reaching max number of warnings. {Reason}");
+                await MuteUserAsync(context, muteType, user, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {reason}", false);
+                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModMute, $"Muted for 1 day due to reaching max number of warnings. {reason}");
             }
             else
             {
-                await LogAsync(Context.DBHandler, Context.Guild, User, Context.User, CaseType.WARNING, Reason);
-                await Context.Channel.SendMessageAsync($"Purity will prevail! *`{User}` has been warned.* {Extras.Warning}");
+                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Warning, reason);
+                await context.Channel.SendMessageAsync($"Purity will prevail! *`{user}` has been warned.* {Extras.Warning}");
             }
-            SaveProfile(Context.DBHandler, Context.Guild.Id, User.Id, Profile);
+            SaveProfile(context.DatabaseHandler, context.Guild.Id, user.Id, profile);
         }
 
-        public async Task WarnUserAsync(SocketUserMessage Message, GuildObject Server, DatabaseHandler DB, string Warning)
-        {
-            var Guild = (Message.Author as SocketGuildUser).Guild;
-            var User = Message.Author as SocketGuildUser;
-            if (Server.MaxWarningsToMute is 0 || Server.MaxWarningsToPermMute is 0 || User.Id == Guild.OwnerId ||
-                User.GuildPermissions.Administrator || User.GuildPermissions.ManageGuild || User.GuildPermissions.ManageChannels ||
-                User.GuildPermissions.ManageRoles || User.GuildPermissions.BanMembers || User.GuildPermissions.KickMembers)
-                return;
-            await Message.DeleteAsync();
-            var Profile = GetProfile(DB, Guild.Id, User.Id);
-            Profile.Warnings++;
-            if (Profile.Warnings >= Server.MaxWarningsToPermMute)
+        public static async Task WarnUserAsync(SocketMessage message, GuildObject server, DatabaseHandler databaseHandler, string warning)
+            => await message.DeleteAsync().ContinueWith(async _ =>
             {
-                DateTime Now = DateTime.Now;
-                TimeSpan Span = Now.AddYears(999) - Now;
-                await MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODPERMMUTE, Span, $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
-            }
-            else if (Profile.Warnings >= Server.MaxWarningsToMute)
-                await MuteUserAsync(DB, Message, Server, User, CaseType.AUTOMODMUTE, TimeSpan.FromDays(1), $"Muted by AutoMod. {Warning} For saying: `{Message.Content}`");
-            else
-                await LogAsync(DB, Guild, User, Guild.CurrentUser, CaseType.WARNING, $"{Warning} For saying: `{Message.Content}`");
-            SaveProfile(DB, Guild.Id, User.Id, Profile);
-            await Message.Channel.SendMessageAsync(Warning);
-        }
+                SocketGuild guild = (message.Author as SocketGuildUser).Guild;
+                SocketGuildUser user = message.Author as SocketGuildUser;
+                if (server.MaxWarningsToMute is 0 || server.MaxWarningsToPermMute is 0 || user.Id == guild.OwnerId ||
+                    user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
+                    user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
+                    return;
+
+                ProfileObject profile = GetProfile(databaseHandler, guild.Id, user.Id);
+                profile.Warnings++;
+
+                if (profile.Warnings >= server.MaxWarningsToPermMute)
+                {
+                    DateTime now = DateTime.Now;
+                    TimeSpan span = now.AddYears(999) - now;
+                    await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModPermMute, span, $"Muted by AutoMod. {warning} For saying: `{message.Content}`");
+                }
+                else if (profile.Warnings >= server.MaxWarningsToMute)
+                    await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModMute, TimeSpan.FromDays(1), $"Muted by AutoMod. {warning} For saying: `{message.Content}`");
+                else
+                    await LogAsync(databaseHandler, guild, user, guild.CurrentUser, CaseType.Warning, $"{warning} For saying: `{message.Content}`");
+
+                SaveProfile(databaseHandler, guild.Id, user.Id, profile);
+                await message.Channel.SendMessageAsync(warning);
+            });
     }
 }
