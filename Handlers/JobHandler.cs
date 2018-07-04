@@ -90,7 +90,7 @@
 
             Schedule(() =>
             {
-                ConfigObject Config = DatabaseHandler.Execute<ConfigObject>(Operation.Load, Id: "Config");
+                ConfigObject Config = DatabaseHandler.Execute<ConfigObject>(Operation.Load, id: "Config");
                 foreach (GuildObject server in DatabaseHandler.Servers().Where(s => (s.TwitchFeed || s.MixerFeed) && s.Streams.Any()))
                     foreach (StreamObject stream in server.Streams)
                         MethodHelper.RunSync(StreamHelper.BuildAndSend(stream, Client.GetGuild(Convert.ToUInt64(server.Id)), server, Config, DatabaseHandler));

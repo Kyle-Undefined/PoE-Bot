@@ -26,27 +26,27 @@
         public IDocumentStore Store { get; set; }
         private DatabaseObject DatabaseObject { get; set; }
 
-        public T Execute<T>(Operation Operation, object Data = null, object Id = null) where T : class
+        public T Execute<T>(Operation operation, object data = null, object id = null) where T : class
         {
             using (var Session = Store.OpenSession(Store.Database))
             {
-                switch (Operation)
+                switch (operation)
                 {
                     case Operation.Create:
-                        if (Session.Advanced.Exists($"{Id}"))
+                        if (Session.Advanced.Exists($"{id}"))
                             break;
 
-                        Session.Store((T)Data, $"{Id}");
-                        LogHandler.Write(Source.Database, $"Created => {typeof(T).Name} | ID: {Id}");
+                        Session.Store((T)data, $"{id}");
+                        LogHandler.Write(Source.Database, $"Created => {typeof(T).Name} | ID: {id}");
                         break;
 
                     case Operation.Delete:
-                        LogHandler.Write(Source.Database, $"Removed => {typeof(T).Name} | ID: {Id}");
-                        Session.Delete(Session.Load<T>($"{Id}"));
+                        LogHandler.Write(Source.Database, $"Removed => {typeof(T).Name} | ID: {id}");
+                        Session.Delete(Session.Load<T>($"{id}"));
                         break;
 
                     case Operation.Load:
-                        return Session.Load<T>($"{Id}");
+                        return Session.Load<T>($"{id}");
                 }
                 Session.SaveChanges();
                 Session.Dispose();
@@ -75,8 +75,8 @@
             if (!Store.Maintenance.Server.Send(new GetDatabaseNamesOperation(0, 5)).Any(x => x is DatabaseObject.Name))
                 Store.Maintenance.Server.Send(new CreateDatabaseOperation(new DatabaseRecord(DatabaseObject.Name)));
 
-            DatabaseRecordWithEtag Record = Store.Maintenance.Server.Send(new GetDatabaseRecordOperation(DatabaseObject.Name));
-            if (!Record.PeriodicBackups.All(x => x.Name is "Backup"))
+            DatabaseRecordWithEtag record = Store.Maintenance.Server.Send(new GetDatabaseRecordOperation(DatabaseObject.Name));
+            if (!record.PeriodicBackups.All(x => x.Name is "Backup"))
                 Store.Maintenance.Send(new UpdatePeriodicBackupOperation(new PeriodicBackupConfiguration
                 {
                     Name = "Backup",
@@ -85,20 +85,20 @@
                     LocalSettings = new LocalSettings { FolderPath = DatabaseObject.BackupFolder }
                 }));
 
-            Store.AggressivelyCacheFor(TimeSpan.FromMinutes(5), Record.DatabaseName);
-            Store.AggressivelyCache(Record.DatabaseName);
+            Store.AggressivelyCacheFor(TimeSpan.FromMinutes(5), record.DatabaseName);
+            Store.AggressivelyCache(record.DatabaseName);
 
             if (DatabaseObject.IsConfigCreated is false)
             {
                 LogHandler.Write(Source.Database, "Enter bot's token: ");
-                string Token = Console.ReadLine();
+                string token = Console.ReadLine();
                 LogHandler.Write(Source.Database, "Enter bot's prefix: ");
-                string Prefix = Console.ReadLine();
+                string prefix = Console.ReadLine();
 
                 Execute<ConfigObject>(Operation.Create, new ConfigObject
                 {
-                    Prefix = Prefix,
-                    APIKeys = new Dictionary<string, string> { { "BT", Token }, { "TC", "" }, { "TA", "" } }
+                    Prefix = prefix,
+                    APIKeys = new Dictionary<string, string> { { "BT", token }, { "TC", "" }, { "TA", "" } }
                 }, "Config");
 
                 File.WriteAllText("DBConfig.json", JsonConvert.SerializeObject(new DatabaseObject { IsConfigCreated = true }, Formatting.Indented));
@@ -108,12 +108,12 @@
             LogHandler.ForceGC();
         }
 
-        public void Save<T>(object Data, object Id) where T : class
+        public void Save<T>(object data, object id) where T : class
         {
-            using (var Session = Store.OpenSession())
+            using (var session = Store.OpenSession())
             {
-                Session.Store((T)Data, $"{Id}");
-                Session.SaveChanges();
+                session.Store((T)data, $"{id}");
+                session.SaveChanges();
             }
         }
 

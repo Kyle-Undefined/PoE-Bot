@@ -53,7 +53,7 @@
 
         internal Task LeftGuild(SocketGuild guild)
             => Task.Run(()
-                => DatabaseHandler.Execute<GuildObject>(Operation.Delete, Id: guild.Id));
+                => DatabaseHandler.Execute<GuildObject>(Operation.Delete, id: guild.Id));
 
         internal Task Log(LogMessage message)
             => Task.Run(()
@@ -61,7 +61,7 @@
 
         internal async Task MessageDeletedAsync(Cacheable<IMessage, ulong> cache, ISocketMessageChannel channel)
         {
-            GuildObject server = DatabaseHandler.Execute<GuildObject>(Operation.Load, Id: (channel as SocketGuildChannel).Guild.Id);
+            GuildObject server = DatabaseHandler.Execute<GuildObject>(Operation.Load, id: (channel as SocketGuildChannel).Guild.Id);
             if (!server.LogDeleted)
                 return;
             if (server.RoleSetChannel == channel.Id)
@@ -98,9 +98,9 @@
             await mod.SendMessageAsync(embed: embed);
         }
 
-        internal async Task MessageReceivedAsync(SocketMessage SocketMessage)
+        internal async Task MessageReceivedAsync(SocketMessage socketMessage)
         {
-            if (!(SocketMessage is SocketUserMessage message) || message.Channel is IDMChannel)
+            if (!(socketMessage is SocketUserMessage message) || message.Channel is IDMChannel)
                 return;
 
             int argPos = 0;
@@ -147,7 +147,7 @@
 
         internal async Task ReactionHandlerAsync(Cacheable<IUserMessage, ulong> cache, SocketReaction reaction, bool reactionAdded)
         {
-            GuildObject server = DatabaseHandler.Execute<GuildObject>(Operation.Load, Id: (reaction.Channel as SocketGuildChannel).Guild.Id);
+            GuildObject server = DatabaseHandler.Execute<GuildObject>(Operation.Load, id: (reaction.Channel as SocketGuildChannel).Guild.Id);
             if (server.DevChannel == reaction.Channel.Id)
             {
                 if (reaction.Emote.Name == Extras.Check.Name && (reaction.UserId == MethodHelper.RunSync(Client.GetApplicationInfoAsync()).Owner.Id))
@@ -186,7 +186,7 @@
 
                     foreach (ulong Server in Servers)
                         if (!Client.Guilds.Select(x => x.Id).Contains(Convert.ToUInt64(Server)))
-                            DatabaseHandler.Execute<GuildObject>(Operation.Delete, Id: Server);
+                            DatabaseHandler.Execute<GuildObject>(Operation.Delete, id: Server);
 
                     LogHandler.ForceGC();
                     guildCheck = false;

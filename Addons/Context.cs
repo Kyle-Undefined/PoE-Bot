@@ -22,7 +22,7 @@
             HttpClient = provider.GetRequiredService<HttpClient>();
             DatabaseHandler = provider.GetRequiredService<DatabaseHandler>();
             if (!(Guild is null))
-                Server = provider.GetRequiredService<DatabaseHandler>().Execute<GuildObject>(Operation.Load, Id: $"{Guild.Id}");
+                Server = provider.GetRequiredService<DatabaseHandler>().Execute<GuildObject>(Operation.Load, id: $"{Guild.Id}");
         }
 
         public IMessageChannel Channel { get; }

@@ -49,6 +49,7 @@
                     case Uri uri when feed.FeedUri.Host is "www.poelab.com":
                         sb.AppendLine("-----------------------------------------------------------");
                         sb.AppendLine($"***{item.Title}***\n");
+                        sb.AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*");
                         sb.AppendLine(item.Link);
 
                         string labDescription = "Lab notes not added.";

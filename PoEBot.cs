@@ -23,7 +23,7 @@
                 LogLevel = LogSeverity.Warning
             }))
             {
-                IServiceCollection Services = new ServiceCollection()
+                IServiceCollection services = new ServiceCollection()
                     .AddSingleton(discordSocketClient)
                     .AddSingleton(new CommandService(new CommandServiceConfig
                     {
@@ -41,13 +41,13 @@
                     .AddSingleton<InteractiveService>()
                     .AddSingleton<Handlers.EventHandler>()
                     .AddSingleton(new Random(Guid.NewGuid().GetHashCode()))
-                    .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.Load, Id: nameof(Config)));
+                    .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.Load, id: nameof(Config)));
 
-                ServiceProvider Provider = Services.BuildServiceProvider();
-                await Provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
-                await Provider.GetRequiredService<MainHandler>().InitializeAsync();
-                await Provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
-                Provider.GetRequiredService<JobHandler>().Initialize();
+                ServiceProvider provider = services.BuildServiceProvider();
+                await provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
+                await provider.GetRequiredService<MainHandler>().InitializeAsync();
+                await provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
+                provider.GetRequiredService<JobHandler>().Initialize();
                 await Task.Delay(-1);
             }
         }

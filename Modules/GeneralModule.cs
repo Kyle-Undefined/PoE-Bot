@@ -140,7 +140,10 @@
 
         [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
         public Task LabAsync()
-            => ReplyAsync("https://www.poelab.com/ \n**Please be sure to turn off any Ad Blockers you have to help the team keep doing Izaros work.**");
+            => ReplyAsync(embed: Extras.Embed(Extras.Info)
+                .WithTitle("Please turn off any Ad Blockers you have to help the team keep doing Izaros work.")
+                .WithDescription("[Homepage](https://www.poelab.com/) - [Support](https://www.poelab.com/support/) - [Lab Info](https://www.poelab.com/all-enchantments/) - [Lab Guide](https://www.poelab.com/new-to-the-labyrinth/) - [Puzzle Solutions](https://www.poelab.com/puzzle-solutions/) - [Trial Tracker](https://www.poelab.com/trial-tracker/)")
+                .Build());
 
         [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
         public async Task PingAsync()

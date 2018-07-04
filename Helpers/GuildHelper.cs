@@ -47,7 +47,7 @@
 
         public static ProfileObject GetProfile(DatabaseHandler databaseHandler, ulong guildId, ulong userId)
         {
-            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guildId);
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, id: guildId);
             if (server.Profiles.ContainsKey(userId))
                 return server.Profiles[userId];
 
@@ -64,7 +64,7 @@
 
         public static async Task LogAsync(DatabaseHandler databaseHandler, IGuild guild, IUser user, IUser mod, CaseType caseType, string reason)
         {
-            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guild.Id);
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, id: guild.Id);
             reason = string.IsNullOrWhiteSpace(reason) ? $"*Exile, please type `{server.Prefix}Reason {server.UserCases.Count + 1} <reason>`*" : reason;
             ITextChannel modChannel = await guild.GetTextChannelAsync(server.ModLog);
             IUserMessage message = null;
@@ -171,7 +171,7 @@
 
         public static void SaveProfile(DatabaseHandler databaseHandler, ulong guildId, ulong userId, ProfileObject profile)
         {
-            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, Id: guildId);
+            GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, id: guildId);
             server.Profiles[userId] = profile;
             databaseHandler.Save<GuildObject>(server, guildId);
         }

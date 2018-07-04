@@ -10,6 +10,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using TwitchLib.Api;
 
@@ -245,9 +246,14 @@
                     break;
 
                 case CommandAction.List:
+                    StringBuilder sb = new StringBuilder();
+                    if (Context.Server.Leaderboards.Any())
+                        foreach (LeaderboardObject leaderboard in Context.Server.Leaderboards)
+                            sb.AppendLine($"Variant: {leaderboard.Variant} | Channel: {(await Context.Guild.GetTextChannelAsync(leaderboard.ChannelId)).Mention} | Enabled: {leaderboard.Enabled.ToString()}");
+
                     await ReplyAsync(!Context.Server.Leaderboards.Any()
                         ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any leaderboards.*"
-                        : $"**Leaderboard Variants**:\n{String.Join("\n", Context.Server.Leaderboards.Select(async l => $"Variant: {l.Variant} | channel: {(await Context.Guild.GetTextChannelAsync(l.ChannelId)).Mention} | Enabled: {l.Enabled.ToString()}").ToList())}");
+                        : $"**Leaderboard Variants**:\n{sb.ToString()}");
                     break;
 
                 case CommandAction.Update:
