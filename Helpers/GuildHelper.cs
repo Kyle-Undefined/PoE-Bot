@@ -245,8 +245,7 @@
 
         public static async Task WarnUserAsync(Context context, IGuildUser user, string reason, MuteType muteType = MuteType.Mod)
         {
-            if (context.Server.MaxWarningsToMute is 0 || user.Id == context.Guild.OwnerId ||
-                user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
+            if (context.Server.MaxWarningsToMute is 0 || user.Id == context.Guild.OwnerId || user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
                 user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
                 return;
 
@@ -271,8 +270,7 @@
             {
                 SocketGuild guild = (message.Author as SocketGuildUser).Guild;
                 SocketGuildUser user = message.Author as SocketGuildUser;
-                if (server.MaxWarningsToMute is 0 || user.Id == guild.OwnerId ||
-                    user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
+                if (server.MaxWarningsToMute is 0 || user.Id == guild.OwnerId || user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
                     user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
                     return;
 

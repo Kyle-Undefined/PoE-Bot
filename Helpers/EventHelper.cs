@@ -61,6 +61,11 @@
 
         private Task ModeratorAsync(SocketMessage message, GuildObject server)
         {
+            SocketGuild guild = (message.Author as SocketGuildUser).Guild;
+            SocketGuildUser user = message.Author as SocketGuildUser;
+            if (server.MaxWarningsToMute is 0 || user.Id == guild.OwnerId || user.GuildPermissions.Administrator || user.GuildPermissions.ManageGuild || user.GuildPermissions.ManageChannels ||
+                user.GuildPermissions.ManageRoles || user.GuildPermissions.BanMembers || user.GuildPermissions.KickMembers)
+                return Task.CompletedTask;
             if (message.Content.ProfanityMatch(server.ProfanityList) && server.AntiProfanity)
                 return GuildHelper.WarnUserAsync(message, server, DatabaseHandler, $"{message.Author.Mention}, Refrain from using profanity. You've been warned.");
 
