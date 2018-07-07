@@ -4,6 +4,7 @@
     using Addons.Preconditions;
     using Discord;
     using Discord.Commands;
+    using Discord.WebSocket;
     using Helpers;
     using Objects;
     using System;
@@ -96,6 +97,23 @@
 
                 default:
                     return ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete`, or `Update`.");
+            }
+        }
+
+        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a user"), Summary("Purge [amount] [@user]"), RequireChannels(new string[] { "trade-board", "price-checks" })]
+        public Task PurgeAsync(int amount = 20, IGuildUser user = null)
+        {
+            if (user is null)
+            {
+                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()))
+                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
+                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} Messages in #{Context.Channel.Name}");
+            }
+            else
+            {
+                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()).Where(x => x.Author.Id == user.Id))
+                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` of `{user}`'s messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
+                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} of {user}'s Messages #{Context.Channel.Name}");
             }
         }
 
