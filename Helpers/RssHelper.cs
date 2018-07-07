@@ -48,7 +48,7 @@
 
                     case Uri uri when feed.FeedUri.Host is "www.poelab.com":
                         sb.AppendLine("-----------------------------------------------------------");
-                        sb.AppendLine($"***{item.Title}***\n");
+                        sb.AppendLine($"***{item.Title}***");
                         sb.AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*");
                         sb.AppendLine(item.Link);
 
@@ -114,8 +114,6 @@
                     await channel.SendMessageAsync(sb.ToString());
 
                 postUrls.Add(item.Link);
-
-                await Task.Delay(900);
             }
 
             feed.RecentUris = postUrls;
