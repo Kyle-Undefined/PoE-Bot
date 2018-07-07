@@ -12,16 +12,14 @@
 
     public class EventHelper
     {
-        public EventHelper(DatabaseHandler databaseHandler, Random random)
+        public EventHelper(DatabaseHandler databaseHandler)
         {
             DatabaseHandler = databaseHandler;
-            Random = random;
             GlobalTimeout = TimeSpan.FromSeconds(30);
         }
 
         public TimeSpan GlobalTimeout { get; }
         private DatabaseHandler DatabaseHandler { get; }
-        private Random Random { get; }
 
         internal async Task CheckStateAsync(DiscordSocketClient client)
         {

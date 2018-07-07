@@ -505,7 +505,7 @@
                     switch (streamType)
                     {
                         case StreamType.Mixer:
-                            MixerAPI mixer = new MixerAPI();
+                            MixerAPI mixer = new MixerAPI(Context.HttpClient);
                             uint userId = await mixer.GetUserId(userName);
                             uint chanId = await mixer.GetChannelId(userName);
                             if (userId is 0 || chanId is 0)
@@ -580,7 +580,7 @@
                 switch (streamType)
                 {
                     case StreamType.Mixer:
-                        MixerAPI mixer = new MixerAPI();
+                        MixerAPI mixer = new MixerAPI(Context.HttpClient);
                         uint userId = await mixer.GetUserId(userName);
                         uint chanId = await mixer.GetChannelId(userName);
                         if (userId is 0 || chanId is 0)

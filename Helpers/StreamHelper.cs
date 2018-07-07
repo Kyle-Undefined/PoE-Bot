@@ -6,7 +6,6 @@
     using Handlers;
     using Newtonsoft.Json.Linq;
     using Objects;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -16,14 +15,16 @@
     public partial class MixerAPI
     {
         private const string MIXER_API_URL = "https://mixer.com/api/v1/";
+        private HttpClient httpClient;
 
-        public MixerAPI()
+        public MixerAPI(HttpClient client)
         {
+            httpClient = client;
         }
 
         public async Task<string> GetChannel(uint id)
         {
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + id.ToString() + "/details", HttpCompletionOption.ResponseHeadersRead))
                 if (response.IsSuccessStatusCode)
                     return await response.Content.ReadAsStringAsync();
@@ -46,7 +47,7 @@
         public async Task<uint> GetChannelId(string username)
         {
             uint id = 0;
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
                 if (response.IsSuccessStatusCode)
                 {
@@ -74,7 +75,7 @@
 
         public async Task<string> GetUser(uint id)
         {
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/" + id.ToString(), HttpCompletionOption.ResponseHeadersRead))
                 if (response.IsSuccessStatusCode)
                     return await response.Content.ReadAsStringAsync();
@@ -92,7 +93,7 @@
         public async Task<uint> GetUserId(string username)
         {
             uint id = 0;
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
                 if (response.IsSuccessStatusCode)
                 {
@@ -118,7 +119,7 @@
 
     public partial class StreamHelper
     {
-        public static async Task<IAsyncResult> BuildAndSend(StreamObject streamObject, SocketGuild guild, GuildObject server, ConfigObject config, DatabaseHandler dbHandler)
+        public static async Task BuildAndSend(StreamObject streamObject, SocketGuild guild, GuildObject server, ConfigObject config, DatabaseHandler databaseHandler, HttpClient httpClient)
         {
             bool streamWasLive = streamObject.IsLive;
 
@@ -126,9 +127,9 @@
             {
                 case StreamType.Mixer:
                     if (!server.MixerFeed)
-                        return Task.CompletedTask;
+                        return;
 
-                    MixerAPI mixer = new MixerAPI();
+                    MixerAPI mixer = new MixerAPI(httpClient);
                     string chanJson = await mixer.GetChannel(streamObject.MixerChannelId);
                     bool chanIsLive = mixer.IsChannelLive(chanJson);
                     if (!chanIsLive)
@@ -147,13 +148,13 @@
                         await channel.SendMessageAsync(embed: embed);
 
                         streamObject.IsLive = true;
-                        dbHandler.Save<GuildObject>(server, guild.Id);
+                        databaseHandler.Save<GuildObject>(server, guild.Id);
                     }
                     break;
 
                 case StreamType.Twitch:
                     if (!server.TwitchFeed)
-                        return Task.CompletedTask;
+                        return;
 
                     TwitchAPI twitchAPI = new TwitchAPI();
                     twitchAPI.Settings.ClientId = config.APIKeys["TC"];
@@ -183,7 +184,7 @@
                                 await channel.SendMessageAsync(embed: embed);
 
                                 streamObject.IsLive = true;
-                                dbHandler.Save<GuildObject>(server, guild.Id);
+                                databaseHandler.Save<GuildObject>(server, guild.Id);
                             }
                         }
                     }
@@ -191,9 +192,7 @@
             }
 
             if (streamWasLive && !streamObject.IsLive)
-                dbHandler.Save<GuildObject>(server, guild.Id);
-
-            return Task.CompletedTask;
+                databaseHandler.Save<GuildObject>(server, guild.Id);
         }
     }
 }

@@ -6,19 +6,21 @@
     using Objects;
     using System;
     using System.Linq;
+    using System.Net.Http;
 
     public class JobHandler : Registry
     {
-        public JobHandler(DatabaseHandler databaseHandler, DiscordSocketClient client)
+        public JobHandler(DatabaseHandler databaseHandler, DiscordSocketClient client, HttpClient httpClient)
         {
             DatabaseHandler = databaseHandler;
             Client = client;
-            JobManager.JobException += (Info)
-                => LogHandler.Write(Source.Exception, $"Exception ocurred in {Info.Name} job.\n{Info.Exception.Message}\n{Info.Exception.StackTrace}");
+            HttpClient = httpClient;
+            JobManager.JobException += (Info) => LogHandler.Write(Source.Exception, $"Exception ocurred in {Info.Name} job.\n{Info.Exception.Message}\n{Info.Exception.StackTrace}");
         }
 
         private DiscordSocketClient Client { get; }
         private DatabaseHandler DatabaseHandler { get; }
+        private HttpClient HttpClient { get; }
 
         public void Initialize()
         {
@@ -85,22 +87,22 @@
             {
                 foreach (GuildObject server in DatabaseHandler.Servers().Where(x => x.LeaderboardFeed && x.Leaderboards.Any()))
                     foreach (LeaderboardObject leaderboard in server.Leaderboards.Where(l => l.Enabled))
-                        MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(leaderboard, Client.GetGuild(Convert.ToUInt64(server.Id))));
+                        MethodHelper.RunSync(LeaderboardHelper.BuildAndSend(leaderboard, Client.GetGuild(Convert.ToUInt64(server.Id)), HttpClient));
             }).WithName("leaderboards").ToRunEvery(30).Minutes();
 
             Schedule(() =>
             {
-                ConfigObject Config = DatabaseHandler.Execute<ConfigObject>(Operation.Load, id: "Config");
+                ConfigObject config = DatabaseHandler.Execute<ConfigObject>(Operation.Load, id: "Config");
                 foreach (GuildObject server in DatabaseHandler.Servers().Where(s => (s.TwitchFeed || s.MixerFeed) && s.Streams.Any()))
                     foreach (StreamObject stream in server.Streams)
-                        MethodHelper.RunSync(StreamHelper.BuildAndSend(stream, Client.GetGuild(Convert.ToUInt64(server.Id)), server, Config, DatabaseHandler));
+                        MethodHelper.RunSync(StreamHelper.BuildAndSend(stream, Client.GetGuild(Convert.ToUInt64(server.Id)), server, config, DatabaseHandler, HttpClient));
             }).WithName("streams").ToRunEvery(5).Minutes();
 
             Schedule(() =>
             {
                 foreach (GuildObject server in DatabaseHandler.Servers().Where(x => x.RssFeed && x.RssFeeds.Any()))
                     foreach (RssObject feed in server.RssFeeds)
-                        MethodHelper.RunSync(RssHelper.BuildAndSend(feed, Client.GetGuild(Convert.ToUInt64(server.Id)), server, DatabaseHandler));
+                        MethodHelper.RunSync(RssHelper.BuildAndSend(feed, Client.GetGuild(Convert.ToUInt64(server.Id)), server, DatabaseHandler, HttpClient));
             }).WithName("rss").ToRunEvery(5).Minutes();
 
             JobManager.Initialize(this);

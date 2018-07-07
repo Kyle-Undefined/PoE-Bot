@@ -16,13 +16,12 @@
     {
         private bool guildCheck = true;
 
-        public EventHandler(DatabaseHandler databaseHandler, DiscordSocketClient client, ConfigObject config, IServiceProvider service, CommandService commandService, Random random, EventHelper eventHelper)
+        public EventHandler(DatabaseHandler databaseHandler, DiscordSocketClient client, ConfigObject config, IServiceProvider service, CommandService commandService, EventHelper eventHelper)
         {
             DatabaseHandler = databaseHandler;
             Client = client;
             Config = config;
             Provider = service;
-            Random = random;
             EventHelper = eventHelper;
             CommandService = commandService;
             CancellationToken = new CancellationTokenSource();
@@ -35,7 +34,6 @@
         private DatabaseHandler DatabaseHandler { get; }
         private EventHelper EventHelper { get; }
         private IServiceProvider Provider { get; }
-        private Random Random { get; }
 
         public Task InitializeAsync()
             => CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), Provider);

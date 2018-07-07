@@ -17,12 +17,12 @@
 
     public class RssHelper
     {
-        public static async Task<IAsyncResult> BuildAndSend(RssObject feed, SocketGuild guild, GuildObject server, DatabaseHandler databaseHandler)
+        public static async Task BuildAndSend(RssObject feed, SocketGuild guild, GuildObject server, DatabaseHandler databaseHandler, HttpClient httpClient)
         {
             var postUrls = feed.RecentUris.Any() ? feed.RecentUris : new List<string>();
-            RssDataObject checkRss = await RssAsync(feed.FeedUri).ConfigureAwait(false);
+            RssDataObject checkRss = await RssAsync(feed.FeedUri, httpClient).ConfigureAwait(false);
             if (checkRss is null)
-                return Task.CompletedTask;
+                return;
 
             foreach (RssItem item in checkRss.Data.Items.Take(10).Reverse())
             {
@@ -54,9 +54,9 @@
 
                         string labDescription = "Lab notes not added.";
 
-                        if(item.Comments > 0 && item.Title.Contains("Uber"))
+                        if (item.Comments > 0 && item.Title.Contains("Uber"))
                         {
-                            RssDataObject commentRSS = await RssAsync(new Uri(item.CommentRss)).ConfigureAwait(false);
+                            RssDataObject commentRSS = await RssAsync(new Uri(item.CommentRss), httpClient).ConfigureAwait(false);
                             RssItem comment = commentRSS.Data.Items.FirstOrDefault(c => c.Title is "By: SuitSizeSmall");
                             if (!(comment is null))
                                 labDescription = comment.Description;
@@ -72,7 +72,7 @@
                             .WithUrl(item.Link)
                             .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
 
-                        string newsImage = GetAnnouncementImage(item.Link);
+                        string newsImage = GetAnnouncementImage(item.Link, httpClient);
                         if (!string.IsNullOrWhiteSpace(newsImage))
                             embed.WithImageUrl(newsImage);
 
@@ -118,17 +118,16 @@
 
             feed.RecentUris = postUrls;
             databaseHandler.Save<GuildObject>(server, guild.Id);
-            return Task.CompletedTask;
         }
 
-        private static string GetAnnouncementImage(string url)
+        private static string GetAnnouncementImage(string url, HttpClient httpClient)
         {
             string imageURL = string.Empty;
             HtmlDocument doc = new HtmlDocument();
 
             try
             {
-                using (HttpClient client = new HttpClient())
+                using (HttpClient client = httpClient)
                 using (HttpResponseMessage response = client.GetAsync(url).Result)
                 using (HttpContent content = response.Content)
                 {
@@ -168,10 +167,10 @@
             return val;
         }
 
-        private static async Task<RssDataObject> RssAsync(Uri rssFeed)
+        private static async Task<RssDataObject> RssAsync(Uri rssFeed, HttpClient httpClient)
         {
             HttpResponseMessage response;
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
                 response = await client.GetAsync(rssFeed).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return null;
@@ -227,6 +226,12 @@
 
         public partial class RssItem
         {
+            [XmlElement(ElementName = "commentRss", Namespace = "http://wellformedweb.org/CommentAPI/")]
+            public string CommentRss { get; set; }
+
+            [XmlElement(ElementName = "comments", Namespace = "http://purl.org/rss/1.0/modules/slash/")]
+            public int Comments { get; set; }
+
             [XmlElement("description")]
             public string Description { get; set; }
 
@@ -238,12 +243,6 @@
 
             [XmlElement("title")]
             public string Title { get; set; }
-
-            [XmlElement(ElementName = "commentRss", Namespace = "http://wellformedweb.org/CommentAPI/")]
-            public string CommentRss { get; set; }
-
-            [XmlElement(ElementName = "comments", Namespace = "http://purl.org/rss/1.0/modules/slash/")]
-            public int Comments { get; set; }
         }
     }
 }

@@ -79,7 +79,7 @@
                     StringBuilder sb = new StringBuilder();
                     if (Context.Server.RssFeeds.Any())
                         foreach (RssObject feed in Context.Server.RssFeeds)
-                            sb.AppendLine($"Feed: {feed.FeedUri} | Channel: {(await Context.Guild.GetTextChannelAsync(feed.ChannelId)).Mention}{(string.IsNullOrEmpty(feed.Tag) ? "" : " | Tag: " + feed.Tag)}{(feed.RoleIds.Any() ? " | Role(s):" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => feed.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}");
+                            sb.AppendLine($"Feed: {feed.FeedUri} | Channel: {(await Context.Guild.GetTextChannelAsync(feed.ChannelId)).Mention}{(string.IsNullOrEmpty(feed.Tag) ? "" : " | Tag: " + feed.Tag)}{(feed.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => feed.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}`");
 
                     await ReplyAsync(!Context.Server.RssFeeds.Any()
                         ? $"{Extras.Cross}This server isn't subscribed to any feeds."

@@ -237,9 +237,11 @@
     public partial class PasteBinFetcher
     {
         private const string RawPasteBin = "https://pastebin.com/raw/";
+        private HttpClient httpClient;
 
-        public PasteBinFetcher()
+        public PasteBinFetcher(HttpClient client)
         {
+            httpClient = client;
         }
 
         public async Task<string> GetRawCode(string url)
@@ -247,7 +249,7 @@
             if (!url.StartsWith("https://pastebin.com/"))
                 throw new ArgumentException("That's not a valid pastebin url", nameof(url));
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             {
                 string code = url.Split('/').Last();
                 return await client.GetStringAsync($"{RawPasteBin}{code}");
@@ -272,14 +274,14 @@
         public static EmbedFieldBuilder GenerateSkillsField(Character character)
             => new EmbedFieldBuilder().WithName("Main Skill").WithValue(GenerateSkillsString(character)).WithIsInline(false);
 
-        public static string GenerateTreeURL(string tree)
+        public static string GenerateTreeURL(string tree, HttpClient httpClient)
         {
             string poeURL = "http://poeurl.com/api/?shrink=";
             tree = tree.Trim();
             string param = "{\"url\":\"" + tree + "\"}";
             string val = "http://poeurl.com/";
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = httpClient)
             {
                 using (HttpResponseMessage response = client.GetAsync(poeURL + System.Web.HttpUtility.UrlEncode(param)).GetAwaiter().GetResult())
                 {

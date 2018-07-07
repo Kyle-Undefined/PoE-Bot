@@ -155,7 +155,7 @@
         public async Task PoBAsync([Remainder] string pasteBinURL)
         {
             Parser parser = new Parser();
-            PasteBinFetcher pastebinFetcher = new PasteBinFetcher();
+            PasteBinFetcher pastebinFetcher = new PasteBinFetcher(Context.HttpClient);
 
             try
             {
@@ -178,7 +178,7 @@
                 if (character.Config.Contains("Input"))
                     embed.AddField(PathOfBuildingHelper.GenerateConfigField(character));
 
-                embed.AddField("**Info**:", $"[Tree]({PathOfBuildingHelper.GenerateTreeURL(character.Tree)}) - powered by [Path of Building](https://github.com/Openarl/PathOfBuilding) - Help from [Faust](https://github.com/FWidm/discord-pob) and [thezensei](https://github.com/andreandersen/LiftDiscord/).");
+                embed.AddField("**Info**:", $"[Tree]({PathOfBuildingHelper.GenerateTreeURL(character.Tree, Context.HttpClient)}) - powered by [Path of Building](https://github.com/Openarl/PathOfBuilding) - Help from [Faust](https://github.com/FWidm/discord-pob) and [thezensei](https://github.com/andreandersen/LiftDiscord/).");
 
                 await ReplyAsync(embed: embed.Build());
             }
@@ -341,6 +341,6 @@
 
         [Command("Wiki"), Remarks("Searches an item on the Path of Exile Wiki."), Summary("Wiki <item>")]
         public async Task WikiAsync([Remainder] string item)
-            => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(item));
+            => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(item, Context.HttpClient));
     }
 }

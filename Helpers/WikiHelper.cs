@@ -14,14 +14,14 @@
 
     public class WikiHelper
     {
-        public static async Task<Embed> WikiGetItemAsync(string item)
+        public static async Task<Embed> WikiGetItemAsync(string item, HttpClient client)
         {
             string searchURL = "http://pathofexile.gamepedia.com/api.php?action=opensearch&search=";
             string parseURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&page=";
             string sectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=sections&format=json&page=";
             string parseSectionsURL = "http://pathofexile.gamepedia.com/api.php?action=parse&prop=text&format=json&section={0}&page={1}";
 
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = client)
             {
                 string jsonSearch = await httpClient.GetStringAsync(searchURL + WebUtility.UrlEncode(item));
 
