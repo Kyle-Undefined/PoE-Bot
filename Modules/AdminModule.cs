@@ -79,7 +79,7 @@
                     StringBuilder sb = new StringBuilder();
                     if (Context.Server.RssFeeds.Any())
                         foreach (RssObject feed in Context.Server.RssFeeds)
-                            sb.AppendLine($"Feed: {feed.FeedUri} | Channel: {(await Context.Guild.GetTextChannelAsync(feed.ChannelId)).Mention}{(string.IsNullOrEmpty(feed.Tag) ? "" : " | Tag: " + feed.Tag)}{(feed.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => feed.RoleIds.Contains(r.Id)).Select(r => r.Name)) : "")}`");
+                            sb.AppendLine($"Feed: {feed.FeedUri} | Channel: {(await Context.Guild.GetTextChannelAsync(feed.ChannelId).ConfigureAwait(false)).Mention}{(string.IsNullOrEmpty(feed.Tag) ? "" : " | Tag: " + feed.Tag)}{(feed.RoleIds.Any() ? " | Role(s): `" + String.Join(",", Context.Guild.Roles.OrderByDescending(r => r.Position).Where(r => feed.RoleIds.Contains(r.Id)).Select(r => r.Name)) + "`" : "")}");
 
                     await ReplyAsync(!Context.Server.RssFeeds.Any()
                         ? $"{Extras.Cross}This server isn't subscribed to any feeds."
@@ -267,15 +267,15 @@
                 await ReplyAsync($"{Extras.Cross} {Context.Guild} has already been configured.");
                 return;
             }
-            var channels = await Context.Guild.GetTextChannelsAsync();
+            var channels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
             IUserMessage setupMessage = await ReplyAsync($"Initializing *{Context.Guild}'s* config .... ");
 
-            ITextChannel modLogChannel = channels.FirstOrDefault(x => x.Name is "cases") ?? await Context.Guild.CreateTextChannelAsync("cases");
-            ITextChannel logChannel = channels.FirstOrDefault(x => x.Name is "logs") ?? await Context.Guild.CreateTextChannelAsync("logs");
-            ITextChannel reportChannel = channels.FirstOrDefault(x => x.Name is "reports") ?? await Context.Guild.CreateTextChannelAsync("reports");
-            ITextChannel rulesChannel = channels.FirstOrDefault(x => x.Name is "rules") ?? await Context.Guild.CreateTextChannelAsync("rules");
-            ITextChannel streamChannel = channels.FirstOrDefault(x => x.Name is "streams") ?? await Context.Guild.CreateTextChannelAsync("streams");
-            ITextChannel roleSetChannel = channels.FirstOrDefault(x => x.Name is "role-setup") ?? await Context.Guild.CreateTextChannelAsync("role-setup");
+            ITextChannel modLogChannel = channels.FirstOrDefault(x => x.Name is "cases") ?? await Context.Guild.CreateTextChannelAsync("cases").ConfigureAwait(false);
+            ITextChannel logChannel = channels.FirstOrDefault(x => x.Name is "logs") ?? await Context.Guild.CreateTextChannelAsync("logs").ConfigureAwait(false);
+            ITextChannel reportChannel = channels.FirstOrDefault(x => x.Name is "reports") ?? await Context.Guild.CreateTextChannelAsync("reports").ConfigureAwait(false);
+            ITextChannel rulesChannel = channels.FirstOrDefault(x => x.Name is "rules") ?? await Context.Guild.CreateTextChannelAsync("rules").ConfigureAwait(false);
+            ITextChannel streamChannel = channels.FirstOrDefault(x => x.Name is "streams") ?? await Context.Guild.CreateTextChannelAsync("streams").ConfigureAwait(false);
+            ITextChannel roleSetChannel = channels.FirstOrDefault(x => x.Name is "role-setup") ?? await Context.Guild.CreateTextChannelAsync("role-setup").ConfigureAwait(false);
 
             Context.Server.ModLog = modLogChannel.Id;
             Context.Server.AllLog = logChannel.Id;
@@ -287,22 +287,22 @@
             Context.Server.AntiProfanity = true;
 
             IRole mainRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Exile") ??
-                await Context.Guild.CreateRoleAsync("Exile", permissions: new GuildPermissions(sendMessages: true, readMessageHistory: true, viewChannel: true, mentionEveryone: false));
+                await Context.Guild.CreateRoleAsync("Exile", permissions: new GuildPermissions(sendMessages: true, readMessageHistory: true, viewChannel: true, mentionEveryone: false)).ConfigureAwait(false);
             Context.Server.MainRole = mainRole.Id;
 
             IRole muteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Muted") ??
-                await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
+                await Context.Guild.CreateRoleAsync("Muted", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false)).ConfigureAwait(false);
             Context.Server.MuteRole = muteRole.Id;
 
             IRole tradeMuteRole = Context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute") ??
-                await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false));
+                await Context.Guild.CreateRoleAsync("Trade Mute", permissions: new GuildPermissions(sendMessages: false, sendTTSMessages: false, addReactions: false, mentionEveryone: false)).ConfigureAwait(false);
             Context.Server.TradeMuteRole = tradeMuteRole.Id;
 
             Context.Server.MaxWarningsToMute = 3;
 
             Context.Server.IsConfigured = true;
             SaveDocument(DocumentType.Server);
-            await setupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}");
+            await setupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}").ConfigureAwait(false);
         }
 
         [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <toggleType>")]

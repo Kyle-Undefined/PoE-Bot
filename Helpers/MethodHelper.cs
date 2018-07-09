@@ -55,10 +55,10 @@
         }
 
         public static T RunSync<T>(Task<T> asyncTask)
-            => Task.Run(async () => await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10)))).GetAwaiter().GetResult();
+            => Task.Run(async () => await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10))).ConfigureAwait(false)).GetAwaiter().GetResult();
 
         public static void RunSync(Task asyncTask)
-            => Task.Run(async () => { try { await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10))); } catch { } });
+            => Task.Run(async () => { try { await asyncTask.WithCancellation(Cancellation(TimeSpan.FromSeconds(10))).ConfigureAwait(false); } catch { } });
 
         public static IList<T> Sort<T>(this IList<T> list)
         {

@@ -66,7 +66,7 @@
         {
             GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, id: guild.Id);
             reason = string.IsNullOrWhiteSpace(reason) ? $"*Exile, please type `{server.Prefix}Reason {server.UserCases.Count + 1} <reason>`*" : reason;
-            ITextChannel modChannel = await guild.GetTextChannelAsync(server.ModLog);
+            ITextChannel modChannel = await guild.GetTextChannelAsync(server.ModLog).ConfigureAwait(false);
             IUserMessage message = null;
             if (!(modChannel is null))
             {
@@ -84,7 +84,7 @@
                     .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()
                     .Build();
-                message = await modChannel.SendMessageAsync(embed: embed);
+                message = await modChannel.SendMessageAsync(embed: embed).ConfigureAwait(false);
             }
 
             server.UserCases.Add(new CaseObject
@@ -107,31 +107,31 @@
             => await context.Message.DeleteAsync().ContinueWith(async _ =>
             {
                 if ((context.Server.MuteRole is 0 && muteType == MuteType.Mod) || (context.Server.TradeMuteRole is 0 && muteType == MuteType.Trade))
-                    return context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*");
+                    return await context.Channel.SendMessageAsync($"{Extras.Cross} I'm baffled by this at the moment. *No Mute Role Configured*").ConfigureAwait(false);
                 if (user.RoleIds.Contains(context.Server.MuteRole) || user.RoleIds.Contains(context.Server.TradeMuteRole))
-                    return context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` is already muted.*");
+                    return await context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` is already muted.*").ConfigureAwait(false);
                 if (context.Guild.HierarchyCheck(user))
-                    return context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*");
+                    return await context.Channel.SendMessageAsync($"{Extras.Cross} Oops, clumsy me! *`{user}` is higher than I.*").ConfigureAwait(false);
 
                 switch (muteType)
                 {
                     case MuteType.Mod:
-                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.MuteRole));
+                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.MuteRole)).ConfigureAwait(false);
                         context.Server.Muted.TryAdd(user.Id, DateTime.Now.Add((TimeSpan)time));
                         context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
                         break;
 
                     case MuteType.Trade:
-                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.TradeMuteRole));
+                        await user.AddRoleAsync(context.Guild.GetRole(context.Server.TradeMuteRole)).ConfigureAwait(false);
                         context.Server.Muted.TryAdd(user.Id, DateTime.Now.Add((TimeSpan)time));
                         context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
                         break;
                 }
 
                 if (logMute)
-                    await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Mute, $"{message} ({StringHelper.FormatTimeSpan((TimeSpan)time)})");
+                    await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Mute, $"{message} ({StringHelper.FormatTimeSpan((TimeSpan)time)})").ConfigureAwait(false);
 
-                await context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{user}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)time)}* {Extras.OkHand}");
+                await context.Channel.SendMessageAsync($"Rest now, tormented soul. *`{user}` has been muted for {StringHelper.FormatTimeSpan((TimeSpan)time)}* {Extras.OkHand}").ConfigureAwait(false);
 
                 Embed embed = Extras.Embed(Extras.Info)
                     .WithAuthor(context.User)
@@ -143,18 +143,18 @@
                     .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)time))
                     .Build();
 
-                return (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
-            });
+                return await (await user.GetOrCreateDMChannelAsync().ConfigureAwait(false)).SendMessageAsync(embed: embed).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
         public static async Task MuteUserAsync(DatabaseHandler databaseHandler, SocketMessage message, GuildObject server, IGuildUser user, CaseType caseType, TimeSpan time, string reason)
         {
             SocketGuild guild = (message.Author as SocketGuildUser).Guild;
 
-            await user.AddRoleAsync(guild.GetRole(server.MuteRole));
+            await user.AddRoleAsync(guild.GetRole(server.MuteRole)).ConfigureAwait(false);
             server.Muted.TryAdd(user.Id, DateTime.Now.Add(time));
             databaseHandler.Save<GuildObject>(server, guild.Id);
 
-            await LogAsync(databaseHandler, guild, user, guild.CurrentUser, caseType, $"{reason} ({StringHelper.FormatTimeSpan(time)})");
+            await LogAsync(databaseHandler, guild, user, guild.CurrentUser, caseType, $"{reason} ({StringHelper.FormatTimeSpan(time)})").ConfigureAwait(false);
 
             Embed embed = Extras.Embed(Extras.Info)
                 .WithAuthor(guild.CurrentUser)
@@ -166,7 +166,7 @@
                 .AddField("Duration", StringHelper.FormatTimeSpan(time))
                 .Build();
 
-            await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+            await (await user.GetOrCreateDMChannelAsync().ConfigureAwait(false)).SendMessageAsync(embed: embed).ConfigureAwait(false);
         }
 
         public static void SaveProfile(DatabaseHandler databaseHandler, ulong guildId, ulong userId, ProfileObject profile)
@@ -184,9 +184,9 @@
             if (!user.Roles.Contains(muteRole) && !user.Roles.Contains(tradeMuteRole))
                 return Task.CompletedTask;
             if (user.Roles.Contains(muteRole))
-                await user.RemoveRoleAsync(muteRole);
+                await user.RemoveRoleAsync(muteRole).ConfigureAwait(false);
             else if (user.Roles.Contains(tradeMuteRole))
-                await user.RemoveRoleAsync(tradeMuteRole);
+                await user.RemoveRoleAsync(tradeMuteRole).ConfigureAwait(false);
 
             return Task.CompletedTask;
         }
@@ -197,20 +197,20 @@
             IRole tradeMuteRole = context.Guild.GetRole(context.Server.MuteRole) ?? context.Guild.Roles.FirstOrDefault(x => x.Name is "Trade Mute");
             if (!user.RoleIds.Contains(muteRole.Id) && !user.RoleIds.Contains(tradeMuteRole.Id))
             {
-                await context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` doesn't have any mute role.*");
+                await context.Channel.SendMessageAsync($"{Extras.Cross} I'm no fool, but this one's got me beat. *`{user}` doesn't have any mute role.*").ConfigureAwait(false);
                 return;
             }
 
             if (user.RoleIds.Contains(muteRole.Id))
-                await user.RemoveRoleAsync(muteRole);
+                await user.RemoveRoleAsync(muteRole).ConfigureAwait(false);
             else if (user.RoleIds.Contains(tradeMuteRole.Id))
-                await user.RemoveRoleAsync(tradeMuteRole);
+                await user.RemoveRoleAsync(tradeMuteRole).ConfigureAwait(false);
 
             if (context.Server.Muted.ContainsKey(user.Id))
                 context.Server.Muted.TryRemove(user.Id, out _);
 
             context.DatabaseHandler.Save<GuildObject>(context.Server, context.Guild.Id);
-            await context.Channel.SendMessageAsync($"It seems there's still glory in the old Empire yet! *`{user}` has been unmuted.* {Extras.OkHand}");
+            await context.Channel.SendMessageAsync($"It seems there's still glory in the old Empire yet! *`{user}` has been unmuted.* {Extras.OkHand}").ConfigureAwait(false);
         }
 
         public static string ValidateChannel(this IGuild guild, ulong id)
@@ -254,13 +254,13 @@
 
             if (profile.Warnings >= context.Server.MaxWarningsToMute)
             {
-                await MuteUserAsync(context, muteType, user, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {reason}", false);
-                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModMute, $"Muted for 1 day due to reaching max number of warnings. {reason}");
+                await MuteUserAsync(context, muteType, user, TimeSpan.FromDays(1), $"Muted for 1 day due to reaching Max number of warnings. {reason}", false).ConfigureAwait(false);
+                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.AutoModMute, $"Muted for 1 day due to reaching max number of warnings. {reason}").ConfigureAwait(false);
             }
             else
             {
-                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Warning, reason);
-                await context.Channel.SendMessageAsync($"Purity will prevail! *`{user}` has been warned.* {Extras.Warning}");
+                await LogAsync(context.DatabaseHandler, context.Guild, user, context.User, CaseType.Warning, reason).ConfigureAwait(false);
+                await context.Channel.SendMessageAsync($"Purity will prevail! *`{user}` has been warned.* {Extras.Warning}").ConfigureAwait(false);
             }
             SaveProfile(context.DatabaseHandler, context.Guild.Id, user.Id, profile);
         }
@@ -278,12 +278,12 @@
                 profile.Warnings++;
 
                 if (profile.Warnings >= server.MaxWarningsToMute)
-                    await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModMute, TimeSpan.FromDays(1), $"Muted by AutoMod. {warning} For saying: `{message.Content}`");
+                    await MuteUserAsync(databaseHandler, message, server, user, CaseType.AutoModMute, TimeSpan.FromDays(1), $"Muted by AutoMod. {warning} For saying: `{message.Content}`").ConfigureAwait(false);
                 else
-                    await LogAsync(databaseHandler, guild, user, guild.CurrentUser, CaseType.Warning, $"{warning} For saying: `{message.Content}`");
+                    await LogAsync(databaseHandler, guild, user, guild.CurrentUser, CaseType.Warning, $"{warning} For saying: `{message.Content}`").ConfigureAwait(false);
 
                 SaveProfile(databaseHandler, guild.Id, user.Id, profile);
-                await message.Channel.SendMessageAsync(warning);
-            });
+                await message.Channel.SendMessageAsync(warning).ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 }

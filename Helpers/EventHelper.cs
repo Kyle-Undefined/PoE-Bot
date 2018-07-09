@@ -28,7 +28,7 @@
 
             Task timeout = Task.Delay(GlobalTimeout);
             Task connect = client.StartAsync();
-            Task localTask = await Task.WhenAny(timeout, connect);
+            Task localTask = await Task.WhenAny(timeout, connect).ConfigureAwait(false);
             if (localTask == timeout || connect.IsFaulted)
                 return;
             if (connect.IsCompletedSuccessfully)
@@ -41,8 +41,8 @@
             => Task.Run(async ()
                 =>
             {
-                await AFKHandler(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
-                await ModeratorAsync(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10)));
+                await AFKHandler(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10))).ConfigureAwait(false);
+                await ModeratorAsync(message, context.Server).WithCancellation(MethodHelper.Cancellation(TimeSpan.FromSeconds(10))).ConfigureAwait(false);
             });
 
         private Task AFKHandler(SocketMessage message, GuildObject server)

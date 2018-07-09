@@ -33,7 +33,7 @@
                         .WithImageUrl($"https://i.kuro.mu/emoji/256x256/{string.Join("-", IntHelper.GetUnicodeCodePoints(smallEmote).Select(x => x.ToString("X2")))}.png".ToLower())
                         .WithColor(new Color(Context.Random.Next(255), Context.Random.Next(255), Context.Random.Next(255))).Build());
                 return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
-            });
+            }).ConfigureAwait(false);
 
         [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <text>")]
         public Task ExpandAsync([Remainder] string text)
@@ -199,10 +199,10 @@
         public async Task YeahAsync()
         {
             IUserMessage message = await ReplyAsync("( •_•)");
-            await Task.Delay(1000);
-            await message.ModifyAsync(x => x.Content = "( •_•)>⌐■-■");
-            await Task.Delay(1200);
-            await message.ModifyAsync(x => x.Content = "(⌐■_■)\n**YYYYYYEEEEEEEAAAAAHHHHHHH**");
+            await Task.Delay(1000).ConfigureAwait(false);
+            await message.ModifyAsync(x => x.Content = "( •_•)>⌐■-■").ConfigureAwait(false);
+            await Task.Delay(1200).ConfigureAwait(false);
+            await message.ModifyAsync(x => x.Content = "(⌐■_■)\n**YYYYYYEEEEEEEAAAAAHHHHHHH**").ConfigureAwait(false);
         }
     }
 }

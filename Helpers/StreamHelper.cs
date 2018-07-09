@@ -24,10 +24,9 @@
 
         public async Task<string> GetChannel(uint id)
         {
-            using (HttpClient client = httpClient)
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + id.ToString() + "/details", HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync(MIXER_API_URL + "channels/" + id.ToString() + "/details", HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadAsStringAsync();
+                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             return null;
         }
@@ -47,11 +46,10 @@
         public async Task<uint> GetChannelId(string username)
         {
             uint id = 0;
-            using (HttpClient client = httpClient)
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync(MIXER_API_URL + "channels/" + username, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 if (response.IsSuccessStatusCode)
                 {
-                    JObject jo = JObject.Parse(await response.Content.ReadAsStringAsync());
+                    JObject jo = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                     id = (uint)jo["id"];
                 }
 
@@ -75,10 +73,9 @@
 
         public async Task<string> GetUser(uint id)
         {
-            using (HttpClient client = httpClient)
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/" + id.ToString(), HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync(MIXER_API_URL + "users/" + id.ToString(), HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadAsStringAsync();
+                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             return null;
         }
@@ -93,11 +90,10 @@
         public async Task<uint> GetUserId(string username)
         {
             uint id = 0;
-            using (HttpClient client = httpClient)
-            using (HttpResponseMessage response = await client.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync(MIXER_API_URL + "users/search?query=" + username, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                 if (response.IsSuccessStatusCode)
                 {
-                    JArray ja = JArray.Parse(await response.Content.ReadAsStringAsync());
+                    JArray ja = JArray.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                     JObject jo = JObject.Parse(ja[0].ToString());
                     id = (uint)jo["id"];
                 }
@@ -130,7 +126,7 @@
                         return;
 
                     MixerAPI mixer = new MixerAPI(httpClient);
-                    string chanJson = await mixer.GetChannel(streamObject.MixerChannelId);
+                    string chanJson = await mixer.GetChannel(streamObject.MixerChannelId).ConfigureAwait(false);
                     bool chanIsLive = mixer.IsChannelLive(chanJson);
                     if (!chanIsLive)
                         streamObject.IsLive = false;
@@ -145,7 +141,7 @@
                             .WithImageUrl(mixer.GetChannelThumbnail(chanJson)).Build();
 
                         SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
-                        await channel.SendMessageAsync(embed: embed);
+                        await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
                         streamObject.IsLive = true;
                         databaseHandler.Save<GuildObject>(server, guild.Id);
@@ -160,7 +156,7 @@
                     twitchAPI.Settings.ClientId = config.APIKeys["TC"];
                     twitchAPI.Settings.AccessToken = config.APIKeys["TA"];
 
-                    var streamData = await twitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { streamObject.TwitchUserId }), null);
+                    var streamData = await twitchAPI.Streams.helix.GetStreamsAsync(null, null, 1, null, null, "live", new List<string>(new string[] { streamObject.TwitchUserId }), null).ConfigureAwait(false);
                     if (!streamData.Streams.Any())
                         streamObject.IsLive = false;
 
@@ -170,8 +166,8 @@
                         {
                             if (!streamObject.IsLive)
                             {
-                                var twitchUser = await twitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId }));
-                                var twitchGame = await twitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId }));
+                                var twitchUser = await twitchAPI.Users.helix.GetUsersAsync(new List<string>(new string[] { stream.UserId })).ConfigureAwait(false);
+                                var twitchGame = await twitchAPI.Games.helix.GetGamesAsync(new List<string>(new string[] { stream.GameId })).ConfigureAwait(false);
                                 Embed embed = Extras.Embed(Extras.Twitch)
                                     .WithTitle(stream.Title)
                                     .WithDescription($"\n**{twitchUser.Users[0].DisplayName}** is playing **{twitchGame.Games[0].Name}** for {stream.ViewerCount} viewers!\n\n**http://www.twitch.tv/{twitchUser.Users[0].DisplayName}**")
@@ -181,7 +177,7 @@
                                     .Build();
 
                                 SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
-                                await channel.SendMessageAsync(embed: embed);
+                                await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
                                 streamObject.IsLive = true;
                                 databaseHandler.Save<GuildObject>(server, guild.Id);

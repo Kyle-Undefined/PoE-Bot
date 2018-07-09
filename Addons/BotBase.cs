@@ -47,9 +47,9 @@
 
         public async Task<IUserMessage> ReplyAsync(string message = null, Embed embed = null, DocumentType save = DocumentType.None)
         {
-            await Context.Channel.TriggerTypingAsync();
+            await Context.Channel.TriggerTypingAsync().ConfigureAwait(false);
             SaveDocument(save);
-            return await base.ReplyAsync(message, embed: embed);
+            return await base.ReplyAsync(message, embed: embed).ConfigureAwait(false);
         }
 
         public Task<SocketMessage> WaitAsync(string message, bool user = true, bool channel = true, TimeSpan? timeout = null)

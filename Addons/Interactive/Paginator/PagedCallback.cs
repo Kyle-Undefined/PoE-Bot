@@ -49,19 +49,19 @@
             {
                 if (paged.Pages.Count() > 1)
                 {
-                    await message.AddReactionAsync(Options.Back);
-                    await message.AddReactionAsync(Options.Next);
+                    await message.AddReactionAsync(Options.Back).ConfigureAwait(false);
+                    await message.AddReactionAsync(Options.Next).ConfigureAwait(false);
                 }
-                await message.AddReactionAsync(Options.Stop);
+                await message.AddReactionAsync(Options.Stop).ConfigureAwait(false);
             });
 
-            _ = Task.Delay(Timeout.Value).ContinueWith(_ =>
+            _ = Task.Delay(Timeout.Value).ContinueWith(async _ =>
             {
                 Interactive.RemoveReactionCallback(message);
                 if (delete)
-                    Message.DeleteAsync();
+                    await Message.DeleteAsync().ConfigureAwait(false);
                 else
-                    Message.RemoveAllReactionsAsync();
+                    await Message.RemoveAllReactionsAsync().ConfigureAwait(false);
             });
         }
 

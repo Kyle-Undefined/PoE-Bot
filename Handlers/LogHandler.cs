@@ -23,7 +23,7 @@
         public static async Task CriticalFail(Source source, string text)
         {
             Write(source, text);
-            await Task.Delay(5000);
+            await Task.Delay(5000).ConfigureAwait(false);
             Environment.Exit(1);
         }
 

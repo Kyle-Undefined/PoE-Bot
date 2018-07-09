@@ -36,12 +36,12 @@
                     .AddField("Reason", reason)
                     .Build();
 
-                await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+                await (await user.GetOrCreateDMChannelAsync().ConfigureAwait(false)).SendMessageAsync(embed: embed).ConfigureAwait(false);
             }
             catch { }
 
             await Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
-            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Ban, reason);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Ban, reason).ConfigureAwait(false);
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{user}` was banned.* {Extras.Hammer}");
         }
 
@@ -56,8 +56,8 @@
                 if (Context.Guild.HierarchyCheck(user))
                     continue;
 
-                await Context.Guild.AddBanAsync(user, 7, "Mass Ban.");
-                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Bans, "Multiple bans.");
+                await Context.Guild.AddBanAsync(user, 7, "Mass Ban.").ConfigureAwait(false);
+                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Bans, "Multiple bans.").ConfigureAwait(false);
             }
             await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were banned.* {Extras.Hammer}");
         }
@@ -65,8 +65,8 @@
         [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <userId> [reason]"), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(ulong UserId, [Remainder] string reason = null)
         {
-            await Context.Guild.AddBanAsync(UserId, 7, reason ?? "user ID Ban.");
-            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, (await Context.Guild.GetUserAsync(UserId) as IUser), Context.User, CaseType.Ban, reason);
+            await Context.Guild.AddBanAsync(UserId, 7, reason ?? "user ID Ban.").ConfigureAwait(false);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, (await Context.Guild.GetUserAsync(UserId) as IUser), Context.User, CaseType.Ban, reason).ConfigureAwait(false);
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{UserId}` was banned.* {Extras.Hammer}");
         }
 
@@ -109,16 +109,16 @@
             }
 
             caseObject.Reason = reason;
-            IGuildUser user = await Context.Guild.GetUserAsync(caseObject.UserId);
-            IGuildUser mod = await Context.Guild.GetUserAsync(caseObject.ModeratorId);
+            IGuildUser user = await Context.Guild.GetUserAsync(caseObject.UserId).ConfigureAwait(false);
+            IGuildUser mod = await Context.Guild.GetUserAsync(caseObject.ModeratorId).ConfigureAwait(false);
             if (!(user is null))
                 caseObject.Username = $"{user}";
 
             if (!(mod is null))
                 caseObject.Moderator = $"{mod}";
 
-            ITextChannel channel = await Context.Guild.GetTextChannelAsync(Context.Server.ModLog);
-            if (!(channel is null) && await channel.GetMessageAsync(caseObject.MessageId) is IUserMessage message)
+            ITextChannel channel = await Context.Guild.GetTextChannelAsync(Context.Server.ModLog).ConfigureAwait(false);
+            if (!(channel is null) && await channel.GetMessageAsync(caseObject.MessageId).ConfigureAwait(false) is IUserMessage message)
             {
                 var userCases = Context.Server.UserCases.Where(x => x.UserId == user.Id);
                 Embed embed = Extras.Embed(Extras.Case)
@@ -134,7 +134,7 @@
                     .AddField("Moderator", $"{mod}")
                     .WithCurrentTimestamp()
                     .Build();
-                await message.ModifyAsync(x => x.Embed = embed);
+                await message.ModifyAsync(x => x.Embed = embed).ConfigureAwait(false);
             }
             await ReplyAsync($"Case #{caseObject.Number} has been updated {Extras.OkHand}", save: DocumentType.Server);
         }
@@ -189,12 +189,12 @@
                     .AddField("Reason", reason)
                     .Build();
 
-                await (await user.GetOrCreateDMChannelAsync()).SendMessageAsync(embed: embed);
+                await (await user.GetOrCreateDMChannelAsync().ConfigureAwait(false)).SendMessageAsync(embed: embed).ConfigureAwait(false);
             }
             catch { }
 
-            await user.KickAsync(reason);
-            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kick, reason);
+            await user.KickAsync(reason).ConfigureAwait(false);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kick, reason).ConfigureAwait(false);
             await ReplyAsync($"Death to sin! *`{user}` was kicked.* {Extras.Hammer}");
         }
 
@@ -210,7 +210,7 @@
                     continue;
 
                 await user.KickAsync("Multiple kicks.").ConfigureAwait(false);
-                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kicks, "Multiple kicks.");
+                await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kicks, "Multiple kicks.").ConfigureAwait(false);
             }
             await ReplyAsync($"Death to sin! *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
         }
@@ -249,7 +249,7 @@
                     StringBuilder sb = new StringBuilder();
                     if (Context.Server.Leaderboards.Any())
                         foreach (LeaderboardObject leaderboard in Context.Server.Leaderboards)
-                            sb.AppendLine($"Variant: {leaderboard.Variant} | Channel: {(await Context.Guild.GetTextChannelAsync(leaderboard.ChannelId)).Mention} | Enabled: {leaderboard.Enabled.ToString()}");
+                            sb.AppendLine($"Variant: {leaderboard.Variant} | Channel: {(await Context.Guild.GetTextChannelAsync(leaderboard.ChannelId).ConfigureAwait(false)).Mention} | Enabled: {leaderboard.Enabled.ToString()}");
 
                     await ReplyAsync(!Context.Server.Leaderboards.Any()
                         ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any leaderboards.*"
@@ -343,7 +343,7 @@
         {
             RuleObject rules = new RuleObject();
 
-            var description = MethodHelper.CalculateResponse(await WaitAsync("What should the rules description be?", timeout: TimeSpan.FromMinutes(5)));
+            var description = MethodHelper.CalculateResponse(await WaitAsync("What should the rules description be?", timeout: TimeSpan.FromMinutes(5)).ConfigureAwait(false));
             if (!description.Item1)
             {
                 await ReplyAsync(description.Item2);
@@ -352,7 +352,7 @@
 
             rules.Description = description.Item2;
 
-            var totalFields = MethodHelper.CalculateResponse(await WaitAsync("How many sections should there be?", timeout: TimeSpan.FromMinutes(1)));
+            var totalFields = MethodHelper.CalculateResponse(await WaitAsync("How many sections should there be?", timeout: TimeSpan.FromMinutes(1)).ConfigureAwait(false));
             if (!totalFields.Item1)
             {
                 await ReplyAsync(totalFields.Item2);
@@ -363,14 +363,14 @@
 
             for (int i = 0; i < rules.TotalFields; i++)
             {
-                var fieldTitle = MethodHelper.CalculateResponse(await WaitAsync("What should the section be called?", timeout: TimeSpan.FromMinutes(1)));
+                var fieldTitle = MethodHelper.CalculateResponse(await WaitAsync("What should the section be called?", timeout: TimeSpan.FromMinutes(1)).ConfigureAwait(false));
                 if (!fieldTitle.Item1)
                 {
                     await ReplyAsync(fieldTitle.Item2);
                     break;
                 }
 
-                var fieldContent = MethodHelper.CalculateResponse(await WaitAsync("What should the section contain?  *You can use Discord Markup*", timeout: TimeSpan.FromMinutes(10)));
+                var fieldContent = MethodHelper.CalculateResponse(await WaitAsync("What should the section contain?  *You can use Discord Markup*", timeout: TimeSpan.FromMinutes(10)).ConfigureAwait(false));
                 if (!fieldContent.Item1)
                 {
                     await ReplyAsync(fieldContent.Item2);
@@ -390,7 +390,7 @@
             foreach (var field in rules.Fields)
                 embed.AddField(field.Key, field.Value, false);
 
-            await ReplyAsync($"*rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: embed.Build());
+            await ReplyAsync($"*Rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: embed.Build());
         }
 
         [Command("Rules Post"), Summary("Rules Post"), Remarks("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use Rules Configure followed by Rules Update.")]
@@ -408,7 +408,7 @@
                 return;
             }
 
-            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
+            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel).ConfigureAwait(false);
             IMessageChannel ruleChan = chan as IMessageChannel;
             EmbedBuilder embed = Extras.Embed(Extras.Info)
                 .WithTitle($"{Context.Guild.Name} rules")
@@ -417,8 +417,8 @@
             foreach (var field in Context.Server.RulesConfig.Fields)
                 embed.AddField(field.Key, field.Value, false);
 
-            await ruleChan.SendMessageAsync(embed: embed.Build());
-            await ReplyAsync($"*rules have been posted.* {Extras.OkHand}");
+            await ruleChan.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
+            await ReplyAsync($"*Rules have been posted.* {Extras.OkHand}");
         }
 
         [Command("Rules Update"), Summary("Rules Update"), Remarks("Updates the rules you've configured and posted to the rules channel.")]
@@ -436,9 +436,9 @@
                 return;
             }
 
-            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel);
+            IGuildChannel chan = await Context.Guild.GetChannelAsync(Context.Server.RulesChannel).ConfigureAwait(false);
             IMessageChannel ruleChan = chan as IMessageChannel;
-            var msgs = await ruleChan.GetMessagesAsync().FlattenAsync();
+            var msgs = await ruleChan.GetMessagesAsync().FlattenAsync().ConfigureAwait(false);
             msgs = msgs.Where(x => x.Author.IsBot);
 
             if (msgs.Count() < 1)
@@ -455,9 +455,9 @@
                 embed.AddField(field.Key, field.Value, false);
 
             foreach (IUserMessage msg in msgs)
-                await msg.ModifyAsync(x => x.Embed = embed.Build());
+                await msg.ModifyAsync(x => x.Embed = embed.Build()).ConfigureAwait(false);
 
-            await ReplyAsync($"*rules have been edited.* {Extras.OkHand}");
+            await ReplyAsync($"*Rules have been edited.* {Extras.OkHand}");
         }
 
         [Command("Situation"), Summary("Situation <action> <@user1> <@user2> ..."), Remarks("Adds or Delete the Situation Room role to the specified users.")]
@@ -487,8 +487,8 @@
                 return ReplyAsync($"{Extras.Cross} Oops, clumsy me! `{user}` is higher than I.");
 
             Context.Guild.AddBanAsync(user, 7, reason).ConfigureAwait(false);
-            Context.Guild.RemoveBanAsync(user);
-            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Softban, reason);
+            Context.Guild.RemoveBanAsync(user).ConfigureAwait(false);
+            _ = GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Softban, reason).ConfigureAwait(false);
             return ReplyAsync($"Go to bed, little nightmare! *`{user}` was soft banned.* {Extras.Hammer}");
         }
 
@@ -506,8 +506,8 @@
                     {
                         case StreamType.Mixer:
                             MixerAPI mixer = new MixerAPI(Context.HttpClient);
-                            uint userId = await mixer.GetUserId(userName);
-                            uint chanId = await mixer.GetChannelId(userName);
+                            uint userId = await mixer.GetUserId(userName).ConfigureAwait(false);
+                            uint chanId = await mixer.GetChannelId(userName).ConfigureAwait(false);
                             if (userId is 0 || chanId is 0)
                                 await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No user/channel found.*");
 
@@ -527,7 +527,7 @@
                             twitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
                             twitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
 
-                            var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName }));
+                            var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName })).ConfigureAwait(false);
                             if (!users.Users.Any())
                                 await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *Twitch user not found.*");
 
@@ -558,7 +558,7 @@
                 case CommandAction.List:
                     await ReplyAsync(!Context.Server.Streams.Any()
                         ? $"{Extras.Cross} Return to Kitava! *Wraeclast doesn't have any streamers.*"
-                        : $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(async s => $"`{s.StreamType}`: {s.Name} {(Context.Guild.DefaultStreamChannel().Id == (await Context.Guild.GetTextChannelAsync(s.ChannelId)).Id ? "" : (await Context.Guild.GetTextChannelAsync(s.ChannelId)).Mention)}").ToList())}");
+                        : $"**Streamers**:\n{String.Join("\n", Context.Server.Streams.OrderBy(s => s.StreamType).Select(async s => $"`{s.StreamType}`: {s.Name} {(Context.Guild.DefaultStreamChannel().Id == (await Context.Guild.GetTextChannelAsync(s.ChannelId).ConfigureAwait(false)).Id ? "" : (await Context.Guild.GetTextChannelAsync(s.ChannelId).ConfigureAwait(false)).Mention)}").ToList())}");
                     break;
 
                 default:
@@ -581,8 +581,8 @@
                 {
                     case StreamType.Mixer:
                         MixerAPI mixer = new MixerAPI(Context.HttpClient);
-                        uint userId = await mixer.GetUserId(userName);
-                        uint chanId = await mixer.GetChannelId(userName);
+                        uint userId = await mixer.GetUserId(userName).ConfigureAwait(false);
+                        uint chanId = await mixer.GetChannelId(userName).ConfigureAwait(false);
                         if (userId is 0 || chanId is 0)
                             await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *No user/channel found.*");
 
@@ -602,7 +602,7 @@
                         twitchAPI.Settings.ClientId = Context.Config.APIKeys["TC"];
                         twitchAPI.Settings.AccessToken = Context.Config.APIKeys["TA"];
 
-                        var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName }));
+                        var users = await twitchAPI.Users.helix.GetUsersAsync(null, new List<string>(new string[] { userName })).ConfigureAwait(false);
                         if (!users.Users.Any())
                             await ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *Twitch user not found.*");
 
@@ -618,7 +618,7 @@
                         break;
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
             }
 
             await ReplyAsync($"I'm so good at this, I scare myself. *`{String.Join(", ", userNames)}` has been added to the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server);
@@ -627,13 +627,13 @@
         [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
         public async Task UnbanAsync(ulong id)
         {
-            bool check = (await Context.Guild.GetBansAsync()).Any(x => x.User.Id == id);
+            bool check = (await Context.Guild.GetBansAsync().ConfigureAwait(false)).Any(x => x.User.Id == id);
             if (!check)
             {
                 await ReplyAsync($"{Extras.Cross} I have nothing more to give. *No user with `{id}` found.*");
                 return;
             }
-            await Context.Guild.RemoveBanAsync(id).ContinueWith(x => ReplyAsync($"It seems there's still glory in the old Empire yet! *Unbanned user with `{id}`* {Extras.OkHand}", save: DocumentType.Server));
+            await Context.Guild.RemoveBanAsync(id).ContinueWith(x => ReplyAsync($"It seems there's still glory in the old Empire yet! *Unbanned user with `{id}`* {Extras.OkHand}", save: DocumentType.Server)).ConfigureAwait(false);
         }
 
         [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@user>"), BotPermission(GuildPermission.ManageRoles)]

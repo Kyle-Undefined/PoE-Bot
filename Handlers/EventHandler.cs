@@ -43,7 +43,7 @@
                 => CancellationToken.Cancel()).ContinueWith(_ => CancellationToken = new CancellationTokenSource());
 
         internal Task Disconnected(Exception error)
-            => Task.Delay(EventHelper.GlobalTimeout, CancellationToken.Token).ContinueWith(async _ => await EventHelper.CheckStateAsync(Client));
+            => Task.Delay(EventHelper.GlobalTimeout, CancellationToken.Token).ContinueWith(async _ => await EventHelper.CheckStateAsync(Client).ConfigureAwait(false));
 
         internal Task JoinedGuild(SocketGuild guild)
             => Task.Run(()
@@ -65,7 +65,7 @@
             if (server.RoleSetChannel == channel.Id)
                 return;
 
-            IMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync();
+            IMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync().ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(message.Content) || message.Author.IsBot)
                 return;
 
@@ -93,7 +93,7 @@
                 .Build();
             SocketGuild guild = (message.Author as SocketGuildUser).Guild;
             SocketTextChannel mod = guild.GetTextChannel(server.AllLog);
-            await mod.SendMessageAsync(embed: embed);
+            await mod.SendMessageAsync(embed: embed).ConfigureAwait(false);
         }
 
         internal async Task MessageReceivedAsync(SocketMessage socketMessage)
@@ -112,14 +112,14 @@
             if (message.Content.Contains("[["))
             {
                 string item = message.Content.Split('[', ']')[2];
-                IResult result = await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best);
+                IResult result = await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best).ConfigureAwait(false);
             }
             else
             {
                 if (!(message.HasStringPrefix(Config.Prefix, ref argPos) || message.HasCharPrefix(context.Server.Prefix, ref argPos)))
                     return;
 
-                IResult result = await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best);
+                IResult result = await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best).ConfigureAwait(false);
                 switch (result.Error)
                 {
                     case CommandError.UnmetPrecondition:
@@ -127,21 +127,21 @@
                         if (!string.IsNullOrWhiteSpace(result.ErrorReason) && permissions.SendMessages && permissions.ViewChannel)
                         {
                             var msg = await message.Channel.SendMessageAsync(result.ErrorReason).ConfigureAwait(false);
-                            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ => msg.DeleteAsync()).ConfigureAwait(false);
+                            _ = Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(async _ => await msg.DeleteAsync().ConfigureAwait(false)).ConfigureAwait(false);
                             break;
                         }
                         else
                             break;
 
                     case CommandError.Unsuccessful:
-                        await message.Channel.SendMessageAsync($"{Extras.Cross} When one defiles the effigy, one defiles the emperor. Use the {context.Server.Prefix}Feedback command to report this {Extras.Bug}");
+                        await message.Channel.SendMessageAsync($"{Extras.Cross} When one defiles the effigy, one defiles the emperor. Use the {context.Server.Prefix}Feedback command to report this {Extras.Bug}").ConfigureAwait(false);
                         break;
                 }
             }
         }
 
         internal async Task ReactionAddedAsync(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
-            => await ReactionHandlerAsync(cache, reaction, true);
+            => await ReactionHandlerAsync(cache, reaction, true).ConfigureAwait(false);
 
         internal async Task ReactionHandlerAsync(Cacheable<IUserMessage, ulong> cache, SocketReaction reaction, bool reactionAdded)
         {
@@ -154,21 +154,21 @@
                     if (!(guild.GetTextChannel(server.BotChangeChannel) is IMessageChannel BotChangeChannel))
                         return;
 
-                    IUserMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync();
+                    IUserMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync().ConfigureAwait(false);
                     if (reactionAdded)
-                        await BotChangeChannel.SendMessageAsync(message.Content);
+                        await BotChangeChannel.SendMessageAsync(message.Content).ConfigureAwait(false);
                     else
                     {
-                        var botChanMessages = await BotChangeChannel.GetMessagesAsync().FlattenAsync();
-                        IUserMessage botMessage = await BotChangeChannel.GetMessageAsync(botChanMessages.FirstOrDefault(m => m.Content == message.Content).Id, CacheMode.AllowDownload) as IUserMessage;
-                        await botMessage.DeleteAsync();
+                        var botChanMessages = await BotChangeChannel.GetMessagesAsync().FlattenAsync().ConfigureAwait(false);
+                        IUserMessage botMessage = await BotChangeChannel.GetMessageAsync(botChanMessages.FirstOrDefault(m => m.Content == message.Content).Id, CacheMode.AllowDownload).ConfigureAwait(false) as IUserMessage;
+                        await botMessage.DeleteAsync().ConfigureAwait(false);
                     }
                 }
             }
         }
 
         internal async Task ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
-            => await ReactionHandlerAsync(cache, reaction, false);
+            => await ReactionHandlerAsync(cache, reaction, false).ConfigureAwait(false);
 
         internal Task Ready()
         {

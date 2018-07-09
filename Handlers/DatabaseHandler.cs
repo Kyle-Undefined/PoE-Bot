@@ -58,7 +58,7 @@
         {
             LogHandler.PrintApplicationInformation();
             if (Process.GetProcesses().FirstOrDefault(x => x.ProcessName is "Raven.Server") is null)
-                await LogHandler.CriticalFail(Source.Exception, "Please make sure RavenDB is running.");
+                await LogHandler.CriticalFail(Source.Exception, "Please make sure RavenDB is running.").ConfigureAwait(false);
 
             if (File.Exists("DBConfig.json"))
                 DatabaseObject = JsonConvert.DeserializeObject<DatabaseObject>(File.ReadAllText("DBConfig.json"));
@@ -70,7 +70,7 @@
             Store = new Lazy<IDocumentStore>(() => new DocumentStore { Database = DatabaseObject.Name, Urls = new[] { DatabaseObject.URL } }.Initialize(), true).Value;
 
             if (Store is null)
-                await LogHandler.CriticalFail(Source.Exception, "Failed to build document store.");
+                await LogHandler.CriticalFail(Source.Exception, "Failed to build document store.").ConfigureAwait(false);
 
             if (!Store.Maintenance.Server.Send(new GetDatabaseNamesOperation(0, 5)).Any(x => x is DatabaseObject.Name))
                 Store.Maintenance.Server.Send(new CreateDatabaseOperation(new DatabaseRecord(DatabaseObject.Name)));

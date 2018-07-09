@@ -68,12 +68,12 @@
 
             try
             {
-                object eval = await CSharpScript.EvaluateAsync(code.Replace("```", string.Empty), options, globals, typeof(EvalObject));
-                await message.ModifyAsync(x => x.Content = $"{eval ?? "No Result Produced."}");
+                object eval = await CSharpScript.EvaluateAsync(code.Replace("```", string.Empty), options, globals, typeof(EvalObject)).ConfigureAwait(false);
+                await message.ModifyAsync(x => x.Content = $"{eval ?? "No Result Produced."}").ConfigureAwait(false);
             }
             catch (CompilationErrorException ex)
             {
-                await message.ModifyAsync(x => x.Content = ex.Message ?? ex.StackTrace);
+                await message.ModifyAsync(x => x.Content = ex.Message ?? ex.StackTrace).ConfigureAwait(false);
             }
         }
 
@@ -113,7 +113,7 @@
             GuildObject[] servers = Context.DatabaseHandler.Servers();
             Embed embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription((await client.GetApplicationInfoAsync()).Description)
+                .WithDescription((await client.GetApplicationInfoAsync().ConfigureAwait(false)).Description)
                 .AddField("Channels",
                     $"Categories: {client.Guilds.Sum(x => x.CategoryChannels.Count)}\n" +
                     $"Text: {client.Guilds.Sum(x => x.TextChannels.Count - x.CategoryChannels.Count)}\n" +
@@ -132,7 +132,7 @@
                 .AddField("Leaderboard", $"Variants: {servers.Sum(x => x.Leaderboards.Count)}", true)
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
-                .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
+                .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
             await ReplyAsync(embed: embed);
         }
@@ -145,13 +145,13 @@
             {
                 case Setting.Avatar:
                     string imagePath = string.IsNullOrWhiteSpace(value)
-                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync()).IconUrl)
+                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).IconUrl)
                         : value;
-                    await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imagePath));
+                    await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imagePath)).ConfigureAwait(false);
                     break;
 
                 case Setting.Username:
-                    await Context.Client.CurrentUser.ModifyAsync(x => x.Username = value);
+                    await Context.Client.CurrentUser.ModifyAsync(x => x.Username = value).ConfigureAwait(false);
                     break;
 
                 case Setting.Activity:
@@ -160,7 +160,7 @@
                     break;
 
                 case Setting.Nickname:
-                    await (await Context.Guild.GetCurrentUserAsync()).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(value) ? Context.Client.CurrentUser.Username : value);
+                    await (await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false)).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(value) ? Context.Client.CurrentUser.Username : value).ConfigureAwait(false);
                     break;
 
                 case Setting.FeedbackChannel:

@@ -38,7 +38,7 @@
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
                 return ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *There is no tag with this name.*");
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName);
+            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
             if ((Context.Guild as SocketGuild).Users.Any(x => x.Id == tag.Owner))
                 return ReplyAsync($"{Extras.Cross} I cannot carry this. *Tag owner is still in this guild.*");
 
@@ -52,7 +52,7 @@
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
                 return ReplyAsync($"{Extras.Cross} It was possible to be happy here once. *There is no tag with this name.*");
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName);
+            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
             if (Context.User.Id != tag.Owner)
                 return ReplyAsync($"{Extras.Cross} This item whispers of destiny. *You aren't the owner of `{tagName}`*");
 
@@ -66,7 +66,7 @@
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
                 return SuggestTagsAsync(tagName.ToLower());
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName);
+            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
             string user = Context.Guild.ValidateUser(tag.Owner);
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithAuthor("Tag Information", Context.Client.CurrentUser.GetAvatarUrl())
@@ -109,7 +109,7 @@
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
                 return ReplyAsync($"{Extras.Cross} Return to the dirt! *There is no tag with this name.*");
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName);
+            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
             if (Context.User.Id != tag.Owner)
                 return ReplyAsync($"{Extras.Cross} I have a hunch I'll be needing this. *You aren't the owner of `{tagName}`*");
 

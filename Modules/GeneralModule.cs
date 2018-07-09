@@ -24,15 +24,15 @@
         public async Task AboutAsync()
         {
             DiscordSocketClient client = Context.Client as DiscordSocketClient;
-            var textChannels = await Context.Guild.GetTextChannelsAsync();
-            var categories = await Context.Guild.GetCategoriesAsync();
-            var voiceChannels = await Context.Guild.GetVoiceChannelsAsync();
-            var users = await Context.Guild.GetUsersAsync();
+            var textChannels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
+            var categories = await Context.Guild.GetCategoriesAsync().ConfigureAwait(false);
+            var voiceChannels = await Context.Guild.GetVoiceChannelsAsync().ConfigureAwait(false);
+            var users = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
             Embed embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
-                .WithDescription((await client.GetApplicationInfoAsync()).Description)
+                .WithDescription((await client.GetApplicationInfoAsync().ConfigureAwait(false)).Description)
                 .AddField("Wraeclast Info", $"Wraeclast was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
-                .AddField("Kitava", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId)).Mention, true)
+                .AddField("Kitava", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId).ConfigureAwait(false)).Mention, true)
                 .AddField("Map", Context.Guild.VoiceRegionId, true)
                 .AddField("Mod", Context.Guild.VerificationLevel.ToString(), true)
                 .AddField($"Chat [{(textChannels.Count - categories.Count) + voiceChannels.Count}]",
@@ -57,7 +57,7 @@
                 .AddField("Lieutenant Info", "Info about myself:")
                 .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
-                .AddField("Izaro", $"[@{(await Context.Client.GetApplicationInfoAsync()).Owner}](https://discord.me/poe_xbox)", true)
+                .AddField("Izaro", $"[@{(await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
             await ReplyAsync(embed: embed);
         }
@@ -96,14 +96,14 @@
         [Command("Feedback", RunMode = RunMode.Async), Remarks("Give feedback on my performance or suggest new features!"), Summary("Feedback")]
         public async Task FeedbackAsync()
         {
-            var message = MethodHelper.CalculateResponse(await WaitAsync("Wisdom is the offspring of Suffering and Time. *Please provide your feedback in a couple sentences.*", timeout: TimeSpan.FromMinutes(1)));
+            var message = MethodHelper.CalculateResponse(await WaitAsync("Wisdom is the offspring of Suffering and Time. *Please provide your feedback in a couple sentences.*", timeout: TimeSpan.FromMinutes(1)).ConfigureAwait(false));
             if (!message.Item1)
             {
                 await ReplyAsync(message.Item2);
                 return;
             }
             IMessageChannel channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.FeedbackChannel) as IMessageChannel;
-            await channel.SendMessageAsync(message.Item2);
+            await channel.SendMessageAsync(message.Item2).ConfigureAwait(false);
             await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
         }
 
@@ -135,8 +135,8 @@
 
         [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
         public async Task InvitesAsync()
-            => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync()).Select(i =>
-                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites");
+            => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync().ConfigureAwait(false)).Select(i =>
+                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
 
         [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
         public Task LabAsync()
@@ -159,7 +159,7 @@
 
             try
             {
-                string base64 = await pastebinFetcher.GetRawCode(pasteBinURL);
+                string base64 = await pastebinFetcher.GetRawCode(pasteBinURL).ConfigureAwait(false);
                 Character character = parser.ParseCode(base64);
                 EmbedBuilder embed = Extras.Embed(Extras.Info)
                     .AddField(PathOfBuildingHelper.GenerateDefenseField(character))
@@ -195,7 +195,6 @@
                 return ReplyAsync($"{Extras.Cross} What in God's name is that smell? *`{name}` is not in the `{league}` list.*");
 
             PriceObject price = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(name.ToLower()) && p.League == league);
-            IUser user = Context.Guild.GetUserAsync(price.UserId).GetAwaiter().GetResult() as IUser;
             Embed embed = Extras.Embed(Extras.Info)
                 .AddField($"{price.Name.Replace("_", " ")} in {league} league", $"```{price.Alias}```")
                 .AddField("Ratio", $"```{price.Quantity}:{price.Price}c```")
@@ -280,7 +279,7 @@
         public async Task ReportAsync(IUser user, [Remainder] string reason)
             => await Context.Message.DeleteAsync().ContinueWith(async _ =>
             {
-                ITextChannel rep = await Context.Guild.GetTextChannelAsync(Context.Server.RepLog);
+                ITextChannel rep = await Context.Guild.GetTextChannelAsync(Context.Server.RepLog).ConfigureAwait(false);
                 Embed embed = Extras.Embed(Extras.Report)
                     .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl())
                     .WithThumbnailUrl(user.GetAvatarUrl())
@@ -288,8 +287,8 @@
                     .WithDescription($"**Reason:**\n{reason}")
                     .Build();
 
-                await rep.SendMessageAsync(embed: embed);
-            });
+                await rep.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
         [Command("Show"), Remarks("Shows the League sections you are interested in."), Summary("Show <name>"), RequireChannel("role-setup")]
         public Task ShowAsync(IRole role)

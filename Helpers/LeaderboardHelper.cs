@@ -86,19 +86,18 @@
         {
             List<LeaderboardData> racers = new List<LeaderboardData>();
 
-            using (HttpClient client = httpClient)
-            using (HttpResponseMessage response = await client.GetAsync($"https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{leaderboard.Variant}_league_export.csv", HttpCompletionOption.ResponseHeadersRead))
+            using (HttpResponseMessage response = await httpClient.GetAsync($"https://www.pathofexile.com/public/ladder/Path_of_Exile_Xbox_{leaderboard.Variant}_league_export.csv", HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
             {
                 if (response.IsSuccessStatusCode)
-                    using (Stream stream = await response.Content.ReadAsStreamAsync())
+                    using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     using (TextReader reader = new StreamReader(stream))
                     using (CsvReader csv = new CsvReader(reader))
                     {
                         csv.Configuration.RegisterClassMap<LeaderboardDataMap>();
-                        await csv.ReadAsync();
+                        await csv.ReadAsync().ConfigureAwait(false);
                         csv.ReadHeader();
 
-                        while (await csv.ReadAsync())
+                        while (await csv.ReadAsync().ConfigureAwait(false))
                             racers.Add(csv.GetRecord<LeaderboardData>());
                     }
             }
@@ -470,22 +469,22 @@
                 }
 
                 SocketTextChannel channel = guild.GetTextChannel(leaderboard.ChannelId);
-                var messages = channel.GetMessagesAsync().FlattenAsync().GetAwaiter().GetResult();
+                var messages = await channel.GetMessagesAsync().FlattenAsync().ConfigureAwait(false);
                 foreach (IMessage msg in messages)
-                    await msg.DeleteAsync();
+                    await msg.DeleteAsync().ConfigureAwait(false);
 
-                await channel.SendMessageAsync(embed: embed.Build());
+                await channel.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
 
                 if (embedClasses.Fields.Any())
-                    await channel.SendMessageAsync(embed: embedClasses.Build());
+                    await channel.SendMessageAsync(embed: embedClasses.Build()).ConfigureAwait(false);
                 if (embedAscendancy.Fields.Any())
-                    await channel.SendMessageAsync(embed: embedAscendancy.Build());
+                    await channel.SendMessageAsync(embed: embedAscendancy.Build()).ConfigureAwait(false);
                 if (embedAscendancyCont.Fields.Any())
-                    await channel.SendMessageAsync(embed: embedAscendancyCont.Build());
+                    await channel.SendMessageAsync(embed: embedAscendancyCont.Build()).ConfigureAwait(false);
                 if (discordians.Fields.Any())
-                    await channel.SendMessageAsync(embed: discordians.Build());
+                    await channel.SendMessageAsync(embed: discordians.Build()).ConfigureAwait(false);
 
-                await Task.Delay(30000);
+                await Task.Delay(30000).ConfigureAwait(false);
             }
         }
     }

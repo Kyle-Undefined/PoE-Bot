@@ -72,7 +72,7 @@
                             .WithUrl(item.Link)
                             .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
 
-                        string newsImage = GetAnnouncementImage(item.Link, httpClient);
+                        string newsImage = await GetAnnouncementImage(item.Link, httpClient).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(newsImage))
                             embed.WithImageUrl(newsImage);
 
@@ -109,9 +109,9 @@
                 }
 
                 if (!string.IsNullOrEmpty(embed.Title))
-                    await channel.SendMessageAsync((roleToMention?.Mention), embed: embed.Build());
+                    await channel.SendMessageAsync((roleToMention?.Mention), embed: embed.Build()).ConfigureAwait(false);
                 else if (!string.IsNullOrEmpty(sb.ToString()))
-                    await channel.SendMessageAsync(sb.ToString());
+                    await channel.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
 
                 postUrls.Add(item.Link);
             }
@@ -120,18 +120,17 @@
             databaseHandler.Save<GuildObject>(server, guild.Id);
         }
 
-        private static string GetAnnouncementImage(string url, HttpClient httpClient)
+        private static async Task<string> GetAnnouncementImage(string url, HttpClient httpClient)
         {
             string imageURL = string.Empty;
             HtmlDocument doc = new HtmlDocument();
 
             try
             {
-                using (HttpClient client = httpClient)
-                using (HttpResponseMessage response = client.GetAsync(url).Result)
+                using (HttpResponseMessage response = await httpClient.GetAsync(url).ConfigureAwait(false))
                 using (HttpContent content = response.Content)
                 {
-                    string result = content.ReadAsStringAsync().Result;
+                    string result = await content.ReadAsStringAsync().ConfigureAwait(false);
                     doc.LoadHtml(result);
                 }
 
@@ -169,9 +168,7 @@
 
         private static async Task<RssDataObject> RssAsync(Uri rssFeed, HttpClient httpClient)
         {
-            HttpResponseMessage response;
-            using (HttpClient client = httpClient)
-                response = await client.GetAsync(rssFeed).ConfigureAwait(false);
+            HttpResponseMessage response = await httpClient.GetAsync(rssFeed).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return null;
 

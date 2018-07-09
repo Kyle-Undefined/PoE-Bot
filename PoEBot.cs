@@ -42,11 +42,11 @@
                 .AddSingleton(x => x.GetRequiredService<DatabaseHandler>().Execute<ConfigObject>(Operation.Load, id: nameof(Config)));
 
             ServiceProvider provider = services.BuildServiceProvider();
-            await provider.GetRequiredService<DatabaseHandler>().InitializeAsync();
-            await provider.GetRequiredService<MainHandler>().InitializeAsync();
-            await provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync();
+            await provider.GetRequiredService<DatabaseHandler>().InitializeAsync().ConfigureAwait(false);
+            await provider.GetRequiredService<MainHandler>().InitializeAsync().ConfigureAwait(false);
+            await provider.GetRequiredService<Handlers.EventHandler>().InitializeAsync().ConfigureAwait(false);
             provider.GetRequiredService<JobHandler>().Initialize();
-            await Task.Delay(-1);
+            await Task.Delay(-1).ConfigureAwait(false);
         }
     }
 }

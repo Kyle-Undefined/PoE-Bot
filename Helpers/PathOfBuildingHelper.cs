@@ -12,6 +12,7 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using System.Web;
     using System.Xml.Linq;
 
     public partial class Config
@@ -249,11 +250,8 @@
             if (!url.StartsWith("https://pastebin.com/"))
                 throw new ArgumentException("That's not a valid pastebin url", nameof(url));
 
-            using (HttpClient client = httpClient)
-            {
-                string code = url.Split('/').Last();
-                return await client.GetStringAsync($"{RawPasteBin}{code}");
-            }
+            string code = url.Split('/').Last();
+            return await httpClient.GetStringAsync($"{RawPasteBin}{code}").ConfigureAwait(false);
         }
     }
 
@@ -274,23 +272,20 @@
         public static EmbedFieldBuilder GenerateSkillsField(Character character)
             => new EmbedFieldBuilder().WithName("Main Skill").WithValue(GenerateSkillsString(character)).WithIsInline(false);
 
-        public static string GenerateTreeURL(string tree, HttpClient httpClient)
+        public static async Task<string> GenerateTreeURL(string tree, HttpClient httpClient)
         {
             string poeURL = "http://poeurl.com/api/?shrink=";
             tree = tree.Trim();
             string param = "{\"url\":\"" + tree + "\"}";
             string val = "http://poeurl.com/";
 
-            using (HttpClient client = httpClient)
+            using (HttpResponseMessage response = await httpClient.GetAsync(poeURL + HttpUtility.UrlEncode(param)).ConfigureAwait(false))
             {
-                using (HttpResponseMessage response = client.GetAsync(poeURL + System.Web.HttpUtility.UrlEncode(param)).GetAwaiter().GetResult())
+                if (response.IsSuccessStatusCode)
                 {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string resp = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        JObject json = JObject.Parse(resp);
-                        val = val + json["url"].ToString();
-                    }
+                    string resp = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    JObject json = JObject.Parse(resp);
+                    val = val + json["url"].ToString();
                 }
             }
 
