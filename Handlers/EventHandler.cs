@@ -43,7 +43,7 @@
                 => CancellationToken.Cancel()).ContinueWith(_ => CancellationToken = new CancellationTokenSource());
 
         internal Task Disconnected(Exception error)
-            => Task.Delay(EventHelper.GlobalTimeout, CancellationToken.Token).ContinueWith(async _ => await EventHelper.CheckStateAsync(Client).ConfigureAwait(false));
+            => Task.Factory.StartNew(() => Task.Delay(EventHelper.GlobalTimeout, CancellationToken.Token).ContinueWith(async _ => await EventHelper.CheckStateAsync(Client).ConfigureAwait(false)));
 
         internal Task JoinedGuild(SocketGuild guild)
             => Task.Run(()
