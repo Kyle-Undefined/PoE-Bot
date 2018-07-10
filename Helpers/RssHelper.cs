@@ -40,7 +40,7 @@
                 {
                     case Uri uri when feed.FeedUri.Host is "www.gggtracker.com":
                         sb.AppendLine("-----------------------------------------------------------");
-                        sb.AppendLine($":newspaper: ***{item.Title}***\n");
+                        sb.AppendLine($":newspaper: ***{CleanTitle(item.Title)}***\n");
                         sb.AppendLine(item.Link);
                         sb.AppendLine($"```{description}```");
 
@@ -48,7 +48,7 @@
 
                     case Uri uri when feed.FeedUri.Host is "www.poelab.com":
                         sb.AppendLine("-----------------------------------------------------------");
-                        sb.AppendLine($"***{item.Title}***");
+                        sb.AppendLine($"***{CleanTitle(item.Title)}***");
                         sb.AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*");
                         sb.AppendLine(item.Link);
 
@@ -79,7 +79,7 @@
                         break;
 
                     default:
-                        sb.AppendLine($"***{item.Title}***\n");
+                        sb.AppendLine($"***{CleanTitle(item.Title)}***\n");
                         sb.AppendLine(item.Link);
                         sb.AppendLine($"```{description}```");
 
@@ -150,6 +150,9 @@
 
             return imageURL;
         }
+
+        private static string CleanTitle(string title)
+            => title.Replace("*", string.Empty);
 
         private static string RoughStrip(string source)
         {
