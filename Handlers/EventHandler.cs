@@ -93,7 +93,7 @@
                 .Build();
             SocketGuild guild = (message.Author as SocketGuildUser).Guild;
             SocketTextChannel mod = guild.GetTextChannel(server.AllLog);
-            await mod.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            await Task.Factory.StartNew(async () => await mod.SendMessageAsync(embed: embed).ConfigureAwait(false));
         }
 
         internal async Task MessageReceivedAsync(SocketMessage socketMessage)
