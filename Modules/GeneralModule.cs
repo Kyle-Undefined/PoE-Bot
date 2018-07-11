@@ -14,7 +14,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics;
 
     [Name("General Commands"), Ratelimit]
     public class GeneralModule : BotBase
@@ -138,7 +137,7 @@
         [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
         public async Task InvitesAsync()
             => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync().ConfigureAwait(false)).Select(i =>
-                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
+                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt?.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
 
         [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
         public Task LabAsync()
