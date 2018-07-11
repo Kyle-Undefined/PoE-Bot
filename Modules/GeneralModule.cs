@@ -12,7 +12,9 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     [Name("General Commands"), Ratelimit]
     public class GeneralModule : BotBase
@@ -145,11 +147,47 @@
                 .WithDescription("[Homepage](https://www.poelab.com/) - [Support](https://www.poelab.com/support/) - [Lab Info](https://www.poelab.com/all-enchantments/) - [Lab Guide](https://www.poelab.com/new-to-the-labyrinth/) - [Puzzle Solutions](https://www.poelab.com/puzzle-solutions/) - [Trial Tracker](https://www.poelab.com/trial-tracker/)")
                 .Build());
 
-        [Command("Ping"), Remarks("Replies back with a pong?"), Summary("Ping")]
+        [Command("Ping", RunMode = RunMode.Async), Remarks("Returns the current estimated round-trip latency"), Summary("Ping")]
         public async Task PingAsync()
-            => await ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithTitle("Wisdom is the offspring of Suffering and Time.")
-                .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build()).ConfigureAwait(false);
+        {
+            ulong target = 0;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            DiscordSocketClient client = Context.Client as DiscordSocketClient;
+
+            Task WaitTarget(SocketMessage message)
+            {
+                if (message.Id != target)
+                    return Task.CompletedTask;
+                cts.Cancel();
+                return Task.CompletedTask;
+            }
+
+            int latency = client.Latency;
+            Stopwatch watch = Stopwatch.StartNew();
+            IUserMessage m = await ReplyAsync($"**Heartbeat**: {latency}ms, **Init**: ---, **RTT**: ---").ConfigureAwait(false);
+            long init = watch.ElapsedMilliseconds;
+            target = m.Id;
+            watch.Restart();
+            client.MessageReceived += WaitTarget;
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), cts.Token).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException)
+            {
+                long rtt = watch.ElapsedMilliseconds;
+                watch.Stop();
+                await m.ModifyAsync(x => x.Content = $"**Heartbeat**: {latency}ms, **Init**: {init}ms, **RTT**: {rtt}ms").ConfigureAwait(false);
+                return;
+            }
+            finally
+            {
+                client.MessageReceived -= WaitTarget;
+            }
+            watch.Stop();
+            await m.ModifyAsync(x => x.Content = $"**Heartbeat**: {latency}ms, **Init**: {init}ms, **RTT**: Timedout").ConfigureAwait(false);
+        }
 
         [Command("PoB"), Remarks("Parses the PasteBin export from Path of Building and shows the information about the build."), Summary("PoB <pasteBinURL>")]
         public async Task PoBAsync([Remainder] string pasteBinURL)
