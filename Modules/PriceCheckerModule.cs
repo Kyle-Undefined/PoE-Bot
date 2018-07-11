@@ -50,7 +50,7 @@
                         .AddField("Price", price)
                         .AddField("Last Updated", DateTime.Now)
                         .WithAuthor(Context.User)
-                        .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                        .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
                         .Build();
 
                     return ReplyAsync(embed: embed, save: DocumentType.Server);
@@ -90,7 +90,7 @@
                         .AddField("Price", price)
                         .AddField("Last Updated", DateTime.Now)
                         .WithAuthor(Context.User)
-                        .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                        .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
                         .Build();
 
                     return ReplyAsync(embed: embedUpdate, save: DocumentType.Server);

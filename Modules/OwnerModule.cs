@@ -112,7 +112,7 @@
             DiscordSocketClient client = Context.Client as DiscordSocketClient;
             GuildObject[] servers = Context.DatabaseHandler.Servers();
             Embed embed = Extras.Embed(Extras.Info)
-                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .WithDescription((await client.GetApplicationInfoAsync().ConfigureAwait(false)).Description)
                 .AddField("Channels",
                     $"Categories: {client.Guilds.Sum(x => x.CategoryChannels.Count)}\n" +

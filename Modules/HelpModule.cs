@@ -23,7 +23,7 @@
 
             string name = command.Name.Contains("Async") ? command.Module.Group : command.Name;
             EmbedBuilder embed = Extras.Embed(Extras.Info)
-                .WithAuthor("Detailed Command Information", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor("Detailed Command Information", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .AddField("Name", name, true)
                 .AddField("Aliases", string.Join(", ", command.Aliases), true)
                 .AddField("Arguments", command.Parameters.Any()
@@ -31,7 +31,7 @@
                     : "No arguments.")
                 .AddField("Usage", $"{Context.Server.Prefix}{command.Summary}")
                 .AddField("Summary", command.Remarks)
-                .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl())
+                .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .WithFooter("<> = Required | [] = Optional | Need help? Tag @Server Nerd");
             var enums = command.Parameters.Where(x => x.Type.IsEnum);
             if (enums.Any())
@@ -44,7 +44,7 @@
         public Task CommandsAsync()
         {
             EmbedBuilder embed = Extras.Embed(Extras.Info)
-                .WithAuthor("List of all commands", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor("List of all commands", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .WithFooter($"For More Information On A Command's Usage: {Context.Config.Prefix}Command CommandName");
 
             foreach (ModuleInfo mi in CommandService.Modules.OrderBy(x => x.Name))

@@ -34,7 +34,7 @@
             => PagedReplyAsync(new PagedMessage
             {
                 Pages = pages,
-                Author = new EmbedAuthorBuilder { Name = title, IconUrl = Context.Client.CurrentUser.GetAvatarUrl() }
+                Author = new EmbedAuthorBuilder { Name = title, IconUrl = Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl() }
             }, delete);
 
         public async Task<IUserMessage> ReplyAndDeleteAsync(string message, TimeSpan? timeout = null)

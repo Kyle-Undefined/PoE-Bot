@@ -69,7 +69,7 @@
             TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
             string user = Context.Guild.ValidateUser(tag.Owner);
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithAuthor("Tag Information", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor("Tag Information", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .AddField("Name", tag.Name, true)
                 .AddField("Owner", user, true)
                 .AddField("Uses", tag.Uses, true)

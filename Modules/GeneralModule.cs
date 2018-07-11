@@ -30,7 +30,7 @@
             var voiceChannels = await Context.Guild.GetVoiceChannelsAsync().ConfigureAwait(false);
             var users = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
             Embed embed = Extras.Embed(Extras.Info)
-                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl())
+                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .WithDescription((await client.GetApplicationInfoAsync().ConfigureAwait(false)).Description)
                 .AddField("Wraeclast Info", $"Wraeclast was created on {Context.Guild.CreatedAt.DateTime.ToLongDateString()} @ {Context.Guild.CreatedAt.DateTime.ToLongTimeString()}")
                 .AddField("Kitava", (await Context.Guild.GetUserAsync(Context.Guild.OwnerId).ConfigureAwait(false)).Mention, true)
@@ -318,8 +318,8 @@
             {
                 ITextChannel rep = await Context.Guild.GetTextChannelAsync(Context.Server.RepLog).ConfigureAwait(false);
                 Embed embed = Extras.Embed(Extras.Report)
-                    .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl())
-                    .WithThumbnailUrl(user.GetAvatarUrl())
+                    .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
+                    .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                     .WithTitle($"Report for {user.Username}")
                     .WithDescription($"**Reason:**\n{reason}")
                     .Build();

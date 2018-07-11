@@ -85,7 +85,7 @@
 
             Embed embed = Extras.Embed(Extras.Deleted)
                 .WithAuthor(message.Author)
-                .WithThumbnailUrl(message.Author.GetAvatarUrl())
+                .WithThumbnailUrl(message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl())
                 .WithTitle("Message Deleted")
                 .AddField("**Channel**:", $"#{message.Channel.Name}")
                 .AddField("**Content**:", $"{(message.Attachments.Any() ? message.Attachments.FirstOrDefault()?.Url : message.Content)}")

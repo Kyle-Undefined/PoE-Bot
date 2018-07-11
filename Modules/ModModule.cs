@@ -32,7 +32,7 @@
                     .WithAuthor(Context.User)
                     .WithTitle("Mod Action")
                     .WithDescription($"You were banned in the {Context.Guild.Name} server.")
-                    .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                    .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
                     .AddField("Reason", reason)
                     .Build();
 
@@ -185,7 +185,7 @@
                     .WithAuthor(Context.User)
                     .WithTitle("Mod Action")
                     .WithDescription($"You were kicked in the {Context.Guild.Name} server.")
-                    .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                    .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
                     .AddField("Reason", reason)
                     .Build();
 
@@ -645,8 +645,8 @@
         {
             user = user ?? Context.User as IGuildUser;
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithAuthor($"{user.Username} Information | {user.Id}", user.GetAvatarUrl())
-                .WithThumbnailUrl(user.GetAvatarUrl())
+                .WithAuthor($"{user.Username} Information | {user.Id}", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
+                .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                 .AddField("Muted?", user.IsMuted ? "Yep" : "Nope", true)
                 .AddField("Is Lieutenant?", user.IsBot ? "Yep" : "Nope", true)
                 .AddField("Creation Date", user.CreatedAt, true)
