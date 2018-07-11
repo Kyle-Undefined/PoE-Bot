@@ -35,6 +35,10 @@
                 return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
             }).ConfigureAwait(false);
 
+        [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <#channel> <messageId>")]
+        public async Task EnhanceAsync(SocketTextChannel channel, ulong messageId)
+            => await EnhanceAsync((await channel.GetMessageAsync(messageId).ConfigureAwait(false)).Content).ConfigureAwait(false);
+
         [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <text>")]
         public Task ExpandAsync([Remainder] string text)
             => ReplyAsync(string.Join(string.Empty, text.Select(x => StringHelper.Normal.Contains(x) ? x : ' ').Select(x => StringHelper.FullWidth[StringHelper.Normal.IndexOf(x)])));
