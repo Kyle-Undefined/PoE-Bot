@@ -137,7 +137,7 @@
         [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
         public async Task InvitesAsync()
             => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync().ConfigureAwait(false)).Select(i =>
-                $"**{i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt?.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
+                $"**{(i.Inviter as IGuildUser).Nickname ?? i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt?.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
 
         [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
         public Task LabAsync()
@@ -313,14 +313,14 @@
         }
 
         [Command("Report"), Remarks("Reports a user to guild moderators."), Summary("Report <@user> <reason>")]
-        public async Task ReportAsync(IUser user, [Remainder] string reason)
+        public async Task ReportAsync(IGuildUser user, [Remainder] string reason)
             => await Context.Message.DeleteAsync().ContinueWith(async _ =>
             {
                 ITextChannel rep = await Context.Guild.GetTextChannelAsync(Context.Server.RepLog).ConfigureAwait(false);
                 Embed embed = Extras.Embed(Extras.Report)
-                    .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
+                    .WithAuthor((Context.User as IGuildUser).Nickname ?? Context.User.Username, Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
                     .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
-                    .WithTitle($"Report for {user.Username}")
+                    .WithTitle($"Report for {user.Nickname ?? user.Username}")
                     .WithDescription($"**Reason:**\n{reason}")
                     .Build();
 

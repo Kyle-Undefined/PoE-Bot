@@ -124,7 +124,7 @@
             var userTag = Context.Server.Tags.Where(x => x.Owner == user.Id).Select(x => x.Name);
             return !Context.Server.Tags.Any() || !userTag.Any()
                 ? ReplyAsync($"{Extras.Cross} Can't quite get my head around this one. *`{user}` doesn't have any tags.*")
-                : PagedReplyAsync(MethodHelper.Pages(userTag), $"{user.Username}'s Tag Collection");
+                : PagedReplyAsync(MethodHelper.Pages(userTag), $"{user.Nickname ?? user.Username}'s Tag Collection");
         }
 
         // Honestly have no idea what this is, found it on SO from a "close string match" search

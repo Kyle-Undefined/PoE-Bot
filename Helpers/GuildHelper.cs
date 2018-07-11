@@ -138,7 +138,7 @@
                     .WithTitle("Mod Action")
                     .WithDescription($"You were muted in the {context.Guild.Name} server.")
                     .WithThumbnailUrl(context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl())
-                    .WithFooter($"You can PM {context.User.Username} directly to resolve the issue.")
+                    .WithFooter($"You can PM {(context.User as IGuildUser).Nickname ?? context.User.Username} directly to resolve the issue.")
                     .AddField("Reason", message)
                     .AddField("Duration", StringHelper.FormatTimeSpan((TimeSpan)time))
                     .Build();
@@ -240,7 +240,7 @@
             SocketGuildUser user = (guild as SocketGuild)?.GetUser(id);
             return user is null
                 ? "Unknown User"
-                : user.Username;
+                : user.Nickname ?? user.Username;
         }
 
         public static async Task WarnUserAsync(Context context, IGuildUser user, string reason, MuteType muteType = MuteType.Mod)

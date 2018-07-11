@@ -171,7 +171,7 @@
             user = user ?? Context.User as IGuildUser;
             ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);
             Embed embed = Extras.Embed(Extras.Info)
-                .WithAuthor($"{user.Username}'s Profile", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
+                .WithAuthor($"{user.Nickname ?? user.Username}'s Profile", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                 .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                 .AddField("Warnings", profile.Warnings, true)
                 .AddField("Mod Cases", Context.Server.UserCases.Count(x => x.UserId == user.Id), true)

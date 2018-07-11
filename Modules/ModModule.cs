@@ -59,7 +59,7 @@
                 await Context.Guild.AddBanAsync(user, 7, "Mass Ban.").ConfigureAwait(false);
                 await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Bans, "Multiple bans.").ConfigureAwait(false);
             }
-            await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were banned.* {Extras.Hammer}").ConfigureAwait(false);
+            await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", users.Select(x => $"`{x.Nickname ?? x.Username}`"))} were banned.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
         [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <userId> [reason]"), BotPermission(GuildPermission.BanMembers)]
@@ -88,10 +88,10 @@
                     return caseObject is null
                         ? ReplyAsync($"{Extras.Cross} Case #{caseNumber} doesn't exist.")
                         : ReplyAsync(embed: Extras.Embed(Extras.Case)
-                            .AddField("user", $"{caseObject.Username} ({caseObject.UserId})", true)
+                            .AddField("User", $"{caseObject.Username} ({caseObject.UserId})", true)
                             .AddField("Case Type", caseObject.CaseType, true)
                             .AddField("Moderator", $"{caseObject.Moderator} ({caseObject.ModeratorId})", true)
-                            .AddField("reason", caseObject.Reason).Build());
+                            .AddField("Reason", caseObject.Reason).Build());
 
                 default:
                     return ReplyAsync($"{Extras.Cross} action is either `Delete` or `List`.");
@@ -212,7 +212,7 @@
                 await user.KickAsync("Multiple kicks.").ConfigureAwait(false);
                 await GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, user, Context.User, CaseType.Kicks, "Multiple kicks.").ConfigureAwait(false);
             }
-            await ReplyAsync($"Death to sin! *{string.Join(", ", users.Select(x => $"`{x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
+            await ReplyAsync($"Death to sin! *{string.Join(", ", users.Select(x => $"`{x.Nickname ?? x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
         [Command("Leaderboard"), Summary("Leaderboard <action> [#channel] [enabled: True, False] [variant]"), Remarks("Adds, Deletes, or Updates a Leaderboard Variant. Lists Leaderboard Variants as well.")]
@@ -645,7 +645,7 @@
         {
             user = user ?? Context.User as IGuildUser;
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithAuthor($"{user.Username} Information | {user.Id}", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
+                .WithAuthor($"{user.Nickname ?? user.Username} Information | {user.Id}", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                 .WithThumbnailUrl(user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
                 .AddField("Muted?", user.IsMuted ? "Yep" : "Nope", true)
                 .AddField("Is Lieutenant?", user.IsBot ? "Yep" : "Nope", true)

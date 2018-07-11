@@ -51,10 +51,10 @@
                 return Task.CompletedTask;
 
             string reason = null;
-            SocketUser user = message.MentionedUsers.FirstOrDefault(u => server.AFK.TryGetValue(u.Id, out reason));
+            SocketGuildUser user = message.MentionedUsers.FirstOrDefault(u => server.AFK.TryGetValue(u.Id, out reason)) as SocketGuildUser;
             return user is null
                 ? Task.CompletedTask
-                : message.Channel.SendMessageAsync($"**{user.Username} has left an AFK Message:**  {reason}");
+                : message.Channel.SendMessageAsync($"**{user.Nickname ?? user.Username} has left an AFK Message:**  {reason}");
         }
 
         private Task ModeratorAsync(SocketMessage message, GuildObject server)

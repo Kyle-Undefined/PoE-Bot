@@ -69,7 +69,7 @@
             string[] shopItems = Context.Server.Shops.Where(x => x.UserId == user.Id).Select(x => $"League: **{x.League}**\nItem:\n{x.Item}\n").ToArray();
             if (!Context.Server.Shops.Any() || !shopItems.Any())
                 return ReplyAsync($"{Extras.Cross} I'm no beast of user. *`{user}` doesn't have any items in their shop.*");
-            return PagedReplyAsync(MethodHelper.Pages(shopItems), $"{user.Username}'s Personal Shop");
+            return PagedReplyAsync(MethodHelper.Pages(shopItems), $"{user.Nickname ?? user.Username}'s Personal Shop");
         }
     }
 }
