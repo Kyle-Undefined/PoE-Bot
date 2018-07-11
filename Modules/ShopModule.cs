@@ -12,7 +12,7 @@
     [Name("Shop Commands"), Group("Shop"), RequireChannel("shops"), Ratelimit]
     public class ShopModule : BotBase
     {
-        [Command("Add"), Remarks("Adds the item to your shop."), Summary("Shop Add <league> <item>")]
+        [Command("Add"), Summary("Adds the item to your shop."), Remarks("Shop Add <league> <item>")]
         public Task AddAsync(Leagues league, [Remainder] string item)
         {
             Context.Server.Shops.Add(new ShopObject
@@ -25,7 +25,7 @@
             return ReplyAsync($"Your humble servant thanks you, my God. *`{item}` has been added to your shop.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Clear"), Remarks("Clears all items from your shop."), Summary("Shop Clear")]
+        [Command("Clear"), Summary("Clears all items from your shop."), Remarks("Shop Clear")]
         public Task ClearAsync()
         {
             foreach (ShopObject item in Context.Server.Shops.Where(s => s.UserId == Context.User.Id).ToList())
@@ -33,7 +33,7 @@
             return ReplyAsync($"Your trust is the only reward I need, my Lord of light. *All items have been removed from your shop.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Delete"), Remarks("Deletes the item from your shop. Item has to be an exact match to what you want to delete"), Summary("Shop Delete <league> <item>")]
+        [Command("Delete"), Summary("Deletes the item from your shop. Item has to be an exact match to what you want to delete"), Remarks("Shop Delete <league> <item>")]
         public Task DeleteAsync(Leagues league, [Remainder] string item)
         {
             if (!Context.Server.Shops.Any(s => s.Item == item && s.League == league && s.UserId == Context.User.Id))
@@ -44,7 +44,7 @@
             return ReplyAsync($"Your trust is the only reward I need, my Lord of light. *`{item}` has been removed from your shop.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Search"), Remarks("Searches all shops for the item"), Summary("Shop Search <item>")]
+        [Command("Search"), Summary("Searches all shops for the item"), Remarks("Shop Search <item>")]
         public Task SearchAsync([Remainder] string item)
         {
             var shopItems = Context.Server.Shops.Where(x => x.Item.ToLower().Contains(item.ToLower())).Select(x => $"League: **{x.League}**\n{x.Item}\nOwned By: {(Context.Guild.GetUserAsync(x.UserId).GetAwaiter().GetResult()).Mention}\n");
@@ -53,7 +53,7 @@
             return PagedReplyAsync(MethodHelper.Pages(shopItems), $"Search Results");
         }
 
-        [Command("SearchLeague"), Remarks("Searches all shops for the item, in specified League"), Summary("Shop SearchLeague <league> <item>")]
+        [Command("SearchLeague"), Summary("Searches all shops for the item, in specified League"), Remarks("Shop SearchLeague <league> <item>")]
         public Task SearchLeagueAsync(Leagues league, [Remainder] string item)
         {
             var shopItems = Context.Server.Shops.Where(x => x.Item.ToLower().Contains(item.ToLower()) && x.League == league).Select(x => $"{x.Item}\nOwned By: {(Context.Guild.GetUserAsync(x.UserId).GetAwaiter().GetResult()).Mention}\n");
@@ -62,7 +62,7 @@
             return PagedReplyAsync(MethodHelper.Pages(shopItems), $"League {league} Search Results");
         }
 
-        [Command("User"), Remarks("Gets all shops for a user"), Summary("Shop User [@user]")]
+        [Command("User"), Summary("Gets all shops for a user"), Remarks("Shop User [@user]")]
         public Task UserAsync(IGuildUser user = null)
         {
             user = user ?? Context.User as IGuildUser;

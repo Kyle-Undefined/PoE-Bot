@@ -21,7 +21,7 @@
         public CommandService CommandService { get; set; }
         private IServiceProvider Provider { get; }
 
-        [Command("About", RunMode = RunMode.Async), Remarks("Displays information about the Server stats, and PoE Bot stats."), Summary("About")]
+        [Command("About", RunMode = RunMode.Async), Summary("Displays information about the Server stats, and PoE Bot stats."), Remarks("About")]
         public async Task AboutAsync()
         {
             DiscordSocketClient client = Context.Client as DiscordSocketClient;
@@ -63,7 +63,7 @@
             await ReplyAsync(embed: embed).ConfigureAwait(false);
         }
 
-        [Command("AFK"), Remarks("Adds, Deletes or Updates your AFK status."), Summary("AFK <action> <afkMessage>")]
+        [Command("AFK"), Summary("Adds, Deletes or Updates your AFK status."), Remarks("AFK <action> <afkMessage>")]
         public Task AfkAsync(CommandAction action, [Remainder] string afkMessage = "Running around Wraeclast, slaying monsters. Shoot me a DM.")
         {
             switch (action)
@@ -94,7 +94,7 @@
             }
         }
 
-        [Command("Feedback", RunMode = RunMode.Async), Remarks("Give feedback on my performance or suggest new features!"), Summary("Feedback")]
+        [Command("Feedback", RunMode = RunMode.Async), Summary("Give feedback on my performance or suggest new features!"), Remarks("Feedback")]
         public async Task FeedbackAsync()
         {
             var message = MethodHelper.CalculateResponse(await WaitAsync("Wisdom is the offspring of Suffering and Time. *Please provide your feedback in a couple sentences.*", timeout: TimeSpan.FromMinutes(1)).ConfigureAwait(false));
@@ -108,7 +108,7 @@
             await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}").ConfigureAwait(false);
         }
 
-        [Command("Hide"), Remarks("Hides the League sections you aren't interested in."), Summary("Hide <name>"), RequireChannel("role-setup")]
+        [Command("Hide"), Summary("Hides the League sections you aren't interested in."), Remarks("Hide <name>"), RequireChannel("role-setup")]
         public Task HideAsync(IRole role)
             => Context.Message.DeleteAsync().ContinueWith(_ =>
             {
@@ -122,7 +122,7 @@
                 return ReplyAndDeleteAsync($"Hm. How fascinating. *Role has been removed from you.* {Extras.OkHand}");
             });
 
-        [Command("IAgree"), Alias("Agree"), Remarks("You agree to the rules."), Summary("IAgree"), RequireChannel("role-setup")]
+        [Command("IAgree"), Alias("Agree"), Summary("You agree to the rules."), Remarks("IAgree"), RequireChannel("role-setup")]
         public Task IAgreeAsync()
             => Context.Message.DeleteAsync().ContinueWith(_ =>
             {
@@ -134,19 +134,19 @@
                 return ReplyAndDeleteAsync($"It seems this new arena suits me! *You have been given access to the server.* {Extras.OkHand}");
             });
 
-        [Command("Invites"), Remarks("Returns a list of Invites on the server."), Summary("Invites")]
+        [Command("Invites"), Summary("Returns a list of Invites on the server."), Remarks("Invites")]
         public async Task InvitesAsync()
             => await PagedReplyAsync(MethodHelper.Pages((await Context.Guild.GetInvitesAsync().ConfigureAwait(false)).Select(i =>
                 $"**{(i.Inviter as IGuildUser).Nickname ?? i.Inviter.Username}**\n#{i.ChannelName} *{i.Uses} Uses*\n{i.Url}\n{i.CreatedAt?.ToString("f")}\n")), $"{Context.Guild.Name}'s Invites").ConfigureAwait(false);
 
-        [Command("Lab"), Remarks("Get the link for PoE Lab."), Summary("Lab")]
+        [Command("Lab"), Summary("Get the link for PoE Lab."), Remarks("Lab")]
         public Task LabAsync()
             => ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithTitle("Please turn off any Ad Blockers you have to help the team keep doing Izaros work.")
                 .WithDescription("[Homepage](https://www.poelab.com/) - [Support](https://www.poelab.com/support/) - [Lab Info](https://www.poelab.com/all-enchantments/) - [Lab Guide](https://www.poelab.com/new-to-the-labyrinth/) - [Puzzle Solutions](https://www.poelab.com/puzzle-solutions/) - [Trial Tracker](https://www.poelab.com/trial-tracker/)")
                 .Build());
 
-        [Command("Ping", RunMode = RunMode.Async), Remarks("Returns the current estimated round-trip latency"), Summary("Ping")]
+        [Command("Ping", RunMode = RunMode.Async), Summary("Returns the current estimated round-trip latency"), Remarks("Ping")]
         public async Task PingAsync()
         {
             ulong target = 0;
@@ -188,7 +188,7 @@
             await m.ModifyAsync(x => x.Content = $"**Heartbeat**: {latency}ms, **Init**: {init}ms, **RTT**: Timedout").ConfigureAwait(false);
         }
 
-        [Command("PoB"), Remarks("Parses the PasteBin export from Path of Building and shows the information about the build."), Summary("PoB <pasteBinURL>")]
+        [Command("PoB"), Summary("Parses the PasteBin export from Path of Building and shows the information about the build."), Remarks("PoB <pasteBinURL>")]
         public async Task PoBAsync([Remainder] string pasteBinURL)
         {
             Parser parser = new Parser();
@@ -225,7 +225,7 @@
             }
         }
 
-        [Command("Price"), Summary("Price <name: Any Alias> [league: Defaults to Challenge]"), Remarks("Pulls the price for the requested currency, in the chosen league, all values based on Chaos."), BanChannel("price-checkers")]
+        [Command("Price"), Remarks("Price <name: Any Alias> [league: Defaults to Challenge]"), Summary("Pulls the price for the requested currency, in the chosen league, all values based on Chaos."), BanChannel("price-checkers")]
         public Task PriceAsync(string name, Leagues league = Leagues.Challenge)
         {
             if (!Context.Server.Prices.Any(p => p.Alias.Contains(name.ToLower()) && p.League == league))
@@ -242,7 +242,7 @@
             return ReplyAsync(embed: embed);
         }
 
-        [Command("PriceList"), Summary("PriceList [league: Defaults to Challenge]"), Remarks("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
+        [Command("PriceList"), Remarks("PriceList [league: Defaults to Challenge]"), Summary("Pulls the price for the all currency, in the specified league, defaults to Challenge")]
         public Task PriceListAsync(Leagues league = Leagues.Challenge)
         {
             var prices = Context.Server.Prices.Where(x => x.League == league).Select(x =>
@@ -253,7 +253,7 @@
             return PagedReplyAsync(MethodHelper.Pages(prices), $"{league} Price List");
         }
 
-        [Command("Remind"), Remarks("Set a reminder for later. Time is formatted like: Number(d/h/m/s) Example: 5h for 5 Hours."), Summary("Remind <time> <message>")]
+        [Command("Remind"), Summary("Set a reminder for later. Time is formatted like: Number(d/h/m/s) Example: 5h for 5 Hours."), Remarks("Remind <time> <message>")]
         public async Task RemindAsync(TimeSpan time, [Remainder] string message)
         {
             var reminders = new List<RemindObject>();
@@ -272,7 +272,7 @@
             await ReplyAsync($"This land has forgotten Karui strength, {Context.User.Mention}. I will remind it. ({StringHelper.FormatTimeSpan(time)})", save: DocumentType.Server).ConfigureAwait(false);
         }
 
-        [Command("Reminder"), Remarks("Deletes a reminder, or Lists your reminders."), Summary("Reminder <action> [number]")]
+        [Command("Reminder"), Summary("Deletes a reminder, or Lists your reminders."), Remarks("Reminder <action> [number]")]
         public Task ReminderAsync(CommandAction action = CommandAction.List, int number = int.MinValue)
         {
             switch (action)
@@ -312,7 +312,7 @@
             }
         }
 
-        [Command("Report"), Remarks("Reports a user to guild moderators."), Summary("Report <@user> <reason>")]
+        [Command("Report"), Summary("Reports a user to guild moderators."), Remarks("Report <@user> <reason>")]
         public async Task ReportAsync(IGuildUser user, [Remainder] string reason)
             => await Context.Message.DeleteAsync().ContinueWith(async _ =>
             {
@@ -327,7 +327,7 @@
                 await rep.SendMessageAsync(embed: embed).ConfigureAwait(false);
             }).ConfigureAwait(false);
 
-        [Command("Show"), Remarks("Shows the League sections you are interested in."), Summary("Show <name>"), RequireChannel("role-setup")]
+        [Command("Show"), Summary("Shows the League sections you are interested in."), Remarks("Show <name>"), RequireChannel("role-setup")]
         public Task ShowAsync(IRole role)
             => Context.Message.DeleteAsync().ContinueWith(_ =>
             {
@@ -344,11 +344,11 @@
                 return ReplyAndDeleteAsync($"It seems this new arena suits me! *Role has been added to you.* {Extras.OkHand}");
             });
 
-        [Command("Trial"), Summary("Trial <trial>"), RequireChannel("lab-and-trials"), Remarks("Announce a Trial of Ascendancy that you have come across. Any part of the Trial Name.")]
+        [Command("Trial"), Remarks("Trial <trial>"), RequireChannel("lab-and-trials"), Summary("Announce a Trial of Ascendancy that you have come across. Any part of the Trial Name.")]
         public Task TrialAsync([Remainder] string trial)
             => ReplyAsync($"The essence of an empire must be shared equally amongst all of its citizens. *{Context.User.Mention} has found the {Context.Guild.Roles.FirstOrDefault(r => r.Name.ToLower().Contains(trial.ToLower())).Mention}*");
 
-        [Command("Trials"), Summary("Trials <action> <trial>"), Remarks("Add or Delete a Trial of Ascendancy that you're looking for to be notified when someone has found it. Any part of the Trial Name or All for all Trials. Lists Trials you're looking for as well."), RequireChannel("lab-and-trials")]
+        [Command("Trials"), Remarks("Trials <action> <trial>"), Summary("Add or Delete a Trial of Ascendancy that you're looking for to be notified when someone has found it. Any part of the Trial Name or All for all Trials. Lists Trials you're looking for as well."), RequireChannel("lab-and-trials")]
         public Task TrialsAsync(CommandAction action, [Remainder] string trial = null)
         {
             switch (action)
@@ -375,7 +375,7 @@
             }
         }
 
-        [Command("Wiki"), Remarks("Searches an item on the Path of Exile Wiki."), Summary("Wiki <item>")]
+        [Command("Wiki"), Summary("Searches an item on the Path of Exile Wiki."), Remarks("Wiki <item>")]
         public async Task WikiAsync([Remainder] string item)
             => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(item, Context.HttpClient).ConfigureAwait(false)).ConfigureAwait(false);
     }

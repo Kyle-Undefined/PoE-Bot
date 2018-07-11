@@ -27,7 +27,7 @@
             Username,
         }
 
-        [Command("Blacklist"), Remarks("Adds or Deletes a user from the blacklist."), Summary("Blacklist <action> <@user>")]
+        [Command("Blacklist"), Summary("Adds or Deletes a user from the blacklist."), Remarks("Blacklist <action> <@user>")]
         public Task BlaclistAsync(CommandAction action, IUser user)
         {
             switch (action)
@@ -49,7 +49,7 @@
             }
         }
 
-        [Command("Eval", RunMode = RunMode.Async), Remarks("Evaluates C# code."), Summary("Eval <code>")]
+        [Command("Eval", RunMode = RunMode.Async), Summary("Evaluates C# code."), Remarks("Eval <code>")]
         public async Task EvalAsync([Remainder] string code)
         {
             IUserMessage message = await ReplyAsync("Debugging ...").ConfigureAwait(false);
@@ -77,7 +77,7 @@
             }
         }
 
-        [Command("Namespace"), Remarks("Shows a list of all namespaces in PoE Bots config."), Summary("Namespace <action> <namespace>")]
+        [Command("Namespace"), Summary("Shows a list of all namespaces in PoE Bots config."), Remarks("Namespace <action> <namespace>")]
         public Task NamespaceAsync(CommandAction action, string namespaceName = null)
         {
             switch (action)
@@ -106,7 +106,7 @@
             }
         }
 
-        [Command("Stats", RunMode = RunMode.Async), Remarks("Displays information about PoE Bot and its stats."), Summary("Stats")]
+        [Command("Stats", RunMode = RunMode.Async), Summary("Displays information about PoE Bot and its stats."), Remarks("Stats")]
         public async Task StatsAsync()
         {
             DiscordSocketClient client = Context.Client as DiscordSocketClient;
@@ -137,7 +137,7 @@
             await ReplyAsync(embed: embed).ConfigureAwait(false);
         }
 
-        [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information."), Summary("Update <setting> <value>")]
+        [Command("Update", RunMode = RunMode.Async), Summary("Updates PoE Bots Information."), Remarks("Update <setting> <value>")]
         public async Task UpdateAsync(Setting setting, [Remainder] string value = null)
         {
             DocumentType save = DocumentType.None;

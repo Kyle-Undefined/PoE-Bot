@@ -18,11 +18,11 @@
     [Name("Fun Commands"), Ratelimit]
     public class FunModule : BotBase
     {
-        [Command("Clap"), Remarks("Replaces spaces in your message with a clap emoji."), Summary("Clap <message>")]
+        [Command("Clap"), Summary("Replaces spaces in your message with a clap emoji."), Remarks("Clap <message>")]
         public Task ClapAsync([Remainder] string message)
             => ReplyAsync(message.Replace(" ", " 👏 "));
 
-        [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <smallEmote>")]
+        [Command("Enhance"), Summary("Enhances the Emote into a larger size."), Remarks("Enhance <smallEmote>")]
         public async Task EnhanceAsync(string smallEmote)
             => await Context.Message.DeleteAsync().ContinueWith(_ =>
             {
@@ -35,15 +35,15 @@
                 return ReplyAsync($"{Extras.Cross} I barely recognize myself. *Invalid Emote.*");
             }).ConfigureAwait(false);
 
-        [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <#channel> <messageId>")]
+        [Command("Enhance"), Summary("Enhances the Emote into a larger size."), Remarks("Enhance <#channel> <messageId>")]
         public async Task EnhanceAsync(IGuildChannel channel, ulong messageId)
             => await EnhanceAsync((await (channel as SocketTextChannel).GetMessageAsync(messageId).ConfigureAwait(false)).Content).ConfigureAwait(false);
 
-        [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <text>")]
+        [Command("Expand"), Summary("Converts text to full width."), Remarks("Expand <text>")]
         public Task ExpandAsync([Remainder] string text)
             => ReplyAsync(string.Join(string.Empty, text.Select(x => StringHelper.Normal.Contains(x) ? x : ' ').Select(x => StringHelper.FullWidth[StringHelper.Normal.IndexOf(x)])));
 
-        [Command("GenColor"), Remarks("Generate a color in chat. red, green and blue values can be between 0 and 255."), Summary("GenColor <red> <green> <blue>")]
+        [Command("GenColor"), Summary("Generate a color in chat. red, green and blue values can be between 0 and 255."), Remarks("GenColor <red> <green> <blue>")]
         public Task GenColorAsync(int red, int green, int blue)
         {
             if (red < 0 || red > 255)
@@ -55,7 +55,7 @@
             return ReplyAsync(embed: new EmbedBuilder().WithAuthor(Context.User).WithDescription($"red: `{red}` green: `{green}` blue: `{blue}`").WithColor(new Color(red, green, blue)).Build());
         }
 
-        [Command("Kadaka"), Remarks("Prais our lord and savior, Kadaka!"), Summary("Kadaka")]
+        [Command("Kadaka"), Summary("Prais our lord and savior, Kadaka!"), Remarks("Kadaka")]
         public Task KadakaAsync()
             => ReplyAsync("░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\n" +
                         "░░░PRAISE░░░░░░▄▀▀█▀▀▄░░░░░░░░░░░░\n" +
@@ -72,7 +72,7 @@
                         "░░░░░░░░░░░░░▐░█░░▀░░░▌░░░░░░░░░░\n" +
                         "░░░░░░░░░░░░░▐█░▀░░█░█▌░░░░░░░░░░");
 
-        [Command("Kuduku"), Remarks("Kuduku has arrived!"), Summary("Kuduku")]
+        [Command("Kuduku"), Summary("Kuduku has arrived!"), Remarks("Kuduku")]
         public Task KudukuAsync()
             => ReplyAsync("░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\n" +
 
@@ -96,7 +96,7 @@
 
                         "░░░░░arrived░░░░░░░░░░░▌░░░░░░░░▐░░░░");
 
-        [Command("Mock"), Remarks("Turns text into Spongebob Mocking Meme."), Summary("Mock <text>")]
+        [Command("Mock"), Summary("Turns text into Spongebob Mocking Meme."), Remarks("Mock <text>")]
         public Task MockAsync([Remainder]string text)
         {
             Context.Channel.TriggerTypingAsync();
@@ -161,11 +161,11 @@
             return Context.Channel.SendFileAsync(savePath);
         }
 
-        [Command("Nut"), Remarks("Nut on the chat."), Summary("Nut")]
+        [Command("Nut"), Summary("Nut on the chat."), Remarks("Nut")]
         public Task NutAsync()
             => ReplyAsync("█▀█ █▄█ ▀█▀");
 
-        [Command("Profile"), Remarks("Shows a users profile."), Summary("Profile [@user]")]
+        [Command("Profile"), Summary("Shows a users profile."), Remarks("Profile [@user]")]
         public Task ProfileAsync(IGuildUser user = null)
         {
             user = user ?? Context.User as IGuildUser;
@@ -181,11 +181,11 @@
             return ReplyAsync(embed: embed);
         }
 
-        [Command("Rate"), Remarks("Rates something for you out of 10."), Summary("Rate <thingToRate>")]
+        [Command("Rate"), Summary("Rates something for you out of 10."), Remarks("Rate <thingToRate>")]
         public Task RateAsync([Remainder] string thingToRate)
             => ReplyAsync($":thinking: Must I do everything myself? *I would rate '{thingToRate}' a solid {Context.Random.Next(11)}/10*");
 
-        [Command("Toucan"), Remarks("Le Toucan Has Arrive."), Summary("Toucan")]
+        [Command("Toucan"), Summary("Le Toucan Has Arrive."), Remarks("Toucan")]
         public Task ToucanAsync()
             => ReplyAsync("░░░░░░░░▄▄▄▀▀▀▄▄███▄░░░░░░░░░░░░░░\n" +
                         "░░░░░▄▀▀░░░░░░░▐░▀██▌░░░░░░░░░░░░░\n" +
@@ -199,7 +199,7 @@
                         "░░░░░░has░░░░░░░░▀▄▄███████████████ \n" +
                         "░░░░░arrived░░░░░░░░░░░░█▀██████░░");
 
-        [Command("YEEEEAAAHHH", RunMode = RunMode.Async), Alias("Yeah"), Remarks("YEEEEAAAHHH"), Summary("YEEEEAAAHHH")]
+        [Command("YEEEEAAAHHH", RunMode = RunMode.Async), Alias("Yeah"), Summary("YEEEEAAAHHH"), Remarks("YEEEEAAAHHH")]
         public async Task YeahAsync()
         {
             IUserMessage message = await ReplyAsync("( •_•)").ConfigureAwait(false);

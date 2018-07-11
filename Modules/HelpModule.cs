@@ -29,8 +29,8 @@
                 .AddField("Arguments", command.Parameters.Any()
                     ? string.Join(", ", command.Parameters.Select(x => $"`{(x.Type.IsValueType ? (Nullable.GetUnderlyingType(x.Type) is null ? x.Type.Name : Nullable.GetUnderlyingType(x.Type).Name) : x.Type.Name)}` {x.Name}"))
                     : "No arguments.")
-                .AddField("Usage", $"{Context.Server.Prefix}{command.Summary}")
-                .AddField("Summary", command.Remarks)
+                .AddField("Usage", $"{Context.Server.Prefix}{command.Remarks}")
+                .AddField("Summary", command.Summary)
                 .WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
                 .WithFooter("<> = Required | [] = Optional | Need help? Tag @Server Nerd");
             var enums = command.Parameters.Where(x => x.Type.IsEnum);

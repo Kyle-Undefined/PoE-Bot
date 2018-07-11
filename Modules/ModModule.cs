@@ -17,7 +17,7 @@
     [Name("Moderator Commands"), RequireModerator, Ratelimit]
     public class ModModule : BotBase
     {
-        [Command("Ban", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("Ban <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        [Command("Ban", RunMode = RunMode.Async), Summary("Bans a user from the server."), Remarks("Ban <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(IGuildUser user, [Remainder] string reason = null)
         {
             if (Context.Guild.HierarchyCheck(user))
@@ -45,7 +45,7 @@
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{user}` was banned.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("MassBan", RunMode = RunMode.Async), Remarks("Bans multiple users at once."), Summary("MassBan <@user1> <@user2> ..."), BotPermission(GuildPermission.BanMembers)]
+        [Command("MassBan", RunMode = RunMode.Async), Summary("Bans multiple users at once."), Remarks("MassBan <@user1> <@user2> ..."), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(params IGuildUser[] users)
         {
             if (!users.Any())
@@ -62,7 +62,7 @@
             await ReplyAsync($"You are remembered only for the mess you leave behind. *{string.Join(", ", users.Select(x => $"`{x.Nickname ?? x.Username}`"))} were banned.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("BanUserID", RunMode = RunMode.Async), Remarks("Bans a user from the server."), Summary("BanUserID <userId> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        [Command("BanUserID", RunMode = RunMode.Async), Summary("Bans a user from the server."), Remarks("BanUserID <userId> [reason]"), BotPermission(GuildPermission.BanMembers)]
         public async Task BanAsync(ulong UserId, [Remainder] string reason = null)
         {
             await Context.Guild.AddBanAsync(UserId, 7, reason ?? "user ID Ban.").ConfigureAwait(false);
@@ -70,7 +70,7 @@
             await ReplyAsync($"You are remembered only for the mess you leave behind. *`{UserId}` was banned.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("Case"), Remarks("Shows information about a specific case, or Deletes a case."), Summary("Case <action> [caseNumber] [user]")]
+        [Command("Case"), Summary("Shows information about a specific case, or Deletes a case."), Remarks("Case <action> [caseNumber] [user]")]
         public Task CaseAsync(CommandAction action = CommandAction.List, int caseNumber = 0, IGuildUser user = null)
         {
             switch (action)
@@ -98,7 +98,7 @@
             }
         }
 
-        [Command("CaseReason"), Remarks("Specifies reason for a user case."), Summary("CaseReason <number> <reason>"), RequirePermission]
+        [Command("CaseReason"), Summary("Specifies reason for a user case."), Remarks("CaseReason <number> <reason>"), RequirePermission]
         public async Task CaseReasonAsync(int number, [Remainder] string reason)
         {
             CaseObject caseObject = number is -1 ? Context.Server.UserCases.LastOrDefault() : Context.Server.UserCases.FirstOrDefault(x => x.Number == number);
@@ -139,17 +139,17 @@
             await ReplyAsync($"Case #{caseObject.Number} has been updated {Extras.OkHand}", save: DocumentType.Server).ConfigureAwait(false);
         }
 
-        [Command("Cases"), Remarks("Lists all of the specified cases for the guild."), Summary("Cases <caseType>")]
+        [Command("Cases"), Summary("Lists all of the specified cases for the guild."), Remarks("Cases <caseType>")]
         public Task CasesAsync(CaseType caseType)
             => PagedReplyAsync(MethodHelper.Pages(Context.Server.UserCases.Where(c => c.CaseType == caseType).Select(c =>
                 $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nUser: {c.Username}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{Context.Guild.Name} {caseType} Cases");
 
-        [Command("Cases"), Remarks("Lists all of the cases for a specified user in the guild."), Summary("Cases <user>")]
+        [Command("Cases"), Summary("Lists all of the cases for a specified user in the guild."), Remarks("Cases <user>")]
         public Task CasesAsync(IGuildUser user)
             => PagedReplyAsync(MethodHelper.Pages(Context.Server.UserCases.Where(c => c.UserId == user.Id).Select(c =>
                 $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nType: {c.CaseType}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{user.Username}'s Cases");
 
-        [Command("GuildInfo"), Remarks("Displays information about guild."), Summary("GuildInfo")]
+        [Command("GuildInfo"), Summary("Displays information about guild."), Remarks("GuildInfo")]
         public Task GuildInfoAsync()
         {
             SocketGuild guild = Context.Guild as SocketGuild;
@@ -170,7 +170,7 @@
                 .AddField("Classes", string.Join(", ", guild.Roles.OrderByDescending(x => x.Position).Select(x => x.Name))).Build());
         }
 
-        [Command("Kick", RunMode = RunMode.Async), Remarks("Kicks a user out of the server."), Summary("Kick <@user> [reason]"), BotPermission(GuildPermission.KickMembers)]
+        [Command("Kick", RunMode = RunMode.Async), Summary("Kicks a user out of the server."), Remarks("Kick <@user> [reason]"), BotPermission(GuildPermission.KickMembers)]
         public async Task KickAsync(IGuildUser user, [Remainder] string reason = null)
         {
             if (Context.Guild.HierarchyCheck(user))
@@ -198,7 +198,7 @@
             await ReplyAsync($"Death to sin! *`{user}` was kicked.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("MassKick", RunMode = RunMode.Async), Remarks("Kicks multiple users at once."), Summary("MassKick <@user1> <@user2> ..."), BotPermission(GuildPermission.KickMembers)]
+        [Command("MassKick", RunMode = RunMode.Async), Summary("Kicks multiple users at once."), Remarks("MassKick <@user1> <@user2> ..."), BotPermission(GuildPermission.KickMembers)]
         public async Task KickAsync(params IGuildUser[] users)
         {
             if (!users.Any())
@@ -215,7 +215,7 @@
             await ReplyAsync($"Death to sin! *{string.Join(", ", users.Select(x => $"`{x.Nickname ?? x.Username}`"))} were kicked.* {Extras.Hammer}").ConfigureAwait(false);
         }
 
-        [Command("Leaderboard"), Summary("Leaderboard <action> [#channel] [enabled: True, False] [variant]"), Remarks("Adds, Deletes, or Updates a Leaderboard Variant. Lists Leaderboard Variants as well.")]
+        [Command("Leaderboard"), Remarks("Leaderboard <action> [#channel] [enabled: True, False] [variant]"), Summary("Adds, Deletes, or Updates a Leaderboard Variant. Lists Leaderboard Variants as well.")]
         public async Task LeaderboardAsync(CommandAction action, IGuildChannel channel = null, bool enabled = false, [Remainder] string variant = null)
         {
             switch (action)
@@ -279,15 +279,15 @@
             }
         }
 
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Summary("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
+        [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Remarks("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser user, TimeSpan? time, [Remainder] string reason = null)
             => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, (time.HasValue ? time : TimeSpan.FromMinutes(5)), (!(reason is null) ? reason : "No reason specified."));
 
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for 5 minutes."), Summary("Mute <@user> [reason]"), BotPermission(GuildPermission.ManageRoles)]
+        [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for 5 minutes."), Remarks("Mute <@user> [reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser user, [Remainder] string reason = null)
             => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, TimeSpan.FromMinutes(5), (!(reason is null) ? reason : "No reason specified."));
 
-        [Command("Profanity"), Summary("Profanity <action> [word]"), Remarks("Adds or Deletes a word for the Profanity List.")]
+        [Command("Profanity"), Remarks("Profanity <action> [word]"), Summary("Adds or Deletes a word for the Profanity List.")]
         public Task ProfanityAsync(CommandAction action, string word = null)
         {
             switch (action)
@@ -308,7 +308,7 @@
             }
         }
 
-        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a user"), Summary("Purge [amount] [@user]"), BotPermission(GuildPermission.ManageMessages)]
+        [Command("Purge"), Alias("Prune"), Summary("Deletes Messages, and can specify a user"), Remarks("Purge [amount] [@user]"), BotPermission(GuildPermission.ManageMessages)]
         public Task PurgeAsync(int amount = 20, IGuildUser user = null)
         {
             if (user is null)
@@ -325,7 +325,7 @@
             }
         }
 
-        [Command("RoleInfo"), Remarks("Displays information about a role."), Summary("RoleInfo <@role>")]
+        [Command("RoleInfo"), Summary("Displays information about a role."), Remarks("RoleInfo <@role>")]
         public Task RoleInfoAsync(IRole role)
             => ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithTitle($"{role.Name} Information")
@@ -338,7 +338,7 @@
                 .AddField("Can Mention?", role.IsMentionable ? "Yep" : "Nope", true)
                 .AddField("Skills", string.Join(", ", role.Permissions)).Build());
 
-        [Command("Rules Configure", RunMode = RunMode.Async), Remarks("Sets the rules that will be posted in the channel set by the Guild Config."), Summary("Rules Configure")]
+        [Command("Rules Configure", RunMode = RunMode.Async), Summary("Sets the rules that will be posted in the channel set by the Guild Config."), Remarks("Rules Configure")]
         public async Task RulesConfigureAsync()
         {
             RuleObject rules = new RuleObject();
@@ -393,7 +393,7 @@
             await ReplyAsync($"*Rules have been configured, here's a preview of them.* {Extras.OkHand}", embed: embed.Build()).ConfigureAwait(false);
         }
 
-        [Command("Rules Post"), Summary("Rules Post"), Remarks("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use Rules Configure followed by Rules Update.")]
+        [Command("Rules Post"), Remarks("Rules Post"), Summary("Posts the rules you've configured to the rules channel you setup in the Guild Config. Only done once, if you want to edit the rules, use Rules Configure followed by Rules Update.")]
         public async Task RulesPostAsync()
         {
             if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
@@ -421,7 +421,7 @@
             await ReplyAsync($"*Rules have been posted.* {Extras.OkHand}").ConfigureAwait(false);
         }
 
-        [Command("Rules Update"), Summary("Rules Update"), Remarks("Updates the rules you've configured and posted to the rules channel.")]
+        [Command("Rules Update"), Remarks("Rules Update"), Summary("Updates the rules you've configured and posted to the rules channel.")]
         public async Task RulesUpdateAsync()
         {
             if (string.IsNullOrEmpty(Context.Server.RulesConfig.Description))
@@ -460,7 +460,7 @@
             await ReplyAsync($"*Rules have been edited.* {Extras.OkHand}").ConfigureAwait(false);
         }
 
-        [Command("Situation"), Summary("Situation <action> <@user1> <@user2> ..."), Remarks("Adds or Delete the Situation Room role to the specified users.")]
+        [Command("Situation"), Remarks("Situation <action> <@user1> <@user2> ..."), Summary("Adds or Delete the Situation Room role to the specified users.")]
         public Task SituationAsync(CommandAction action, params IGuildUser[] users)
         {
             switch (action)
@@ -480,7 +480,7 @@
             }
         }
 
-        [Command("SoftBan", RunMode = RunMode.Async), Remarks("Bans a user then unbans them."), Summary("SoftBan <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
+        [Command("SoftBan", RunMode = RunMode.Async), Summary("Bans a user then unbans them."), Remarks("SoftBan <@user> [reason]"), BotPermission(GuildPermission.BanMembers)]
         public Task SoftBanAsync(IGuildUser user, [Remainder] string reason = null)
         {
             if (Context.Guild.HierarchyCheck(user))
@@ -492,7 +492,7 @@
             return ReplyAsync($"Go to bed, little nightmare! *`{user}` was soft banned.* {Extras.Hammer}");
         }
 
-        [Command("Streamer", RunMode = RunMode.Async), Summary("Streamer <streamType> <userName> [#channel: Defaults to #streams]"), Remarks("Adds or Delete a streamer to the Stream list.")]
+        [Command("Streamer", RunMode = RunMode.Async), Remarks("Streamer <streamType> <userName> [#channel: Defaults to #streams]"), Summary("Adds or Delete a streamer to the Stream list.")]
         public async Task StreamerAsync(CommandAction action, StreamType streamType = StreamType.Mixer, string userName = null, IGuildChannel channel = null)
         {
             switch (action)
@@ -567,7 +567,7 @@
             }
         }
 
-        [Command("Streamer MultiAdd", RunMode = RunMode.Async), Summary("Streamer MultiAdd <streamType> <userNames>"), Remarks("Adds a list of streamers to the Stream list.")]
+        [Command("Streamer MultiAdd", RunMode = RunMode.Async), Remarks("Streamer MultiAdd <streamType> <userNames>"), Summary("Adds a list of streamers to the Stream list.")]
         public async Task StreamerMultiAddAsync(StreamType streamType, params string[] userNames)
         {
             IGuildChannel channel = Context.Guild.DefaultStreamChannel() as IGuildChannel;
@@ -624,7 +624,7 @@
             await ReplyAsync($"I'm so good at this, I scare myself. *`{String.Join(", ", userNames)}` has been added to the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server).ConfigureAwait(false);
         }
 
-        [Command("Unban"), Summary("Unban <id>"), Remarks("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
+        [Command("Unban"), Remarks("Unban <id>"), Summary("Unbans a user whose Id has been provided."), BotPermission(GuildPermission.BanMembers)]
         public async Task UnbanAsync(ulong id)
         {
             bool check = (await Context.Guild.GetBansAsync().ConfigureAwait(false)).Any(x => x.User.Id == id);
@@ -636,11 +636,11 @@
             await Context.Guild.RemoveBanAsync(id).ContinueWith(x => ReplyAsync($"It seems there's still glory in the old Empire yet! *Unbanned user with `{id}`* {Extras.OkHand}", save: DocumentType.Server)).ConfigureAwait(false);
         }
 
-        [Command("Unmute", RunMode = RunMode.Async), Remarks("Umutes a user."), Summary("Unmute <@user>"), BotPermission(GuildPermission.ManageRoles)]
+        [Command("Unmute", RunMode = RunMode.Async), Summary("Umutes a user."), Remarks("Unmute <@user>"), BotPermission(GuildPermission.ManageRoles)]
         public Task UnMuteAsync(IGuildUser user)
             => GuildHelper.UnmuteUserAsync(Context, user);
 
-        [Command("UserInfo"), Remarks("Displays information about a user."), Summary("UserInfo [@user]")]
+        [Command("UserInfo"), Summary("Displays information about a user."), Remarks("UserInfo [@user]")]
         public Task UserInfoAsync(IGuildUser user = null)
         {
             user = user ?? Context.User as IGuildUser;
@@ -656,11 +656,11 @@
                 .AddField("Classes", string.Join(", ", (user as SocketGuildUser).Roles.OrderBy(x => x.Position).Select(x => x.Name)), true).Build());
         }
 
-        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@user> <reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
+        [Command("Warn", RunMode = RunMode.Async), Summary("Warns a user with a specified reason."), Remarks("Warn <@user> <reason>"), BotPermission(GuildPermission.KickMembers), RequirePermission]
         public Task WarnAysnc(IGuildUser user, [Remainder] string reason)
             => GuildHelper.WarnUserAsync(Context, user, reason);
 
-        [Command("WarnDelete"), Remarks("Deletes a number of users warnings."), Summary("WarnDelete <@user> <amount>"), RequirePermission]
+        [Command("WarnDelete"), Summary("Deletes a number of users warnings."), Remarks("WarnDelete <@user> <amount>"), RequirePermission]
         public Task WarnDeleteAsync(IGuildUser user, int amount = 1)
         {
             ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);
@@ -672,7 +672,7 @@
             return ReplyAsync($"It seems there's still glory in the old Empire yet! *`{amount}` Warnings has been removed for `{user}`* {Extras.OkHand}");
         }
 
-        [Command("WarnReset"), Remarks("Resets users warnings."), Summary("WarnReset <@user>"), RequirePermission]
+        [Command("WarnReset"), Summary("Resets users warnings."), Remarks("WarnReset <@user>"), RequirePermission]
         public Task WarnResetAsync(IGuildUser user)
         {
             ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);

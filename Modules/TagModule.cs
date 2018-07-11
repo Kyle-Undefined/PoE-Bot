@@ -14,7 +14,7 @@
     [Name("Tag Commands"), Group("Tag"), Ratelimit]
     public class TagModule : BotBase
     {
-        [Command("Add"), Remarks("Add a tag with the specified content. To specify more than one word, wrap your name with quotes \"like this\"."), Summary("Tag Add <tagName> <tagContent>"), Priority(1)]
+        [Command("Add"), Summary("Add a tag with the specified content. To specify more than one word, wrap your name with quotes \"like this\"."), Remarks("Tag Add <tagName> <tagContent>"), Priority(1)]
         public Task AddAsync(string tagName, [Remainder] string tagContent)
         {
             if (Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -32,7 +32,7 @@
             return ReplyAsync($"I think that will come in handy at some point. *Tag `{tagName}` has been created.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Claim"), Remarks("Claims a tag whose owner isn't in server anymore."), Summary("Tag Claim <tagName>"), Priority(1)]
+        [Command("Claim"), Summary("Claims a tag whose owner isn't in server anymore."), Remarks("Tag Claim <tagName>"), Priority(1)]
         public Task ClaimAsync([Remainder] string tagName)
         {
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -46,7 +46,7 @@
             return ReplyAsync($"Show me the way, Kaom. *You are now the owner of `{tag.Name}` tag.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Delete"), Remarks("Deletes a tag."), Summary("Tag Delete <tagName>"), Priority(1)]
+        [Command("Delete"), Summary("Deletes a tag."), Remarks("Tag Delete <tagName>"), Priority(1)]
         public Task DeleteAsync([Remainder] string tagName)
         {
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -60,7 +60,7 @@
             return ReplyAsync($"I need more pockets. *Tag `{tagName}` has been deleted.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Info"), Remarks("Displays information about a given tag."), Summary("Tag Info <tagName>"), Priority(1)]
+        [Command("Info"), Summary("Displays information about a given tag."), Remarks("Tag Info <tagName>"), Priority(1)]
         public Task InfoAsync([Remainder] string tagName)
         {
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -79,11 +79,11 @@
                 .Build());
         }
 
-        [Command("List"), Remarks("Shows all tags in a list."), Summary("Tag List"), Priority(1)]
+        [Command("List"), Summary("Shows all tags in a list."), Remarks("Tag List"), Priority(1)]
         public Task ListAsync()
             => PagedReplyAsync(MethodHelper.Pages(Context.Server.Tags.Select(t => t.Name)), "Tag Collection");
 
-        [Command("Search"), Remarks("Shows all tags that match the search."), Summary("Tag Search <tagName>"), Priority(1)]
+        [Command("Search"), Summary("Shows all tags that match the search."), Remarks("Tag Search <tagName>"), Priority(1)]
         public Task SearchAsync([Remainder] string tagName)
         {
             var levenTags = Context.Server.Tags.Where(x => LevenshteinDistance(tagName.ToLower(), x.Name) < 5);
@@ -92,7 +92,7 @@
             return PagedReplyAsync(MethodHelper.Pages(searched), "Tag Search Results");
         }
 
-        [Command, Priority(0), Summary("Gets a tag with the given name.")]
+        [Command, Priority(0), Remarks("Gets a tag with the given name.")]
         public Task TagAsync([Remainder] string tagName)
         {
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -103,7 +103,7 @@
             return ReplyAsync(tag.Content, save: DocumentType.Server);
         }
 
-        [Command("Update"), Alias("Modify", "Change"), Remarks("Updates an existing tag. To specify more than one word, wrap your name with quotes \"like this\"."), Summary("Tag Update <tagName> <tagContent>"), Priority(1)]
+        [Command("Update"), Alias("Modify", "Change"), Summary("Updates an existing tag. To specify more than one word, wrap your name with quotes \"like this\"."), Remarks("Tag Update <tagName> <tagContent>"), Priority(1)]
         public Task UpdateAsync(string tagName, [Remainder] string tagContent)
         {
             if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
@@ -117,7 +117,7 @@
             return ReplyAsync($"Thank you, my ancestors. I will repay your gift. *Tag `{tagName}`'s contant has been updated.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("User"), Remarks("Shows all tags owned by you or a given user."), Summary("Tag User [@user]"), Priority(1)]
+        [Command("User"), Summary("Shows all tags owned by you or a given user."), Remarks("Tag User [@user]"), Priority(1)]
         public Task UserAsync(IGuildUser user = null)
         {
             user = user ?? Context.User as IGuildUser;

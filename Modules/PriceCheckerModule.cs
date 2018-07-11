@@ -14,11 +14,11 @@
     [Name("Price Checker Commands"), RequireRole("Price Checker"), Ratelimit]
     public class PriceCheckerModule : BotBase
     {
-        [Command("Mute", RunMode = RunMode.Async), Remarks("Mutes a user for the specified time and reason."), Summary("Mute <@user> <time> <reason>"), RequireChannel("trade-board")]
+        [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for the specified time and reason."), Remarks("Mute <@user> <time> <reason>"), RequireChannel("trade-board")]
         public Task MuteAsync(IGuildUser user, TimeSpan time, [Remainder] string reason)
             => GuildHelper.MuteUserAsync(Context, MuteType.Trade, user, time, reason);
 
-        [Command("Price"), Remarks("Adds, Deletes, or Updates the price for the currency."), Summary("Price <action> <league: Standard, Hardcore, Challenge, ChallengeHC> <name: Replace spaces with _ OR The Alias you're Updating or Deleting> <quantity> <price> <alias>"), RequireChannel("price-checkers")]
+        [Command("Price"), Summary("Adds, Deletes, or Updates the price for the currency."), Remarks("Price <action> <league: Standard, Hardcore, Challenge, ChallengeHC> <name: Replace spaces with _ OR The Alias you're Updating or Deleting> <quantity> <price> <alias>"), RequireChannel("price-checkers")]
         public Task PriceAsync(CommandAction action, Leagues league, string name, double quantity = double.NaN, double price = double.NaN, [Remainder] string alias = null)
         {
             switch (action)
@@ -100,7 +100,7 @@
             }
         }
 
-        [Command("Purge"), Alias("Prune"), Remarks("Deletes Messages, and can specify a user"), Summary("Purge [amount] [@user]"), RequireChannels(new string[] { "trade-board", "price-checks" })]
+        [Command("Purge"), Alias("Prune"), Summary("Deletes Messages, and can specify a user"), Remarks("Purge [amount] [@user]"), RequireChannels(new string[] { "trade-board", "price-checks" })]
         public Task PurgeAsync(int amount = 20, IGuildUser user = null)
         {
             if (user is null)
@@ -117,7 +117,7 @@
             }
         }
 
-        [Command("PriceReset"), Remarks("Resets all the prices for items to 0 for specified league reset."), Summary("PriceReset <league: Defaults to Challenge>"), RequireChannel("price-checkers")]
+        [Command("PriceReset"), Summary("Resets all the prices for items to 0 for specified league reset."), Remarks("PriceReset <league: Defaults to Challenge>"), RequireChannel("price-checkers")]
         public Task ResetAsync(Leagues league = Leagues.Challenge)
         {
             foreach (PriceObject price in Context.Server.Prices.Where(x => x.League == league).ToArray())
@@ -133,7 +133,7 @@
             return ReplyAsync($"For Tukohama! *All prices have been reset for the {league} League.* {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Warn", RunMode = RunMode.Async), Remarks("Warns a user with a specified reason."), Summary("Warn <@user> <reason>"), RequireChannel("trade-board")]
+        [Command("Warn", RunMode = RunMode.Async), Summary("Warns a user with a specified reason."), Remarks("Warn <@user> <reason>"), RequireChannel("trade-board")]
         public Task WarnAysnc(IGuildUser user, [Remainder] string reason)
             => GuildHelper.WarnUserAsync(Context, user, reason, MuteType.Trade);
     }

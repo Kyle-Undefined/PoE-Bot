@@ -40,7 +40,7 @@
             TwitchFeed
         }
 
-        [Command("Rss"), Remarks("Add or Delete an rss feed, also List all feeds."), Summary("Rss <action> [rss] [#channel] [tag]")]
+        [Command("Rss"), Summary("Add or Delete an rss feed, also List all feeds."), Remarks("Rss <action> [rss] [#channel] [tag]")]
         public async Task RssAsync(CommandAction action, string rss = null, IGuildChannel channel = null, string tag = null)
         {
             switch (action)
@@ -91,7 +91,7 @@
             }
         }
 
-        [Command("RssRoles"), Remarks("Add or Delete role(s) for a rss Feed."), Summary("RssRoles <rss> <#channel> <@role1> <@role2> ...")]
+        [Command("RssRoles"), Summary("Add or Delete role(s) for a rss Feed."), Remarks("RssRoles <rss> <#channel> <@role1> <@role2> ...")]
         public Task RssRolesAsync(string rss, IGuildChannel channel, params IRole[] roles)
         {
             if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
@@ -105,7 +105,7 @@
             return ReplyAsync($"{String.Join(", ", roles.Select(r => r.Name))} have been added to the `{rss}` feed {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("SelfRole"), Remarks("Add or Delete a role for users to Self Assign"), Summary("SelfRole <action> <role>")]
+        [Command("SelfRole"), Summary("Add or Delete a role for users to Self Assign"), Remarks("SelfRole <action> <role>")]
         public Task SelfRoleAsync(CommandAction action, IRole role)
         {
             switch (action)
@@ -129,7 +129,7 @@
             }
         }
 
-        [Command("Set"), Remarks("Sets certain values for current server's config."), Summary("Set <setting> [value]")]
+        [Command("Set"), Summary("Sets certain values for current server's config."), Remarks("Set <setting> [value]")]
         public Task SetAsync(Setting setting, [Remainder] string value = null)
         {
             ulong channel = Context.Guild.FindChannel(value);
@@ -206,7 +206,7 @@
             return ReplyAsync($"`{setting}` has been updated {Extras.OkHand}", save: DocumentType.Server);
         }
 
-        [Command("Settings", RunMode = RunMode.Async), Remarks("Displays guilds settings."), Summary("Settings")]
+        [Command("Settings", RunMode = RunMode.Async), Summary("Displays guilds settings."), Remarks("Settings")]
         public Task SettingsAsync()
         {
             string[] pages = new[] {
@@ -258,7 +258,7 @@
             return PagedReplyAsync(pages, $"{Context.Guild.Name} Settings");
         }
 
-        [Command("Setup", RunMode = RunMode.Async), Remarks("Set ups PoE Bot for your server."), Summary("Setup")]
+        [Command("Setup", RunMode = RunMode.Async), Summary("Set ups PoE Bot for your server."), Remarks("Setup")]
         public async Task SetupAsync()
         {
             if (Context.Server.IsConfigured)
@@ -304,7 +304,7 @@
             await setupMessage.ModifyAsync(x => x.Content = $"Configuration completed {Extras.OkHand}").ConfigureAwait(false);
         }
 
-        [Command("Toggle"), Remarks("Sets certain values for current server's config."), Summary("Toggle <toggleType>")]
+        [Command("Toggle"), Summary("Sets certain values for current server's config."), Remarks("Toggle <toggleType>")]
         public Task ToggleAsync(ToggleType toggleType)
         {
             string state;
