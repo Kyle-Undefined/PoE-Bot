@@ -65,7 +65,7 @@
             if (server.RoleSetChannel == channel.Id)
                 return;
 
-            IMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync().ConfigureAwait(false);
+            IMessage message = cache.HasValue ? cache.Value : await Task.Factory.StartNew(async () => await cache.GetOrDownloadAsync().ConfigureAwait(false)).Result.ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(message.Content) || message.Author.IsBot)
                 return;
 
