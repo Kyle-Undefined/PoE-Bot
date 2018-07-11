@@ -71,7 +71,7 @@
         }
 
         [Command("Case"), Remarks("Shows information about a specific case, or Deletes a case."), Summary("Case <action> [caseNumber] [user]")]
-        public Task CaseAsync(CommandAction action = CommandAction.List, int caseNumber = 0, SocketGuildUser user = null)
+        public Task CaseAsync(CommandAction action = CommandAction.List, int caseNumber = 0, IGuildUser user = null)
         {
             switch (action)
             {
@@ -145,7 +145,7 @@
                 $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nUser: {c.Username}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{Context.Guild.Name} {caseType} Cases");
 
         [Command("Cases"), Remarks("Lists all of the cases for a specified user in the guild."), Summary("Cases <user>")]
-        public Task CasesAsync(SocketGuildUser user)
+        public Task CasesAsync(IGuildUser user)
             => PagedReplyAsync(MethodHelper.Pages(Context.Server.UserCases.Where(c => c.UserId == user.Id).Select(c =>
                 $"Case Number: {c.Number}\nDate: {c.CaseDate.ToString("f")}\nType: {c.CaseType}\nReason: {c.Reason}\nModerator: {c.Moderator}\n")), $"{user.Username}'s Cases");
 
@@ -216,7 +216,7 @@
         }
 
         [Command("Leaderboard"), Summary("Leaderboard <action> [#channel] [enabled: True, False] [variant]"), Remarks("Adds, Deletes, or Updates a Leaderboard Variant. Lists Leaderboard Variants as well.")]
-        public async Task LeaderboardAsync(CommandAction action, SocketTextChannel channel = null, bool enabled = false, [Remainder] string variant = null)
+        public async Task LeaderboardAsync(CommandAction action, IGuildChannel channel = null, bool enabled = false, [Remainder] string variant = null)
         {
             switch (action)
             {
@@ -493,7 +493,7 @@
         }
 
         [Command("Streamer", RunMode = RunMode.Async), Summary("Streamer <streamType> <userName> [#channel: Defaults to #streams]"), Remarks("Adds or Delete a streamer to the Stream list.")]
-        public async Task StreamerAsync(CommandAction action, StreamType streamType = StreamType.Mixer, string userName = null, SocketTextChannel channel = null)
+        public async Task StreamerAsync(CommandAction action, StreamType streamType = StreamType.Mixer, string userName = null, IGuildChannel channel = null)
         {
             switch (action)
             {
@@ -501,7 +501,7 @@
                     if (Context.Server.Streams.Any(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == channel.Id))
                         await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{userName}` is already on the `{streamType}` list.*").ConfigureAwait(false);
 
-                    channel = channel ?? Context.Guild.DefaultStreamChannel() as SocketTextChannel;
+                    channel = channel ?? Context.Guild.DefaultStreamChannel() as IGuildChannel;
                     switch (streamType)
                     {
                         case StreamType.Mixer:
@@ -547,10 +547,10 @@
                     break;
 
                 case CommandAction.Delete:
-                    if (!Context.Server.Streams.Select(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (channel ?? Context.Guild.DefaultStreamChannel() as SocketTextChannel).Id).Any())
+                    if (!Context.Server.Streams.Select(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (channel ?? Context.Guild.DefaultStreamChannel() as IGuildChannel).Id).Any())
                         await ReplyAsync($"{Extras.Cross} My spirit is spent. *`{userName}` isn't on the `{streamType}` list.*").ConfigureAwait(false);
 
-                    StreamObject streamer = Context.Server.Streams.FirstOrDefault(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (Context.Guild.DefaultStreamChannel() as SocketTextChannel).Id);
+                    StreamObject streamer = Context.Server.Streams.FirstOrDefault(s => s.StreamType == streamType && s.Name == userName && s.ChannelId == (channel ?? Context.Guild.DefaultStreamChannel() as IGuildChannel).Id);
                     Context.Server.Streams.Remove(streamer);
                     await ReplyAsync($"Every death brings me life. *`{userName}` has been removed from the `{streamType}` list.* {Extras.OkHand}", save: DocumentType.Server).ConfigureAwait(false);
                     break;
@@ -570,7 +570,7 @@
         [Command("Streamer MultiAdd", RunMode = RunMode.Async), Summary("Streamer MultiAdd <streamType> <userNames>"), Remarks("Adds a list of streamers to the Stream list.")]
         public async Task StreamerMultiAddAsync(StreamType streamType, params string[] userNames)
         {
-            SocketTextChannel channel = Context.Guild.DefaultStreamChannel() as SocketTextChannel;
+            IGuildChannel channel = Context.Guild.DefaultStreamChannel() as IGuildChannel;
 
             foreach (string userName in userNames)
             {
@@ -641,9 +641,9 @@
             => GuildHelper.UnmuteUserAsync(Context, user);
 
         [Command("UserInfo"), Remarks("Displays information about a user."), Summary("UserInfo [@user]")]
-        public Task UserInfoAsync(SocketGuildUser user = null)
+        public Task UserInfoAsync(IGuildUser user = null)
         {
-            user = user ?? Context.User as SocketGuildUser;
+            user = user ?? Context.User as IGuildUser;
             return ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithAuthor($"{user.Username} Information | {user.Id}", user.GetAvatarUrl())
                 .WithThumbnailUrl(user.GetAvatarUrl())

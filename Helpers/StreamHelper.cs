@@ -2,7 +2,6 @@
 {
     using Addons;
     using Discord;
-    using Discord.WebSocket;
     using Handlers;
     using Newtonsoft.Json.Linq;
     using Objects;
@@ -115,7 +114,7 @@
 
     public partial class StreamHelper
     {
-        public static async Task BuildAndSend(StreamObject streamObject, SocketGuild guild, GuildObject server, ConfigObject config, DatabaseHandler databaseHandler, HttpClient httpClient)
+        public static async Task BuildAndSend(StreamObject streamObject, IGuild guild, GuildObject server, ConfigObject config, DatabaseHandler databaseHandler, HttpClient httpClient)
         {
             bool streamWasLive = streamObject.IsLive;
 
@@ -140,7 +139,7 @@
                             .WithThumbnailUrl(mixer.GetChannelGameCover(chanJson))
                             .WithImageUrl(mixer.GetChannelThumbnail(chanJson)).Build();
 
-                        SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
+                        IMessageChannel channel = await guild.GetChannelAsync(streamObject.ChannelId).ConfigureAwait(false) as IMessageChannel;
                         await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
                         streamObject.IsLive = true;
@@ -176,7 +175,7 @@
                                     .WithImageUrl(stream.ThumbnailUrl.Replace("{width}x{height}", "640x360"))
                                     .Build();
 
-                                SocketTextChannel channel = guild.GetChannel(streamObject.ChannelId) as SocketTextChannel;
+                                IMessageChannel channel = await guild.GetChannelAsync(streamObject.ChannelId).ConfigureAwait(false) as IMessageChannel;
                                 await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
 
                                 streamObject.IsLive = true;

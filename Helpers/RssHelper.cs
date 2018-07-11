@@ -2,7 +2,6 @@
 {
     using Addons;
     using Discord;
-    using Discord.WebSocket;
     using Handlers;
     using HtmlAgilityPack;
     using Objects;
@@ -17,7 +16,7 @@
 
     public class RssHelper
     {
-        public static async Task BuildAndSend(RssObject feed, SocketGuild guild, GuildObject server, DatabaseHandler databaseHandler, HttpClient httpClient)
+        public static async Task BuildAndSend(RssObject feed, IGuild guild, GuildObject server, DatabaseHandler databaseHandler, HttpClient httpClient)
         {
             var postUrls = feed.RecentUris.Any() ? feed.RecentUris : new List<string>();
             RssDataObject checkRss = await RssAsync(feed.FeedUri, httpClient).ConfigureAwait(false);
@@ -29,7 +28,7 @@
                 if (postUrls.Contains(item.Link))
                     continue;
 
-                SocketTextChannel channel = guild.GetChannel(feed.ChannelId) as SocketTextChannel;
+                IMessageChannel channel = await guild.GetChannelAsync(feed.ChannelId).ConfigureAwait(false) as IMessageChannel;
                 EmbedBuilder embed = Extras.Embed(Extras.RSS);
                 StringBuilder sb = new StringBuilder();
 
@@ -120,6 +119,9 @@
             databaseHandler.Save<GuildObject>(server, guild.Id);
         }
 
+        private static string CleanTitle(string title)
+            => title.Replace("*", string.Empty);
+
         private static async Task<string> GetAnnouncementImage(string url, HttpClient httpClient)
         {
             string imageURL = string.Empty;
@@ -150,9 +152,6 @@
 
             return imageURL;
         }
-
-        private static string CleanTitle(string title)
-            => title.Replace("*", string.Empty);
 
         private static string RoughStrip(string source)
         {

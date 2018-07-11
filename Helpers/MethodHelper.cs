@@ -1,7 +1,7 @@
 ﻿namespace PoE.Bot.Helpers
 {
     using Addons;
-    using Discord.WebSocket;
+    using Discord;
     using Raven.Client.Extensions;
     using System;
     using System.Collections.Generic;
@@ -24,7 +24,7 @@
             }
         }
 
-        public static (bool, string) CalculateResponse(SocketMessage message)
+        public static (bool, string) CalculateResponse(IMessage message)
             => message is null || string.IsNullOrWhiteSpace(message.Content)
             ? (false, $"{Extras.Cross} There is a fine line between consideration and hesitation. The former is wisdom, the latter is fear. *Request Timed Out*")
             : message.Content.ToLower().Equals("c")

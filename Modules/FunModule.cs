@@ -36,8 +36,8 @@
             }).ConfigureAwait(false);
 
         [Command("Enhance"), Remarks("Enhances the Emote into a larger size."), Summary("Enhance <#channel> <messageId>")]
-        public async Task EnhanceAsync(SocketTextChannel channel, ulong messageId)
-            => await EnhanceAsync((await channel.GetMessageAsync(messageId).ConfigureAwait(false)).Content).ConfigureAwait(false);
+        public async Task EnhanceAsync(IGuildChannel channel, ulong messageId)
+            => await EnhanceAsync((await (channel as SocketTextChannel).GetMessageAsync(messageId).ConfigureAwait(false)).Content).ConfigureAwait(false);
 
         [Command("Expand"), Remarks("Converts text to full width."), Summary("Expand <text>")]
         public Task ExpandAsync([Remainder] string text)
@@ -166,9 +166,9 @@
             => ReplyAsync("█▀█ █▄█ ▀█▀");
 
         [Command("Profile"), Remarks("Shows a users profile."), Summary("Profile [@user]")]
-        public Task ProfileAsync(SocketGuildUser user = null)
+        public Task ProfileAsync(IGuildUser user = null)
         {
-            user = user ?? Context.User as SocketGuildUser;
+            user = user ?? Context.User as IGuildUser;
             ProfileObject profile = GuildHelper.GetProfile(Context.DatabaseHandler, Context.Guild.Id, user.Id);
             Embed embed = Extras.Embed(Extras.Info)
                 .WithAuthor($"{user.Username}'s Profile", user.GetAvatarUrl())

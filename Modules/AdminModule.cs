@@ -4,7 +4,6 @@
     using Addons.Preconditions;
     using Discord;
     using Discord.Commands;
-    using Discord.WebSocket;
     using Helpers;
     using Objects;
     using System;
@@ -42,7 +41,7 @@
         }
 
         [Command("Rss"), Remarks("Add or Delete an rss feed, also List all feeds."), Summary("Rss <action> [rss] [#channel] [tag]")]
-        public async Task RssAsync(CommandAction action, string rss = null, SocketTextChannel channel = null, string tag = null)
+        public async Task RssAsync(CommandAction action, string rss = null, IGuildChannel channel = null, string tag = null)
         {
             switch (action)
             {
@@ -93,7 +92,7 @@
         }
 
         [Command("RssRoles"), Remarks("Add or Delete role(s) for a rss Feed."), Summary("RssRoles <rss> <#channel> <@role1> <@role2> ...")]
-        public Task RssRolesAsync(string rss, SocketTextChannel channel, params IRole[] roles)
+        public Task RssRolesAsync(string rss, IGuildChannel channel, params IRole[] roles)
         {
             if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
                 return ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.");

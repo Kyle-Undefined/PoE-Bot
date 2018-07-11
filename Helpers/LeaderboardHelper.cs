@@ -4,7 +4,6 @@
     using CsvHelper;
     using CsvHelper.Configuration;
     using Discord;
-    using Discord.WebSocket;
     using Objects;
     using System.Collections.Generic;
     using System.IO;
@@ -82,7 +81,7 @@
 
     public partial class LeaderboardHelper
     {
-        public static async Task BuildAndSend(LeaderboardObject leaderboard, SocketGuild guild, HttpClient httpClient)
+        public static async Task BuildAndSend(LeaderboardObject leaderboard, IGuild guild, HttpClient httpClient)
         {
             List<LeaderboardData> racers = new List<LeaderboardData>();
 
@@ -468,7 +467,7 @@
                     discordians.AddField("Witches, Necromancers, Occultists, Elemantalists", $"```{sb.ToString()}```");
                 }
 
-                SocketTextChannel channel = guild.GetTextChannel(leaderboard.ChannelId);
+                IMessageChannel channel = await guild.GetChannelAsync(leaderboard.ChannelId).ConfigureAwait(false) as IMessageChannel;
                 var messages = await channel.GetMessagesAsync().FlattenAsync().ConfigureAwait(false);
                 foreach (IMessage msg in messages)
                     await msg.DeleteAsync().ConfigureAwait(false);
