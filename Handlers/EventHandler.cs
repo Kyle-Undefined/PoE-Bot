@@ -65,7 +65,7 @@
             if (server.RoleSetChannel == channel.Id)
                 return;
 
-            IMessage message = cache.HasValue ? cache.Value : await Task.Factory.StartNew(async () => await cache.GetOrDownloadAsync().ConfigureAwait(false)).Result.ConfigureAwait(false);
+            IMessage message = cache.Value ?? await Task.Factory.StartNew(async () => await cache.GetOrDownloadAsync().ConfigureAwait(false)).Result.ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(message.Content) || message.Author.IsBot)
                 return;
 
@@ -88,7 +88,7 @@
                 .WithThumbnailUrl(message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl())
                 .WithTitle("Message Deleted")
                 .AddField("**Channel**:", $"#{message.Channel.Name}")
-                .AddField("**Content**:", $"{(message.Attachments.Any() ? message.Attachments.FirstOrDefault()?.Url : message.Content)}")
+                .AddField("**Content**:", $"{(message.Attachments.FirstOrDefault()?.Url ?? message.Content)}")
                 .WithCurrentTimestamp()
                 .Build();
             SocketGuild guild = (message.Author as SocketGuildUser).Guild;
@@ -154,7 +154,7 @@
                     if (!(guild.GetTextChannel(server.BotChangeChannel) is IMessageChannel BotChangeChannel))
                         return;
 
-                    IUserMessage message = cache.HasValue ? cache.Value : await cache.GetOrDownloadAsync().ConfigureAwait(false);
+                    IUserMessage message = cache.Value ?? await cache.GetOrDownloadAsync().ConfigureAwait(false);
                     if (reactionAdded)
                         await BotChangeChannel.SendMessageAsync(message.Content).ConfigureAwait(false);
                     else

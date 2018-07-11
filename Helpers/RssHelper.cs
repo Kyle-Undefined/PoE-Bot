@@ -18,7 +18,7 @@
     {
         public static async Task BuildAndSend(RssObject feed, IGuild guild, GuildObject server, DatabaseHandler databaseHandler, HttpClient httpClient)
         {
-            var postUrls = feed.RecentUris.Any() ? feed.RecentUris : new List<string>();
+            var postUrls = feed.RecentUris ?? new List<string>();
             RssDataObject checkRss = await RssAsync(feed.FeedUri, httpClient).ConfigureAwait(false);
             if (checkRss is null)
                 return;

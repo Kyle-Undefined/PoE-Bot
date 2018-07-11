@@ -281,11 +281,11 @@
 
         [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for a given time. Time: Defaults to 5 minutes, can be specified as | Number(d/h/m/s) Example: 10m for 10 Minutes"), Remarks("Mute <@user> [time] [reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser user, TimeSpan? time, [Remainder] string reason = null)
-            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, (time.HasValue ? time : TimeSpan.FromMinutes(5)), (!(reason is null) ? reason : "No reason specified."));
+            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, (time ?? TimeSpan.FromMinutes(5)), reason ?? "No reason specified.");
 
         [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for 5 minutes."), Remarks("Mute <@user> [reason]"), BotPermission(GuildPermission.ManageRoles)]
         public Task MuteAsync(IGuildUser user, [Remainder] string reason = null)
-            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, TimeSpan.FromMinutes(5), (!(reason is null) ? reason : "No reason specified."));
+            => GuildHelper.MuteUserAsync(Context, MuteType.Mod, user, TimeSpan.FromMinutes(5), reason ?? "No reason specified.");
 
         [Command("Profanity"), Remarks("Profanity <action> [word]"), Summary("Adds or Deletes a word for the Profanity List.")]
         public Task ProfanityAsync(CommandAction action, string word = null)

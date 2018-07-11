@@ -62,10 +62,10 @@
             return (user as SocketGuildUser).Roles.Any(x => x.Position >= highestRole);
         }
 
-        public static async Task LogAsync(DatabaseHandler databaseHandler, IGuild guild, IUser user, IUser mod, CaseType caseType, string reason)
+        public static async Task LogAsync(DatabaseHandler databaseHandler, IGuild guild, IUser user, IUser mod, CaseType caseType, string reason = null)
         {
             GuildObject server = databaseHandler.Execute<GuildObject>(Operation.Load, id: guild.Id);
-            reason = string.IsNullOrWhiteSpace(reason) ? $"*Exile, please type `{server.Prefix}Reason {server.UserCases.Count + 1} <reason>`*" : reason;
+            reason = reason ?? $"*Exile, please type `{server.Prefix}Reason {server.UserCases.Count + 1} <reason>`*";
             ITextChannel modChannel = await guild.GetTextChannelAsync(server.ModLog).ConfigureAwait(false);
             IUserMessage message = null;
             if (!(modChannel is null))
@@ -219,9 +219,7 @@
                 return "Not Set.";
 
             SocketTextChannel channel = (guild as SocketGuild)?.GetTextChannel(id);
-            return channel is null
-                ? $"Unknown ({id})"
-                : channel.Name;
+            return channel?.Name ?? $"Unknown ({id})";
         }
 
         public static string ValidateRole(this IGuild guild, ulong id)
@@ -230,9 +228,7 @@
                 return "Not Set";
 
             IRole role = guild.GetRole(id);
-            return role is null
-                ? $"Unknown ({id})"
-                : role.Name;
+            return role?.Name ?? $"Unknown ({id})";
         }
 
         public static string ValidateUser(this IGuild guild, ulong id)
