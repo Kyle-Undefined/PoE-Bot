@@ -198,7 +198,7 @@
         [Command("YEEEEAAAHHH", RunMode = RunMode.Async), Alias("Yeah"), Remarks("YEEEEAAAHHH"), Summary("YEEEEAAAHHH")]
         public async Task YeahAsync()
         {
-            IUserMessage message = await ReplyAsync("( •_•)");
+            IUserMessage message = await ReplyAsync("( •_•)").ConfigureAwait(false);
             await Task.Delay(1000).ConfigureAwait(false);
             await message.ModifyAsync(x => x.Content = "( •_•)>⌐■-■").ConfigureAwait(false);
             await Task.Delay(1200).ConfigureAwait(false);

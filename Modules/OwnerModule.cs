@@ -52,7 +52,7 @@
         [Command("Eval", RunMode = RunMode.Async), Remarks("Evaluates C# code."), Summary("Eval <code>")]
         public async Task EvalAsync([Remainder] string code)
         {
-            IUserMessage message = await ReplyAsync("Debugging ...");
+            IUserMessage message = await ReplyAsync("Debugging ...").ConfigureAwait(false);
             var imports = Context.Config.Namespaces.Any()
                 ? Context.Config.Namespaces
                 : new[] { "System", "System.Linq", "System.Collections.Generic", "System.IO", "System.Threading.Tasks" }.ToList();
@@ -134,7 +134,7 @@
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
                 .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
-            await ReplyAsync(embed: embed);
+            await ReplyAsync(embed: embed).ConfigureAwait(false);
         }
 
         [Command("Update", RunMode = RunMode.Async), Remarks("Updates PoE Bots Information."), Summary("Update <setting> <value>")]
@@ -145,7 +145,7 @@
             {
                 case Setting.Avatar:
                     string imagePath = string.IsNullOrWhiteSpace(value)
-                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).IconUrl)
+                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).IconUrl).ConfigureAwait(false)
                         : value;
                     await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imagePath)).ConfigureAwait(false);
                     break;
@@ -180,7 +180,7 @@
                     save = DocumentType.Config;
                     break;
             }
-            await ReplyAsync($"Bot has been updated {Extras.OkHand}", save: save);
+            await ReplyAsync($"Bot has been updated {Extras.OkHand}", save: save).ConfigureAwait(false);
         }
     }
 }

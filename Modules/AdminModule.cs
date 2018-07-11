@@ -49,7 +49,7 @@
                 case CommandAction.Add:
                     if (Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
                     {
-                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` already exists.");
+                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` already exists.").ConfigureAwait(false);
                         return;
                     }
 
@@ -60,19 +60,19 @@
                         Tag = tag
                     });
 
-                    await ReplyAsync($"`{rss}` has been added to server's Rss Feed {Extras.OkHand}", save: DocumentType.Server);
+                    await ReplyAsync($"`{rss}` has been added to server's Rss Feed {Extras.OkHand}", save: DocumentType.Server).ConfigureAwait(false);
                     break;
 
                 case CommandAction.Delete:
                     if (!Context.Server.RssFeeds.Any(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id))
                     {
-                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.");
+                        await ReplyAsync($"{Extras.Cross} `{rss}` for `{channel.Name}` doesn't exist.").ConfigureAwait(false);
                         return;
                     }
 
                     RssObject rssObject = Context.Server.RssFeeds.FirstOrDefault(f => f.FeedUri == new Uri(rss) && f.ChannelId == channel.Id);
                     Context.Server.RssFeeds.Remove(rssObject);
-                    await ReplyAsync($"`{rss}` has been removed from server's Rss Feed {Extras.OkHand}", save: DocumentType.Server);
+                    await ReplyAsync($"`{rss}` has been removed from server's Rss Feed {Extras.OkHand}", save: DocumentType.Server).ConfigureAwait(false);
                     break;
 
                 case CommandAction.List:
@@ -83,11 +83,11 @@
 
                     await ReplyAsync(!Context.Server.RssFeeds.Any()
                         ? $"{Extras.Cross}This server isn't subscribed to any feeds."
-                        : $"**Subbed To Following RSS Feeds**:\n{sb.ToString()}");
+                        : $"**Subbed To Following RSS Feeds**:\n{sb.ToString()}").ConfigureAwait(false);
                     break;
 
                 default:
-                    await ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.");
+                    await ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete` or `List`.").ConfigureAwait(false);
                     break;
             }
         }
@@ -264,11 +264,11 @@
         {
             if (Context.Server.IsConfigured)
             {
-                await ReplyAsync($"{Extras.Cross} {Context.Guild} has already been configured.");
+                await ReplyAsync($"{Extras.Cross} {Context.Guild} has already been configured.").ConfigureAwait(false);
                 return;
             }
             var channels = await Context.Guild.GetTextChannelsAsync().ConfigureAwait(false);
-            IUserMessage setupMessage = await ReplyAsync($"Initializing *{Context.Guild}'s* config .... ");
+            IUserMessage setupMessage = await ReplyAsync($"Initializing *{Context.Guild}'s* config .... ").ConfigureAwait(false);
 
             ITextChannel modLogChannel = channels.FirstOrDefault(x => x.Name is "cases") ?? await Context.Guild.CreateTextChannelAsync("cases").ConfigureAwait(false);
             ITextChannel logChannel = channels.FirstOrDefault(x => x.Name is "logs") ?? await Context.Guild.CreateTextChannelAsync("logs").ConfigureAwait(false);

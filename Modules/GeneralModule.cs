@@ -59,7 +59,7 @@
                 .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
                 .AddField("Izaro", $"[@{(await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner}](https://discord.me/poe_xbox)", true)
                 .Build();
-            await ReplyAsync(embed: embed);
+            await ReplyAsync(embed: embed).ConfigureAwait(false);
         }
 
         [Command("AFK"), Remarks("Adds, Deletes or Updates your AFK status."), Summary("AFK <action> <afkMessage>")]
@@ -99,12 +99,12 @@
             var message = MethodHelper.CalculateResponse(await WaitAsync("Wisdom is the offspring of Suffering and Time. *Please provide your feedback in a couple sentences.*", timeout: TimeSpan.FromMinutes(1)).ConfigureAwait(false));
             if (!message.Item1)
             {
-                await ReplyAsync(message.Item2);
+                await ReplyAsync(message.Item2).ConfigureAwait(false);
                 return;
             }
             IMessageChannel channel = (Context.Client as DiscordSocketClient).GetChannel(Context.Config.FeedbackChannel) as IMessageChannel;
             await channel.SendMessageAsync(message.Item2).ConfigureAwait(false);
-            await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}");
+            await ReplyAsync($"Behold the machinery at maximum efficiency! {Extras.OkHand}").ConfigureAwait(false);
         }
 
         [Command("Hide"), Remarks("Hides the League sections you aren't interested in."), Summary("Hide <name>"), RequireChannel("role-setup")]
@@ -149,7 +149,7 @@
         public async Task PingAsync()
             => await ReplyAsync(embed: Extras.Embed(Extras.Info)
                 .WithTitle("Wisdom is the offspring of Suffering and Time.")
-                .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build());
+                .AddField("Gateway", $"{(Context.Client as DiscordSocketClient).Latency} ms").Build()).ConfigureAwait(false);
 
         [Command("PoB"), Remarks("Parses the PasteBin export from Path of Building and shows the information about the build."), Summary("PoB <pasteBinURL>")]
         public async Task PoBAsync([Remainder] string pasteBinURL)
@@ -180,11 +180,11 @@
 
                 embed.AddField("**Info**:", $"[Tree]({PathOfBuildingHelper.GenerateTreeURL(character.Tree, Context.HttpClient)}) - powered by [Path of Building](https://github.com/Openarl/PathOfBuilding) - Help from [Faust](https://github.com/FWidm/discord-pob) and [thezensei](https://github.com/andreandersen/LiftDiscord/).");
 
-                await ReplyAsync(embed: embed.Build());
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"Error fetching build data. Reason: {ex.Message}");
+                await ReplyAsync($"Error fetching build data. Reason: {ex.Message}").ConfigureAwait(false);
             }
         }
 
@@ -232,7 +232,7 @@
             });
 
             Context.Server.Reminders.AddOrUpdate(Context.User.Id, reminders, (key, value) => reminders);
-            await ReplyAsync($"This land has forgotten Karui strength, {Context.User.Mention}. I will remind it. ({StringHelper.FormatTimeSpan(time)})", save: DocumentType.Server);
+            await ReplyAsync($"This land has forgotten Karui strength, {Context.User.Mention}. I will remind it. ({StringHelper.FormatTimeSpan(time)})", save: DocumentType.Server).ConfigureAwait(false);
         }
 
         [Command("Reminder"), Remarks("Deletes a reminder, or Lists your reminders."), Summary("Reminder <action> [number]")]
@@ -340,6 +340,6 @@
 
         [Command("Wiki"), Remarks("Searches an item on the Path of Exile Wiki."), Summary("Wiki <item>")]
         public async Task WikiAsync([Remainder] string item)
-            => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(item, Context.HttpClient));
+            => await ReplyAsync(embed: await WikiHelper.WikiGetItemAsync(item, Context.HttpClient).ConfigureAwait(false)).ConfigureAwait(false);
     }
 }
