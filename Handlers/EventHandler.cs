@@ -112,14 +112,14 @@
             if (message.Content.Contains("[["))
             {
                 string item = message.Content.Split('[', ']')[2];
-                IResult result = await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best).ConfigureAwait(false);
+                IResult result = await Task.Factory.StartNew(async () => await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best).ConfigureAwait(false)).Result.ConfigureAwait(false);
             }
             else
             {
                 if (!(message.HasStringPrefix(Config.Prefix, ref argPos) || message.HasCharPrefix(context.Server.Prefix, ref argPos)))
                     return;
 
-                IResult result = await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best).ConfigureAwait(false);
+                IResult result = await Task.Factory.StartNew(async () => await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best).ConfigureAwait(false)).Result.ConfigureAwait(false);
                 switch (result.Error)
                 {
                     case CommandError.UnmetPrecondition:
