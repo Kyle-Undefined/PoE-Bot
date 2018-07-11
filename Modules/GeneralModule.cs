@@ -121,7 +121,7 @@
                 return ReplyAndDeleteAsync($"Hm. How fascinating. *Role has been removed from you.* {Extras.OkHand}");
             });
 
-        [Command("IAgree"), Remarks("You agree to the rules."), Summary("IAgree"), RequireChannel("role-setup")]
+        [Command("IAgree"), Alias("Agree"), Remarks("You agree to the rules."), Summary("IAgree"), RequireChannel("role-setup")]
         public Task IAgreeAsync()
             => Context.Message.DeleteAsync().ContinueWith(_ =>
             {
