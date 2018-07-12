@@ -69,7 +69,7 @@
                                     if (Channel is null)
                                         MethodHelper.RunSync(user.GetOrCreateDMChannelAsync()).SendMessageAsync($"({StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)}) {reminder.Message}");
                                     else
-                                        MethodHelper.RunSync(Channel.SendMessageAsync($"{user.Mention}, {StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)} ago you asked me to remind you about {reminder.Message}"));
+                                        MethodHelper.RunSync(Channel.SendMessageAsync($"{user.Mention}, {StringHelper.FormatTimeSpan(reminder.ExpiryDate - reminder.RequestedDate)} ago you asked me to remind you about `{reminder.Message}`"));
 
                                     reminders.Remove(reminder);
                                     server.Reminders.TryUpdate(kvpReminder.Key, reminders, kvpReminder.Value);

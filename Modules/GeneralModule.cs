@@ -262,7 +262,7 @@
 
             reminders.Add(new RemindObject
             {
-                Message = message,
+                Message = message.Replace("`", string.Empty),
                 TextChannel = Context.Channel.Id,
                 RequestedDate = DateTime.Now,
                 ExpiryDate = DateTime.Now.Add(time)
