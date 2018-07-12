@@ -65,7 +65,7 @@
             if (server.RoleSetChannel == channel.Id)
                 return;
 
-            IMessage message = cache.Value ?? await Task.Factory.StartNew(async () => await cache.GetOrDownloadAsync().ConfigureAwait(false)).Result.ConfigureAwait(false);
+            IMessage message = cache.Value ?? await cache.GetOrDownloadAsync().ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(message.Content) || message.Author.IsBot)
                 return;
 
@@ -93,7 +93,7 @@
                 .Build();
             SocketGuild guild = (message.Author as SocketGuildUser).Guild;
             SocketTextChannel mod = guild.GetTextChannel(server.AllLog);
-            await Task.Factory.StartNew(async () => await mod.SendMessageAsync(embed: embed).ConfigureAwait(false));
+            await mod.SendMessageAsync(embed: embed).ConfigureAwait(false);
         }
 
         internal async Task MessageReceivedAsync(SocketMessage socketMessage)
@@ -112,14 +112,14 @@
             if (message.Content.Contains("[["))
             {
                 string item = message.Content.Split('[', ']')[2];
-                IResult result = await Task.Factory.StartNew(async () => await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best).ConfigureAwait(false)).Result.ConfigureAwait(false);
+                IResult result = await CommandService.ExecuteAsync(context, $"Wiki {item}", Provider, MultiMatchHandling.Best).ConfigureAwait(false);
             }
             else
             {
                 if (!(message.HasStringPrefix(Config.Prefix, ref argPos) || message.HasCharPrefix(context.Server.Prefix, ref argPos)))
                     return;
 
-                IResult result = await Task.Factory.StartNew(async () => await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best).ConfigureAwait(false)).Result.ConfigureAwait(false);
+                IResult result = await CommandService.ExecuteAsync(context, argPos, Provider, MultiMatchHandling.Best).ConfigureAwait(false);
                 switch (result.Error)
                 {
                     case CommandError.UnmetPrecondition:
