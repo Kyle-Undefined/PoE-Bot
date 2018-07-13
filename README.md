@@ -41,5 +41,5 @@ And many more!
 ### Credits
 
 * Thanks to `Cidna#5074` for the logo.
-* [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR), [Discord.Net](https://github.com/RogueException/Discord.Net), and [`Still Docs](https://docs.stillu.cc) for all the recources.
+* [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR), [Discord.Net](https://github.com/RogueException/Discord.Net), and [`Still Docs](https://docs.stillu.cc) for all the resources.
 * [Yucked](https://github.com/Yucked) for the design of a better structured bot than mine.
