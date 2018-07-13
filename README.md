@@ -4,6 +4,7 @@
 	<p align="center">
 		A bot for the Path Of Exile Xbox Discord server. Includes PoE Wiki Search, Community Pricing, Personal Shops, Tags, Fun & Game Commands, Twitch/Mixer Integration, RSS Feeds, Moderation, and more!
 		<br/><br/>
+		<a href="https://ci.appveyor.com/project/Kyle-Undefined/poe-bot"><img src="https://ci.appveyor.com/api/projects/status/n57hhid7qefr1vqa/branch/master"/></a>
 		<a href="https://ravendb.net"><img src="https://img.shields.io/badge/Powered%20By-RavenDB-E50935.svg?longCache=true&style=flat-square"/></a>
 		<a href="https://discord.gg/PGXQs4t"><img src="https://img.shields.io/badge/Join-PoE%20Xbox-7289DA.svg?longCache=true&style=flat-square&logo=discord"/></a>
 	</p>
@@ -43,6 +44,6 @@ I wrote the bot a long time ago, even before the initial commit and it was just 
 
 Hanging around in the [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR) channel I saw examples of the "proper" and better way of building a [Discord.Net](https://github.com/RogueException/Discord.Net) bot. I didn't understand any of it, and reading the [docs](https://docs.stillu.cc) only seemed to make it worse somehow.
 
-I came across [Yucked](https://github.com/Yucked)'s bot [Valerie](https://github.com/Yucked/Valerie) and fell in love with how it was done. I was able to learn and study and well put together bot, and see how it all works. Admittedly, a huge portion of the new rework idea goes to him and I followed his design as it makes the most sense to me. He's a much smarter person than I. Go give him support, as he is much more deserving. Oh, and [buy him a coffee or three](https://www.buymeacoffee.com/Yucked)!
+I came across [Yucked](https://github.com/Yucked)'s bot [Valerie](https://github.com/Yucked/Valerie) and fell in love with how it was done. I was able to learn and study a well put together bot, and see how it all works. Admittedly, a huge portion of the new rework idea goes to him and I followed his design as it makes the most sense to me. He's a much smarter person than I. Go give him support, as he is much more deserving. Oh, and [buy him a coffee or three](https://www.buymeacoffee.com/Yucked)!
 
 Also, thanks `Cidna#5074` for the logo!
