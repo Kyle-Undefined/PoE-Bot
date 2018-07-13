@@ -40,10 +40,6 @@ And many more!
 
 ### Credits
 
-I wrote the bot a long time ago, even before the initial commit and it was just supposed to be a simple Wiki search bot. Over time more and more things were requested and it got to what it is today. During that time, I rewrote the bot as it needed it. The code was a mess, and was all over the place. I thought I had a much better system until I went to go work on it, or expand the features, it was a nightmare. 
-
-Hanging around in the [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR) channel I saw examples of the "proper" and better way of building a [Discord.Net](https://github.com/RogueException/Discord.Net) bot. I didn't understand any of it, and reading the [docs](https://docs.stillu.cc) only seemed to make it worse somehow.
-
-I came across [Yucked](https://github.com/Yucked)'s bot [Valerie](https://github.com/Yucked/Valerie) and fell in love with how it was done. I was able to learn and study a well put together bot, and see how it all works. Admittedly, a huge portion of the new rework idea goes to him and I followed his design as it makes the most sense to me. He's a much smarter person than I. Go give him support, as he is much more deserving. Oh, and [buy him a coffee or three](https://www.buymeacoffee.com/Yucked)!
-
-Also, thanks `Cidna#5074` for the logo!
+* Thanks to `Cidna#5074` for the logo.
+* [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR), [Discord.Net](https://github.com/RogueException/Discord.Net), and [`Still Docs](https://docs.stillu.cc) for all the recources.
+* [Yucked](https://github.com/Yucked) for the design of a better structured bot than mine.
