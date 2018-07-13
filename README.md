@@ -1,19 +1,15 @@
-![PoE Bot](https://i.imgur.com/BWsSbVi.png)
+<p align="center">
+	<img src="https://i.imgur.com/BWsSbVi.png" />
+	<h2 align="center">PoE Bot</h2>
+	<p align="center">
+		A bot for the Path Of Exile Xbox Discord server. Includes PoE Wiki Search, Community Pricing, Personal Shops, Tags, Fun & Game Commands, Twitch/Mixer Integration, RSS Feeds, Moderation, and more!
+		<br/><br/>
+		<a href="https://ravendb.net"><img src="https://img.shields.io/badge/Powered%20By-RavenDB-E50935.svg?longCache=true&style=flat-square"/></a>
+		<a href="https://discord.gg/PGXQs4t"><img src="https://img.shields.io/badge/Join-PoE%20Xbox-7289DA.svg?longCache=true&style=flat-square&logo=discord"/></a>
+	</p>
+</p>
 
-
-#PoE Bot
-
-A bot for the Path Of Exile Xbox Discord server. Includes PoE Wiki Search, Community Pricing, Personal Shops, Tags, Fun & Game Commands, Twitch/Mixer Integration, RSS Feeds, Moderation, and more!
-* * *
-
-![Powered By RavenDB](https://img.shields.io/badge/Powered%20By-RavenDB-E50935.svg?longCache=true&style=flat-square)
-![Join PoE Xbox Discord](https://img.shields.io/badge/Join-PoE%20Xbox-7289DA.svg?longCache=true&style=flat-square&logo=discord)
-
- [RavenDB](https://ravendb.net) - [Join PoE Xbox Discord](https://discord.gg/PGXQs4t)
- 
- * * *
-
-##Features
+### Features
 
 Here is just an overview of some of the features:
 
@@ -29,19 +25,19 @@ Here is just an overview of some of the features:
     * Display your Path of Building builds in the channels using the PasteBin export
 * Trials of Ascendancy
     * Add/Remove Trials you need for Uber Lab, and notify/get notified when people come across them
-* Hide/Show League Categories based on Reaction
+* PoE Lab Notes integration
+    * Automatically posts the updated Lab notes for Uber, Merciless, Cruel, and Normal lab.
+* Hide/Show League Categories based on self assigned roles
 * Useful & Fun Commands
-    * User Reporting, Feedback, Guild/User/Role Info, Reminders, Memes, etc
+    * User Reporting, Feedback, Reminders, Memes, etc
 * Twitch/Mixer Integraion
 * RSS Feeds
 * Moderation
-    * Mute, Kick, Ban, Warning System, Purge, AutoMod Mutes, Profanity Filter, Rule Setup, Cases, etc
+    * Mute, Kick, Ban, Warning System, Purge, Auto Mute, Profanity Filter, Rule Setup, Cases, etc
 	
 And many more!
-	 
- * * *
 
-##Credits
+### Credits
 
 I wrote the bot a long time ago, even before the initial commit and it was just supposed to be a simple Wiki search bot. Over time more and more things were requested and it got to what it is today. During that time, I rewrote the bot as it needed it. The code was a mess, and was all over the place. I thought I had a much better system until I went to go work on it, or expand the features, it was a nightmare. 
 
