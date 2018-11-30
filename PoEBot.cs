@@ -16,6 +16,8 @@
     {
         private static async Task Main(string[] args)
         {
+            Console.WriteLine("Casino woz 'ere");
+            
             IServiceCollection services = new ServiceCollection()
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
                 {
