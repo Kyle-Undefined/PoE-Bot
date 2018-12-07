@@ -35,8 +35,8 @@ And many more!
 ### Runtime
 
 * Visual Studio 2019 Preview
-* .Net Core 2.2 or newer
-* Entity Framework Core 2.2 or newer
+* .Net Core 3.0 Preview 1
+* Entity Framework Core 3.0 Preview 1
 
 ### Credits
 
