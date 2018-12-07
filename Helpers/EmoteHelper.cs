@@ -16,8 +16,8 @@
         public static Emoji Next => new Emoji("\u27A1");
         public static Emoji OkHand => new Emoji("\uD83D\uDC4C");
         public static Emoji Warning => new Emoji("\u26A0");
-        public static Emote Xbox => Emote.Parse("<:Xbox:514508792109596692>");
-        public static Emote Playstation => Emote.Parse("<:Playstation:514508780885770247>");
+        public static Emote Xbox => Emote.Parse("<:Xbox:514508128721698838>");
+        public static Emote Playstation => Emote.Parse("<:Playstation:514508160896204822>");
         public static Emoji Announcement => new Emoji("\uD83D\uDCE3");
         public static Emoji Lottery => new Emoji("\uD83C\uDF9F");
     }
