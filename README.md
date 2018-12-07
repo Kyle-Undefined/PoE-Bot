@@ -2,7 +2,7 @@
 	<img src="https://i.imgur.com/Dz9tMeG.png" />
 	<h2 align="center">PoE Bot</h2>
 	<p align="center">
-		A bot for the Path Of Exile Consoles Discord guild, bringing PC-like features over to Consoles.
+		A bot for the Path Of Exile Console Discord guild, bringing PC-like features over to Consoles.
 		<br/><br/>
 		<a href="https://ci.appveyor.com/project/Kyle-Undefined/poe-bot"><img src="https://ci.appveyor.com/api/projects/status/n57hhid7qefr1vqa?svg=true"/></a>
 		<a href="https://opensource.org/licenses/ISC"><img src="http://img.shields.io/badge/license-ISC-brightgreen.svg?longCache=true&style=flat-square" /></a>
@@ -34,6 +34,7 @@ And many more!
 
 ### Runtime
 * .Net Core 3.0 Preview 1 (3.0.100-preview-009812)
+	* Currently set to 2.2 for Continuous Integration
 * Entity Framework Core (3.0.0-preview.18572.1)
 * Visual Studio 2019 Preview
 
