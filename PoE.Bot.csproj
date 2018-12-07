@@ -3,6 +3,8 @@
     <OutputType>Exe</OutputType>
     <LangVersion>latest</LangVersion>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <ApplicationIcon>Resources\Images\PoE-Logo.ico</ApplicationIcon>
+    <Win32Resource />
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Migrations\20181122154752_Role-changes.cs" />
@@ -132,6 +134,9 @@
     </None>
     <None Update="Resources\Images\Path-Of-Building\Classes\Witch.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\PoE-Logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>
