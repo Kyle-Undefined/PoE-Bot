@@ -4,7 +4,7 @@
 	<p align="center">
 		A bot for the Path Of Exile Console Discord guild, bringing PC-like features over to Consoles.
 		<br/><br/>
-		<a href="https://ci.appveyor.com/project/Kyle-Undefined/poe-bot"><img src="https://ci.appveyor.com/api/projects/status/n57hhid7qefr1vqa?svg=true"/></a>
+		<a href="https://github.com/marketplace/azure-pipelines"><img src="https://kyleharvison.visualstudio.com/poe-bot/_apis/build/status/poe-bot-CI"/></a>
 		<a href="https://opensource.org/licenses/ISC"><img src="http://img.shields.io/badge/license-ISC-brightgreen.svg?longCache=true&style=flat-square" /></a>
 		<a href="https://discord.gg/94WWV48"><img src="https://img.shields.io/badge/Join-Support%20Guild-7289DA.svg?longCache=true&style=flat-square&logo=discord" /></a>
 	</p>
