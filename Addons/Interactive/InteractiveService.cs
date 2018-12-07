@@ -1,96 +1,119 @@
 ﻿namespace PoE.Bot.Addons.Interactive
 {
-    using Criterias;
     using Discord;
-    using Discord.Commands;
     using Discord.WebSocket;
-    using Paginator;
+    using PoE.Bot.Attributes;
+    using PoE.Bot.Contexts;
+    using Qmmands;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
 
+    [Service]
     public class InteractiveService : IDisposable
     {
-        public InteractiveService(DiscordSocketClient client)
+        private readonly Dictionary<ulong, IReactionCallback> _callbacks;
+        private readonly TimeSpan _defaultTimeout;
+
+        public InteractiveService(DiscordSocketClient discord, TimeSpan? defaultTimeout = null)
         {
-            Client = client;
-            Client.ReactionAdded += ReactionAddedAsync;
-            Callbacks = new Dictionary<ulong, IReactionCallback>();
+            Discord = discord;
+            Discord.ReactionAdded += HandleReactionAsync;
+
+            _callbacks = new Dictionary<ulong, IReactionCallback>();
+            _defaultTimeout = defaultTimeout ?? TimeSpan.FromSeconds(15);
         }
 
-        private Dictionary<ulong, IReactionCallback> Callbacks { get; }
-        private DiscordSocketClient Client { get; }
+        public DiscordSocketClient Discord { get; }
 
-        public void AddReactionCallback(IMessage message, IReactionCallback callback)
-            => Callbacks[message.Id] = callback;
+        public void AddReactionCallback(IMessage message, IReactionCallback callback) => _callbacks[message.Id] = callback;
+
+        public void ClearReactionCallbacks() => _callbacks.Clear();
 
         public void Dispose()
-            => Client.ReactionAdded -= ReactionAddedAsync;
-
-        public async Task<IUserMessage> PagedMessageAsync(Context context, PagedMessage paged, bool delete, ICriteria<SocketReaction> criteria = null)
         {
-            PagedCallback callback = new PagedCallback(this, context, paged, criteria);
-            await callback.DisplayAsync(paged, delete).ConfigureAwait(false);
+            Discord.ReactionAdded -= HandleReactionAsync;
+        }
+
+        public Task<SocketMessage> NextMessageAsync(GuildContext context, bool fromSourceUser = true, bool inSourceChannel = true, TimeSpan? timeout = null)
+        {
+            var criterion = new Criteria<SocketMessage>();
+            if (fromSourceUser)
+                criterion.AddCriterion(new EnsureSourceUserCriterion());
+            if (inSourceChannel)
+                criterion.AddCriterion(new EnsureSourceChannelCriterion());
+            return NextMessageAsync(context, criterion, timeout);
+        }
+
+        public async Task<SocketMessage> NextMessageAsync(GuildContext context, ICriterion<SocketMessage> criterion, TimeSpan? timeout = null)
+        {
+            timeout = timeout ?? _defaultTimeout;
+
+            var eventTrigger = new TaskCompletionSource<SocketMessage>();
+
+            async Task Handler(SocketMessage message)
+            {
+                var result = await criterion.JudgeAsync(context, message).ConfigureAwait(false);
+                if (result)
+                    eventTrigger.SetResult(message);
+            }
+
+            (context.Client).MessageReceived += Handler;
+
+            var trigger = eventTrigger.Task;
+            var delay = Task.Delay(timeout.Value);
+            var task = await Task.WhenAny(trigger, delay).ConfigureAwait(false);
+
+            (context.Client).MessageReceived -= Handler;
+
+            if (task == trigger)
+                return await trigger;
+            else
+                return null;
+        }
+
+        public void RemoveReactionCallback(IMessage message) => RemoveReactionCallback(message.Id);
+
+        public void RemoveReactionCallback(ulong id) => _callbacks.Remove(id);
+
+        public async Task<IUserMessage> ReplyAndDeleteAsync(GuildContext context, string content, bool isTTS = false, Embed embed = null, TimeSpan? timeout = null, RequestOptions options = null)
+        {
+            timeout = timeout ?? _defaultTimeout;
+            var message = await context.Channel.SendMessageAsync(content, isTTS, embed, options);
+            _ = Task.Delay(timeout.Value).ContinueWith(_ => message.DeleteAsync());
+            return message;
+        }
+
+        public async Task<IUserMessage> SendPaginatedMessageAsync(GuildContext context, PaginatedMessage pager, ICriterion<SocketReaction> criterion = null)
+        {
+            var callback = new PaginatedMessageCallback(this, context, pager, criterion);
+            await callback.DisplayAsync();
             return callback.Message;
         }
 
-        public void RemoveReactionCallback(IMessage message)
-            => RemoveReactionCallback(message.Id);
-
-        public async Task<SocketMessage> WaitAsync(Context context, ICriteria<SocketMessage> criteria, TimeSpan? timeout = null)
+        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            timeout = timeout ?? TimeSpan.FromSeconds(15);
-            TimeSpan cancelTimeout = timeout.Value + TimeSpan.FromMinutes(1);
-            CancellationTokenSource tokenSource = new CancellationTokenSource(cancelTimeout);
-            TaskCompletionSource<bool> cancelTask = new TaskCompletionSource<bool>();
-            TaskCompletionSource<SocketMessage> trigger = new TaskCompletionSource<SocketMessage>();
-            tokenSource.Token.Register(() => cancelTask.SetResult(true));
-
-            async Task InteractiveHandlerAsync(SocketMessage message)
-            {
-                if (message.Author.IsBot)
-                    return;
-
-                bool result = await criteria.JudgeAsync(context, message).ConfigureAwait(false);
-                if (result)
-                    trigger.SetResult(message);
-            }
-
-            Client.MessageReceived += InteractiveHandlerAsync;
-            Task personalTask = await Task.WhenAny(trigger.Task, Task.Delay(timeout.Value, tokenSource.Token), cancelTask.Task).ConfigureAwait(false);
-            Client.MessageReceived -= InteractiveHandlerAsync;
-            return personalTask == trigger.Task
-                ? await trigger.Task.ConfigureAwait(false)
-                : null;
-        }
-
-        private async Task ReactionAddedAsync(Cacheable<IUserMessage, ulong> cache, ISocketMessageChannel channel, SocketReaction reaction)
-        {
-            Emoji[] emoteArray = new[] { Extras.Next, Extras.Back, Extras.Cross };
-            if (reaction.UserId == Client.CurrentUser.Id || !(Callbacks.TryGetValue(cache.Id, out IReactionCallback callback)) ||
-                !await callback.Criteria.JudgeAsync(callback.Context, reaction).ConfigureAwait(false) || emoteArray.All(x => x.Name != reaction.Emote.Name))
+            if (reaction.UserId == Discord.CurrentUser.Id)
                 return;
-
+            if (!_callbacks.TryGetValue(message.Id, out var callback))
+                return;
+            if (!(await callback.Criterion.JudgeAsync(callback.Context, reaction).ConfigureAwait(false)))
+                return;
             switch (callback.RunMode)
             {
-                case RunMode.Async:
+                case RunMode.Parallel:
                     _ = Task.Run(async () =>
                     {
-                        if (await callback.HandleCallbackAsync(reaction).ConfigureAwait(false))
-                            RemoveReactionCallback(cache.Id);
+                        if (await callback.HandleCallbackAsync(reaction))
+                            RemoveReactionCallback(message.Id);
                     });
                     break;
 
                 default:
-                    if (await callback.HandleCallbackAsync(reaction).ConfigureAwait(false))
-                        RemoveReactionCallback(cache.Id);
+                    if (await callback.HandleCallbackAsync(reaction))
+                        RemoveReactionCallback(message.Id);
                     break;
             }
         }
-
-        private void RemoveReactionCallback(ulong id)
-             => Callbacks.Remove(id);
     }
 }

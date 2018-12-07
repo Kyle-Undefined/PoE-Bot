@@ -1,140 +1,166 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using Addons;
-    using Addons.Preconditions;
-    using Discord;
-    using Discord.Commands;
-    using Discord.WebSocket;
-    using Helpers;
-    using Objects;
+    using Microsoft.EntityFrameworkCore;
+    using PoE.Bot.Attributes;
+    using PoE.Bot.Contexts;
+    using PoE.Bot.Helpers;
+    using PoE.Bot.Models;
+    using PoE.Bot.ModuleBases;
+    using PoE.Bot.Checks;
+    using Qmmands;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
 
-    [Name("Price Checker Commands"), RequireRole("Price Checker"), Ratelimit]
-    public class PriceCheckerModule : BotBase
+    [Name("Price Checker Module")]
+    [Description("Price Checker Commands")]
+    [Group("Price")]
+    [RequireRole("Price Checker")]
+    [RequireChannel("price-checkers")]
+    public class PriceCheckerModule : PoEBotBase
     {
-        [Command("Mute", RunMode = RunMode.Async), Summary("Mutes a user for the specified time and reason."), Remarks("Mute <@user> <time> <reason>"), RequireChannel("trade-board")]
-        public Task MuteAsync(IGuildUser user, TimeSpan time, [Remainder] string reason)
-            => GuildHelper.MuteUserAsync(Context, MuteType.Trade, user, time, reason);
+        public DatabaseContext Database { get; set; }
 
-        [Command("Price"), Summary("Adds, Deletes, or Updates the price for the currency."), Remarks("Price <action> <league: Standard, Hardcore, Challenge, ChallengeHC> <name: Replace spaces with _ OR The Alias you're Updating or Deleting> <quantity> <price> <alias>"), RequireChannel("price-checkers")]
-        public Task PriceAsync(CommandAction action, Leagues league, string name, double quantity = double.NaN, double price = double.NaN, [Remainder] string alias = null)
+        [Command("Add")]
+        [Name("Price Add")]
+        [Description("Adds a price for a currency item")]
+        [Usage("price add challenge Exalted_Orb 1 55 ex exalts")]
+        public async Task CurrencyItemAddAsync(
+            [Name("League")]
+            [Description("The league to add the currency item for. Valid leagues are Standard, Hardcore, Challenge, ChallengeHC")]
+            League league,
+            [Name("Name")]
+            [Description("The name of the currency item. Replace spaces with _")]
+            string name,
+            [Name("Quantity")]
+            [Description("The number of the item")]
+            double quantity,
+            [Name("Price")]
+            [Description("How much chaos it takes to buy the currency for")]
+            double price,
+            [Name("Alias")]
+            [Description("The names the currency is known as")]
+            [Remainder] string alias)
         {
-            switch (action)
+            var guild = await Database.Guilds.AsNoTracking().Include(x => x.CurrencyItems).FirstAsync(x => x.GuildId == Context.Guild.Id);
+
+            if (TryParseCurrencyItem(league, name, guild, out var currencyItem))
             {
-                case CommandAction.Add:
-                    if (Context.Server.Prices.Any(p => p.Name == name && p.League == league))
-                        return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{name}` is already in the `{league}` list.*");
-                    if (double.IsNaN(quantity))
-                        quantity = 0;
-                    if (double.IsNaN(price))
-                        price = 0;
-
-                    Context.Server.Prices.Add(new PriceObject
-                    {
-                        League = league,
-                        Name = name,
-                        Quantity = quantity,
-                        Price = price,
-                        Alias = string.Join(", ", alias.Split(" ")).ToLower(),
-                        LastUpdated = DateTime.Now,
-                        UserId = Context.User.Id
-                    });
-
-                    Embed embed = Extras.Embed(Extras.Added)
-                        .AddField("Leage", league)
-                        .AddField("Name", name.Replace("_", " "))
-                        .AddField("Alias", string.Join(", ", alias.Split(" ")).ToLower())
-                        .AddField("Quantity", quantity)
-                        .AddField("Price", price)
-                        .AddField("Last Updated", DateTime.Now)
-                        .WithAuthor(Context.User)
-                        .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
-                        .Build();
-
-                    return ReplyAsync(embed: embed, save: DocumentType.Server);
-
-                case CommandAction.Delete:
-                    if (!Context.Server.Prices.Any(p => p.Name.ToLower() == name.ToLower() && p.League == league))
-                        return ReplyAsync($"{Extras.Cross} I'm not smart enough for that ... yet. *`{name}` is not in the `{league}` list.*");
-
-                    Context.Server.Prices.Remove(Context.Server.Prices.FirstOrDefault(p => p.Name.ToLower() == name.ToLower() && p.League == league));
-                    return ReplyAsync($"The very land heeds to my command. *`{name}` was deleted from the `{league}` list.* {Extras.OkHand}", save: DocumentType.Server);
-
-                case CommandAction.Update:
-                    if (!Context.Server.Prices.Any(p => p.Alias.Contains(name.ToLower()) && p.League == league))
-                        return ReplyAsync($"{Extras.Cross} The throne is the most devious trap of them all. *`{name}` is not in the `{league}` list.*");
-                    if (double.IsNaN(quantity))
-                        quantity = 0;
-                    if (double.IsNaN(price))
-                        price = 0;
-
-                    PriceObject priceObject = Context.Server.Prices.FirstOrDefault(p => p.Alias.Contains(name.ToLower()) && p.League == league);
-                    Context.Server.Prices.Remove(priceObject);
-
-                    priceObject.Quantity = quantity;
-                    priceObject.Price = price;
-                    priceObject.LastUpdated = DateTime.Now;
-                    priceObject.UserId = Context.User.Id;
-                    if (!(alias is null))
-                        priceObject.Alias = string.Join(", ", alias.Split(" ")).ToLower();
-
-                    Context.Server.Prices.Add(priceObject);
-
-                    Embed embedUpdate = Extras.Embed(Extras.Added)
-                        .AddField("Leage", league)
-                        .AddField("Name", priceObject.Name.Replace("_", " "))
-                        .AddField("Alias", priceObject.Alias)
-                        .AddField("Quantity", quantity)
-                        .AddField("Price", price)
-                        .AddField("Last Updated", DateTime.Now)
-                        .WithAuthor(Context.User)
-                        .WithThumbnailUrl(Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl())
-                        .Build();
-
-                    return ReplyAsync(embed: embedUpdate, save: DocumentType.Server);
-
-                default:
-                    return ReplyAsync($"{Extras.Cross} action is either `Add`, `Delete`, or `Update`.");
+                await ReplyAsync(EmoteHelper.Cross + " The throne is the most devious trap of them all. *`" + currencyItem.Name + "` is already in the `" + currencyItem.League + "` list.*");
+                return;
             }
+
+            await Database.CurrencyItems.AddAsync(new CurrencyItem
+            {
+                Alias = string.Join(", ", alias.Split(" ")).ToLower(),
+                LastUpdated = DateTime.Now,
+                League = league,
+                Name = name,
+                Price = price,
+                Quantity = quantity,
+                UserId = Context.User.Id,
+                GuildId = guild.Id
+            });
+
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Purge"), Alias("Prune"), Summary("Deletes Messages, and can specify a user"), Remarks("Purge [amount] [@user]"), RequireChannels(new string[] { "trade-board", "price-checks" })]
-        public Task PurgeAsync(int amount = 20, IGuildUser user = null)
+        [Command("Delete")]
+        [Name("Price Delete")]
+        [Description("Deletes a price for a currency item")]
+        [Usage("price delete challenge Exalted_Orb")]
+        public async Task CurrencyItemDeleteAsync(
+            [Name("League")]
+            [Description("The league to delete the currency from. Valid leagues are Standard, Hardcore, Challenge, ChallengeHC")]
+            League league,
+            [Name("Name")]
+            [Description("The name of the currency item. Replace spaces with _")]
+            string name)
         {
-            if (user is null)
+            var guild = await Database.Guilds.AsNoTracking().Include(x => x.CurrencyItems).FirstAsync(x => x.GuildId == Context.Guild.Id);
+
+            if (!TryParseCurrencyItem(league, name, guild, out var currencyItem))
             {
-                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()))
-                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} Messages in #{Context.Channel.Name}");
+                await ReplyAsync(EmoteHelper.Cross + " I'm not smart enough for that ... yet. *`" + name + "` is not in the `" + league + "` list.*");
+                return;
             }
-            else
-            {
-                (Context.Channel as SocketTextChannel).DeleteMessagesAsync(MethodHelper.RunSync(Context.Channel.GetMessagesAsync(amount + 1).FlattenAsync()).Where(x => x.Author.Id == user.Id))
-                .ContinueWith(x => ReplyAndDeleteAsync($"Beauty will grow from your remains. *Deleted `{amount}` of `{user}`'s messages.* {Extras.OkHand}", TimeSpan.FromSeconds(5)));
-                return GuildHelper.LogAsync(Context.DatabaseHandler, Context.Guild, Context.User, Context.User, CaseType.Purge, $"Purged {amount} of {user}'s Messages #{Context.Channel.Name}");
-            }
+
+            Database.CurrencyItems.Remove(currencyItem);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("PriceReset"), Summary("Resets all the prices for items to 0 for specified league reset."), Remarks("PriceReset <league: Defaults to Challenge>"), RequireChannel("price-checkers")]
-        public Task ResetAsync(Leagues league = Leagues.Challenge)
+        [Command("Reset")]
+        [Name("Price Reset")]
+        [Description("Resets all the prices for items to 0 for specified league reset.")]
+        [Usage("price reset challenge")]
+        public async Task CurrencyItemResetAsync(
+            [Name("League")]
+            [Description("The league to reset currency prices. Valid leagues are Standard, Hardcore, Challenge, ChallengeHC")]
+            League league = League.Challenge)
         {
-            foreach (PriceObject price in Context.Server.Prices.Where(x => x.League == league).ToArray())
+            var items = await Database.CurrencyItems.Include(x => x.Guild).Where(x => x.League == league && x.Guild.Id == Context.Guild.Id).ToListAsync();
+
+            foreach (var item in items)
             {
-                Context.Server.Prices.Remove(price);
-                price.Quantity = 0;
-                price.Price = 0;
-                price.LastUpdated = DateTime.Now;
-                price.UserId = Context.User.Id;
-                Context.Server.Prices.Add(price);
+                item.Price = 0;
+                item.Quantity = 0;
+                item.UserId = Context.User.Id;
+                item.LastUpdated = DateTime.Now;
+
+                Database.CurrencyItems.Update(item);
             }
 
-            return ReplyAsync($"For Tukohama! *All prices have been reset for the {league} League.* {Extras.OkHand}", save: DocumentType.Server);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Warn", RunMode = RunMode.Async), Summary("Warns a user with a specified reason."), Remarks("Warn <@user> <reason>"), RequireChannel("trade-board")]
-        public Task WarnAysnc(IGuildUser user, [Remainder] string reason)
-            => GuildHelper.WarnUserAsync(Context, user, reason, MuteType.Trade);
+        [Command("Update")]
+        [Name("Price Update")]
+        [Description("Updates a price for a currency item")]
+        [Usage("price update challenge exalts 1 65")]
+        public async Task CurrencyItemUpdateAsync(
+            [Name("League")]
+            [Description("The league to add the currency item for. Valid leagues are Standard, Hardcore, Challenge, ChallengeHC")]
+            League league,
+            [Name("Name")]
+            [Description("The name of the currency item. Can be any alias")]
+            string name,
+            [Name("Quantity")]
+            [Description("The number of the item you can get per chaos")]
+            double quantity,
+            [Name("Price")]
+            [Description("How much chaos it takes to buy one of the currency for")]
+            double price,
+            [Name("Alias")]
+            [Description("The names the currency is known as. Can be left empty if the alias isn't being updated")]
+            [Remainder] string alias = null)
+        {
+            var guild = await Database.Guilds.Include(x => x.CurrencyItems).FirstAsync(x => x.GuildId == Context.Guild.Id);
+
+            if (!TryParseCurrencyItem(league, name, guild, out var currencyItem))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " The throne is the most devious trap of them all. *`" + name + "` is not in the `" + league + "` list.*");
+                return;
+            }
+
+            if (!(alias is null))
+                currencyItem.Alias = string.Join(", ", alias.Split(" ")).ToLower();
+
+            currencyItem.LastUpdated = DateTime.Now;
+            currencyItem.Price = price;
+            currencyItem.Quantity = quantity;
+            currencyItem.UserId = Context.User.Id;
+
+            Database.CurrencyItems.Update(currencyItem);
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        private bool TryParseCurrencyItem(League league, string item, Guild guild, out CurrencyItem currencyItem)
+        {
+            currencyItem = guild.CurrencyItems.FirstOrDefault(x => string.Equals(x.Name, item, StringComparison.CurrentCultureIgnoreCase) && x.League == league);
+            return !(currencyItem is null);
+        }
     }
 }

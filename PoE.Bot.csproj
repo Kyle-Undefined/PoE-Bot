@@ -1,23 +1,134 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>latest</LangVersion>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Migrations\20181122154752_Role-changes.cs" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Colorful.Console" Version="1.2.9" />
-    <PackageReference Include="CsvHelper" Version="8.0.0-beta01" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00975" />
+    <PackageReference Include="CsvHelper" Version="12.0.1" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01039" />
     <PackageReference Include="FluentScheduler" Version="5.3.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.8.5" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.11" />
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.8.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-	  <PackageReference Include="RavenDB.Client" Version="4.0.6-patch-40047" />
-    <PackageReference Include="SkiaSharp" Version="1.60.2" />
-    <PackageReference Include="TwitchLib.Api" Version="2.1.3" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0-preview.18572.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.3.0" />
+    <PackageReference Include="Qmmands" Version="1.0.3-nightly-00085" />
+    <PackageReference Include="TwitchLib.Api" Version="3.0.0" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <Compile Update="Migrations\20181206234533_Initial.Designer.cs">
+      <DependentUpon>20181206234533_Initial.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Database.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\mock.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Ascendant.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Assassin.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Berserker.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Champion.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Chieftain.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Deadeye.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Duelist.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Elementalist.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Gladiator.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Guardian.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Hierophant.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Inquisitor.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Juggernaut.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Marauder.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Necromancer.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Occultist.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Pathfinder.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Raider.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Ranger.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Saboteur.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Scion.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Shadow.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Slayer.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Templar.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Trickster.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Images\Path-Of-Building\Classes\Witch.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

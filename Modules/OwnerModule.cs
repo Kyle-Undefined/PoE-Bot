@@ -1,186 +1,387 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using Addons;
     using Discord;
-    using Discord.Commands;
     using Discord.WebSocket;
-    using Helpers;
-    using Microsoft.CodeAnalysis.CSharp.Scripting;
-    using Microsoft.CodeAnalysis.Scripting;
-    using Objects;
+    using Microsoft.EntityFrameworkCore;
+    using PoE.Bot.Attributes;
+    using PoE.Bot.Contexts;
+    using PoE.Bot.Helpers;
+    using PoE.Bot.Models;
+    using PoE.Bot.ModuleBases;
+    using PoE.Bot.Checks;
+    using Qmmands;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using PoE.Bot.Services;
+    using System.Collections;
+    using System.Text;
+    using PoE.Bot.Extensions;
+    using Microsoft.CodeAnalysis;
+    using PoE.Bot.Addons.Interactive;
 
-    [Name("Owner Commands"), RequireOwner]
-    public class OwnerModule : BotBase
+    [Name("Owner Module")]
+    [Description("Bot Owner Commands")]
+    [Group("Bot")]
+    [RequireOwner]
+    public class OwnerModule : PoEBotBase
     {
-        public enum Setting
+        public ScriptingService Scripting { get; set; }
+        public DatabaseContext Database { get; set; }
+        public IServiceProvider Services { get; set; }
+
+        [Command("Activity")]
+        [Name("Bot Activity")]
+        [Description("Updates the Bots presence")]
+        [Usage("bot activity playing Use !commands")]
+        public async Task ActivityAsync(
+            [Name("Activity")]
+            [Description("Listening, Streaming, Playing, Watching")]
+            ActivityType activity,
+            [Name("Message")]
+            [Description("The activity message")]
+            [Remainder] string message)
         {
-            Activity,
-            Avatar,
-            FeedbackChannel,
-            Nickname,
-            Prefix,
-            TwitchToken,
-            Username,
+            await Context.Client.SetActivityAsync(new Game(message, activity));
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Blacklist"), Summary("Adds or Deletes a user from the blacklist."), Remarks("Blacklist <action> <@user>")]
-        public Task BlaclistAsync(CommandAction action, IUser user)
+        [Command("BlacklistAdd")]
+        [Name("Bot BlacklistAdd")]
+        [Description("Adds a user to the blacklist")]
+        [Usage("bot blacklistadd @user being lame")]
+        public async Task BlaclistAddAsync(
+            [Name("User")]
+            [Description("The user to blacklist, can either be @user, user id, or user/nick name (wrapped in quotes if it contains a space)")]
+            SocketGuildUser user,
+            [Name("Reason")]
+            [Description("Reason for the blacklist")]
+            [Remainder] string reason)
         {
-            switch (action)
+            var blacklist = await Database.BlacklistedUsers.FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+            if (!(blacklist is null))
             {
-                case CommandAction.Add:
-                    if (Context.Config.Blacklist.Contains(user.Id))
-                        return ReplyAsync($"{Extras.Cross} {user} is already in blacklisted.");
-                    Context.Config.Blacklist.Add(user.Id);
-                    return ReplyAsync($"`{user}` has been added to global blacklist.", save: DocumentType.Config);
-
-                case CommandAction.Delete:
-                    if (!Context.Config.Blacklist.Contains(user.Id))
-                        return ReplyAsync($"{Extras.Cross} {user} isn't blacklisted.");
-                    Context.Config.Blacklist.Remove(user.Id);
-                    return ReplyAsync($"`{user}` has been removed from global blacklist.", save: DocumentType.Config);
-
-                default:
-                    return ReplyAsync($"{Extras.Cross} Action is either `Add` or `Delete`.");
+                await ReplyAsync(EmoteHelper.Cross + " " + user + " is already in blacklisted.");
+                return;
             }
+
+            await Database.BlacklistedUsers.AddAsync(new BlacklistedUser
+            {
+                UserId = user.Id,
+                BlacklistedWhen = DateTime.Now,
+                Reason = reason
+            });
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Eval", RunMode = RunMode.Async), Summary("Evaluates C# code."), Remarks("Eval <code>")]
-        public async Task EvalAsync([Remainder] string code)
+        [Command("BlacklistDelete")]
+        [Name("Bot BlacklistDelete")]
+        [Description("Deletes a user from the blacklist")]
+        [Usage("bot blacklistdelete @user")]
+        public async Task BlaclistDeleteAsync(
+            [Name("User")]
+            [Description("The user to de-blacklist, can either be @user, user id, or user/nick name (wrapped in quotes if it contains a space)")]
+            SocketGuildUser user)
         {
-            IUserMessage message = await ReplyAsync("Debugging ...").ConfigureAwait(false);
-            var imports = Context.Config.Namespaces.Any()
-                ? Context.Config.Namespaces
-                : new[] { "System", "System.Linq", "System.Collections.Generic", "System.IO", "System.Threading.Tasks" }.ToList();
-            ScriptOptions options = ScriptOptions.Default.AddReferences(MethodHelper.Assemblies).AddImports(imports);
-            EvalObject globals = new EvalObject
-            {
-                Context = Context,
-                Guild = Context.Guild as SocketGuild,
-                User = Context.User as SocketGuildUser,
-                Client = Context.Client as DiscordSocketClient,
-                Channel = Context.Channel as SocketGuildChannel
-            };
+            var blacklist = await Database.BlacklistedUsers.FirstOrDefaultAsync(x => x.UserId == user.Id);
 
-            try
+            if (blacklist is null)
             {
-                object eval = await CSharpScript.EvaluateAsync(code.Replace("```", string.Empty), options, globals, typeof(EvalObject)).ConfigureAwait(false);
-                await message.ModifyAsync(x => x.Content = $"{eval ?? "No Result Produced."}").ConfigureAwait(false);
+                await ReplyAsync(EmoteHelper.Cross + " " + user + " isn't blacklisted.");
+                return;
             }
-            catch (CompilationErrorException ex)
-            {
-                await message.ModifyAsync(x => x.Content = ex.Message ?? ex.StackTrace).ConfigureAwait(false);
-            }
+
+            Database.BlacklistedUsers.Remove(blacklist);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Namespace"), Summary("Shows a list of all namespaces in PoE Bots config."), Remarks("Namespace <action> <namespace>")]
-        public Task NamespaceAsync(CommandAction action, string namespaceName = null)
+        [Command("Blacklist")]
+        [Name("Bot Blacklist")]
+        [Description("Lists all users who are blacklisted")]
+        [Usage("bot blacklist")]
+        public async Task BlacklistedAsync()
         {
-            switch (action)
+            var blacklisted = await Database.BlacklistedUsers.ToListAsync();
+            var pages = new List<string>();
+
+            if (blacklisted.Count > 0)
             {
-                case CommandAction.Add:
-                    if (Context.Config.Namespaces.Contains(namespaceName))
-                        return ReplyAsync($"{Extras.Cross} {namespaceName} namespace already exists.");
+                foreach (var item in blacklisted.SplitList())
+                    pages.Add(string.Join("\n", item.Select(x => "**User**: " + Context.Client.GetUser(x.UserId) + "\n**Reason**: " + x.Reason + "\n**Date**: " + x.BlacklistedWhen + "\n")));
 
-                    Context.Config.Namespaces.Add(namespaceName);
-                    return ReplyAsync($"`{namespaceName}` has been added.", save: DocumentType.Config);
+                await PagedReplyAsync(new PaginatedMessage
+                {
+                    Pages = pages,
+                    Color = new Color(0, 255, 255),
+                    Title = "Blacklisted Users",
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = "Blacklisted",
+                        IconUrl = Context.Client.CurrentUser.GetAvatar()
+                    }
+                });
 
-                case CommandAction.Delete:
-                    if (!Context.Config.Namespaces.Contains(namespaceName))
-                        return ReplyAsync($"{Extras.Cross} {namespaceName} namespace doesn't exist.");
-
-                    Context.Config.Namespaces.Remove(namespaceName);
-                    return ReplyAsync($"`{namespaceName}` has been removed.", save: DocumentType.Config);
-
-                case CommandAction.List:
-                    return !Context.Config.Namespaces.Any()
-                        ? ReplyAsync("Couldn't find any Namespaces")
-                        : PagedReplyAsync(MethodHelper.Pages(Context.Config.Namespaces), "Current Namespaces");
-
-                default:
-                    return ReplyAsync($"{Extras.Cross} Action is either `Add`, `Delete` or `List`.");
+                return;
             }
+
+            await ReplyAsync(EmoteHelper.Cross + " No users are blacklisted.");
         }
 
-        [Command("Stats", RunMode = RunMode.Async), Summary("Displays information about PoE Bot and its stats."), Remarks("Stats")]
-        public async Task StatsAsync()
+        [Command("Eval")]
+        [Name("Bot Eval")]
+        [Description("Evaluate C# code")]
+        [Usage("bot eval 2+2")]
+        [RunMode(RunMode.Parallel)]
+        public async Task EvalAsync(
+            [Name("Code")]
+            [Description("The code you want to evaluate")]
+            [Remainder] string script)
         {
-            DiscordSocketClient client = Context.Client as DiscordSocketClient;
-            GuildObject[] servers = Context.DatabaseHandler.Servers();
-            Embed embed = Extras.Embed(Extras.Info)
-                .WithAuthor($"{Context.Client.CurrentUser.Username} Statistics 🤖", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
-                .WithDescription((await client.GetApplicationInfoAsync().ConfigureAwait(false)).Description)
-                .AddField("Channels",
-                    $"Categories: {client.Guilds.Sum(x => x.CategoryChannels.Count)}\n" +
-                    $"Text: {client.Guilds.Sum(x => x.TextChannels.Count - x.CategoryChannels.Count)}\n" +
-                    $"Voice: {client.Guilds.Sum(x => x.VoiceChannels.Count)}\n" +
-                    $"Total: {client.Guilds.Sum(x => x.Channels.Count)}", true)
-                .AddField("Members",
-                    $"Bot: {client.Guilds.Sum(x => x.Users.Count(z => z.IsBot is true))}\n" +
-                    $"Human: { client.Guilds.Sum(x => x.Users.Count(z => z.IsBot is false))}\n" +
-                    $"Total: {client.Guilds.Sum(x => x.Users.Count)}", true)
-                .AddField("Database",
-                    $"Tags: {servers.Sum(x => x.Tags.Count)}\n" +
-                    $"Currencies: {servers.Sum(x => x.Prices.Count)}\n" +
-                    $"Shop Items: {servers.Sum(x => x.Shops.Count)}", true)
-                .AddField("Mixer", $"Streams: {servers.Sum(x => x.Streams.Count(s => s.StreamType is StreamType.Mixer))}", true)
-                .AddField("Twitch", $"Streams: {servers.Sum(x => x.Streams.Count(s => s.StreamType is StreamType.Twitch))}", true)
-                .AddField("Leaderboard", $"Variants: {servers.Sum(x => x.Leaderboards.Count)}", true)
-                .AddField("Uptime", $"{(DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss")}", true)
-                .AddField("Memory", $"Heap Size: {Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2)} MB", true)
-                .AddField("Programmer", $"[{(await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner}](https://discord.me/poe_xbox)", true)
-                .Build();
-            await ReplyAsync(embed: embed).ConfigureAwait(false);
+            var props = new EvaluationHelper(Context);
+            var result = await Scripting.EvaluateScriptAsync(script, props);
+
+            var canUseEmbed = true;
+            string stringRep;
+
+            if (result.IsSuccess)
+            {
+                if (result.ReturnValue != null)
+                {
+                    var special = false;
+
+                    switch (result.ReturnValue)
+                    {
+                        case string str:
+                            stringRep = str;
+                            break;
+
+                        case IDictionary dictionary:
+                            var asb = new StringBuilder();
+                            asb.Append("Dictionary of type ``").Append(dictionary.GetType().Name).AppendLine("``");
+                            foreach (var ent in dictionary.Keys)
+                                asb.Append("- ``").Append(ent).Append("``: ``").Append(dictionary[ent]).AppendLine("``");
+
+                            stringRep = asb.ToString();
+                            special = true;
+                            canUseEmbed = false;
+                            break;
+
+                        case IEnumerable enumerable:
+                            var asb0 = new StringBuilder();
+                            asb0.Append("Enumerable of type ``").Append(enumerable.GetType().Name).AppendLine("``");
+                            foreach (var ent in enumerable)
+                                asb0.Append("- ``").Append(ent).AppendLine("``");
+
+                            stringRep = asb0.ToString();
+                            special = true;
+                            canUseEmbed = false;
+                            break;
+
+                        default:
+                            stringRep = result.ReturnValue.ToString();
+                            break;
+                    }
+
+                    if ((stringRep.StartsWith("```") && stringRep.EndsWith("```")) || special)
+                    {
+                        canUseEmbed = false;
+                    }
+                    else
+                    {
+                        stringRep = $"```cs\n{stringRep}```";
+                    }
+                }
+                else
+                {
+                    stringRep = "No results returned.";
+                }
+
+                if (canUseEmbed)
+                {
+                    var footerString = $"{(result.CompilationTime != -1 ? $"Compilation time: {result.CompilationTime}ms" : "")} {(result.ExecutionTime != -1 ? $"| Execution time: {result.ExecutionTime}ms" : "")}";
+
+                    await ReplyAsync(embed: EmbedHelper.Embed(EmbedHelper.Added)
+                        .WithTitle("Scripting Result")
+                        .WithDescription(result.ReturnValue != null ? "Type: `" + result.ReturnValue.GetType().Name + "`" : "")
+                        .AddField("Input", $"```cs\n{script}```")
+                        .AddField("Output", stringRep)
+                        .WithFooter(footerString, Context.Client.CurrentUser.GetAvatar())
+                        .Build());
+
+                    return;
+                }
+
+                await ReplyAsync(stringRep);
+                return;
+            }
+
+            var embed = EmbedHelper.Embed(EmbedHelper.Deleted)
+                .WithTitle("Scripting Result")
+                .WithDescription("Scripting failed during stage **" + FormatEnumMember(result.FailedStage) + "**");
+
+            embed.AddField("Input", $"```cs\n{script}```");
+
+            if (result.CompilationDiagnostics?.Count > 0)
+            {
+                var field = new EmbedFieldBuilder { Name = "Compilation Errors" };
+                var sb = new StringBuilder();
+                foreach (var compilationDiagnostic in result.CompilationDiagnostics.OrderBy(a => a.Location.SourceSpan.Start))
+                {
+                    var start = compilationDiagnostic.Location.SourceSpan.Start;
+                    var end = compilationDiagnostic.Location.SourceSpan.End;
+
+                    var bottomRow = script.Substring(start, end - start);
+
+                    if (!string.IsNullOrEmpty(bottomRow))
+                        sb.Append("`").Append(bottomRow).AppendLine("`");
+
+                    sb.Append(" - ``").Append(compilationDiagnostic.Id).Append("`` (").Append(FormatDiagnosticLocation(compilationDiagnostic.Location)).Append("): **")
+                        .Append(compilationDiagnostic.GetMessage()).AppendLine("**");
+                    sb.AppendLine();
+                }
+                field.Value = sb.ToString();
+
+                if (result.Exception != null)
+                    sb.AppendLine();
+
+                embed.AddField(field);
+            }
+
+            if (result.Exception != null)
+                embed.AddField("Exception", $"``{result.Exception.GetType().Name}``: ``{result.Exception.Message}``");
+
+            await ReplyAsync(embed: embed.Build());
+            return;
         }
 
-        [Command("Update", RunMode = RunMode.Async), Summary("Updates PoE Bots Information."), Remarks("Update <setting> <value>")]
-        public async Task UpdateAsync(Setting setting, [Remainder] string value = null)
+        [Command("Ping")]
+        [Name("Bot Ping")]
+        [Description("Returns the estimated connection time to the Discord servers")]
+        [Usage("bot ping")]
+        public async Task PingAsync()
         {
-            DocumentType save = DocumentType.None;
-            switch (setting)
-            {
-                case Setting.Avatar:
-                    string imagePath = string.IsNullOrWhiteSpace(value)
-                        ? await StringHelper.DownloadImageAsync(Context.HttpClient, (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).IconUrl).ConfigureAwait(false)
-                        : value;
-                    await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imagePath)).ConfigureAwait(false);
-                    break;
+            var latency = Context.Client.Latency;
+            var content = "Latency: " + latency + "ms\nPing: ";
+            var sw = new Stopwatch();
 
-                case Setting.Username:
-                    await Context.Client.CurrentUser.ModifyAsync(x => x.Username = value).ConfigureAwait(false);
-                    break;
+            sw.Start();
 
-                case Setting.Activity:
-                    string[] split = value.Split(':');
-                    await (Context.Client as DiscordSocketClient).SetActivityAsync(new Game(split[1], (ActivityType)Enum.Parse(typeof(ActivityType), split[0]))).ConfigureAwait(false);
-                    break;
+            var message = await ReplyAsync(content);
 
-                case Setting.Nickname:
-                    await (await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false)).ModifyAsync(x => x.Nickname = string.IsNullOrWhiteSpace(value) ? Context.Client.CurrentUser.Username : value).ConfigureAwait(false);
-                    break;
+            sw.Stop();
 
-                case Setting.FeedbackChannel:
-                    Context.Config.FeedbackChannel = string.IsNullOrWhiteSpace(value) ? 0 : value.ParseULong();
-                    save = DocumentType.Config;
-                    break;
+            content = content + sw.ElapsedMilliseconds + "ms";
+            await message.ModifyAsync(x => x.Content = content);
+        }
 
-                case Setting.TwitchToken:
-                    string[] tokens = value.Split(':');
-                    Context.Config.APIKeys["TC"] = tokens[0];
-                    Context.Config.APIKeys["TA"] = tokens[1];
-                    save = DocumentType.Config;
-                    break;
+        [Command("Prefix")]
+        [Name("Bot Prefix")]
+        [Description("Sets the prefix used globally and what the start up Activity uses")]
+        [Usage("bot prefix >>")]
+        public async Task PrefixAsync(
+            [Name("Prefix")]
+            [Description("The new global prefix you want to set")]
+            [Remainder] string prefix)
+        {
+            var config = await Database.BotConfigs.FirstAsync();
+            config.Prefix = prefix;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
 
-                case Setting.Prefix:
-                    Context.Config.Prefix = value;
-                    save = DocumentType.Config;
-                    break;
-            }
-            await ReplyAsync($"Bot has been updated {Extras.OkHand}", save: save).ConfigureAwait(false);
+        [Command("ProjectChannel")]
+        [Name("Bot ProjectChannel")]
+        [Description("Sets the project channel for posting bot changes from")]
+        [Usage("bot projectchannel #channel")]
+        public async Task ProjectChannelAsync(
+            [Name("Channel")]
+            [Description("The channel you want to set as the project channel")]
+            SocketGuildChannel channel)
+        {
+            var config = await Database.BotConfigs.FirstAsync();
+            config.ProjectChannel = channel.Id;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        [Command("SupportChannel")]
+        [Name("Bot SupportChannel")]
+        [Description("Set the channel for bot support (bug/feature requests/etc) to be posted in")]
+        [Usage("bot supportchannel #channel")]
+        public async Task SupportChannelAsync(
+            [Name("Channel")]
+            [Description("The channel you want to set as the support channel")]
+            SocketGuildChannel channel)
+        {
+            var config = await Database.BotConfigs.FirstAsync();
+            config.SupportChannel = channel.Id;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        [Command("Token")]
+        [Name("Bot Token")]
+        [Description("Update the Bot Token through the bot, in case it somehow gets leaked, requires a restart")]
+        [Usage("bot token 123abc")]
+        public async Task TokenAsync(
+            [Name("Token")]
+            [Description("The new Token for the bot to use")]
+            [Remainder] string token)
+        {
+            var config = await Database.BotConfigs.FirstAsync();
+            config.BotToken = token;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        [Command("TwitchClientId")]
+        [Name("Bot TwitchClientId")]
+        [Description("Update the Twitch Client Id for the Twitch stream integration")]
+        [Usage("bot twitchclientid 123abc")]
+        public async Task TwitchClientIdAsync(
+            [Name("Client Id")]
+            [Description("The updated Twitch Client Id")]
+            [Remainder] string clientId)
+        {
+            var config = await Database.BotConfigs.FirstAsync();
+            config.TwitchClientId = clientId;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        [Command("Username")]
+        [Name("Bot Username")]
+        [Description("Changes the bots username")]
+        [Usage("bot username poopy face")]
+        public async Task UsernameAsync(
+            [Name("Username")]
+            [Description("The new username to set as the bots username")]
+            [Remainder] string username)
+        {
+            await Context.Client.CurrentUser.ModifyAsync(x => x.Username = username);
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
+        }
+
+        private static string FormatEnumMember(Enum value)
+        {
+            return value.ToString().Replace(value.GetType().Name + ".", "");
+        }
+
+        private static string FormatDiagnosticLocation(Location loc)
+        {
+            if (!loc.IsInSource)
+                return "Metadata";
+            if (loc.SourceSpan.Start == loc.SourceSpan.End)
+                return "Ch " + loc.SourceSpan.Start;
+
+            return $"Ch {loc.SourceSpan.Start}-{loc.SourceSpan.End}";
         }
     }
 }

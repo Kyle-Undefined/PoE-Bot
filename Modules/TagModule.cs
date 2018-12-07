@@ -1,159 +1,333 @@
 ﻿namespace PoE.Bot.Modules
 {
-    using Addons;
-    using Addons.Preconditions;
     using Discord;
-    using Discord.Commands;
     using Discord.WebSocket;
-    using Helpers;
-    using Objects;
+    using Microsoft.EntityFrameworkCore;
+    using PoE.Bot.Addons.Interactive;
+    using PoE.Bot.Attributes;
+    using PoE.Bot.Contexts;
+    using PoE.Bot.Extensions;
+    using PoE.Bot.Helpers;
+    using PoE.Bot.Models;
+    using PoE.Bot.ModuleBases;
+    using Qmmands;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
-    [Name("Tag Commands"), Group("Tag"), Ratelimit]
-    public class TagModule : BotBase
+    [Name("Tag Module")]
+    [Description("Tag Commands")]
+    [Group("Tag")]
+    public class TagModule : PoEBotBase
     {
-        [Command("Add"), Summary("Add a tag with the specified content. To specify more than one word, wrap your name with quotes \"like this\"."), Remarks("Tag Add <tagName> <tagContent>"), Priority(1)]
-        public Task AddAsync(string tagName, [Remainder] string tagContent)
-        {
-            if (Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return ReplyAsync($"{Extras.Cross} You chose the road, old friend. God put me at the end of it. *There is already a tag with this name.*");
+        public DatabaseContext Database { get; set; }
 
-            Context.Server.Tags.Add(new TagObject
+        [Command("Add")]
+        [Name("Tag Add")]
+        [Description("Add a tag with the specified content")]
+        [Usage("tag add hello-world this is a new tag")]
+        [Priority(1)]
+        public async Task TagAddAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            string tagName,
+            [Name("Tag Content")]
+            [Description("Content that will be displayed when the tag is used")]
+            [Remainder] string tagContent)
+        {
+            var guild = await Database.Guilds.AsNoTracking().Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
+
+            if (TryParseTag(tagName, guild, out var tag))
             {
-                Uses = 0,
-                Name = tagName.ToLower(),
-                Owner = Context.User.Id,
+                await ReplyAsync(EmoteHelper.Cross + " You chose the road, old friend. God put me at the end of it. *There is already a tag with this name.*");
+                return;
+            }
+
+            await Database.Tags.AddAsync(new Tag
+            {
                 Content = tagContent,
-                CreationDate = DateTime.Now
+                CreationDate = DateTime.Now,
+                Name = tagName,
+                UserId = Context.User.Id,
+                Uses = 0,
+                GuildId = guild.Id
             });
 
-            return ReplyAsync($"I think that will come in handy at some point. *Tag `{tagName}` has been created.* {Extras.OkHand}", save: DocumentType.Server);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Claim"), Summary("Claims a tag whose owner isn't in server anymore."), Remarks("Tag Claim <tagName>"), Priority(1)]
-        public Task ClaimAsync([Remainder] string tagName)
+        [Command("Claim")]
+        [Name("Tag Claim")]
+        [Description("Claims a tag whose owner isn't in guild anymore")]
+        [Usage("tag claim hello-world")]
+        [Priority(1)]
+        public async Task TagClaimAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            [Remainder] string tagName)
         {
-            if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return ReplyAsync($"{Extras.Cross} I don't think I need to be doing that right now. *There is no tag with this name.*");
+            var guild = await Database.Guilds.Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
-            if ((Context.Guild as SocketGuild).Users.Any(x => x.Id == tag.Owner))
-                return ReplyAsync($"{Extras.Cross} I cannot carry this. *Tag owner is still in this guild.*");
+            if (!TryParseTag(tagName, guild, out var tag))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " I don't think I need to be doing that right now. *There is no tag with this name.*");
+                return;
+            }
 
-            tag.Owner = Context.User.Id;
-            return ReplyAsync($"Show me the way, Kaom. *You are now the owner of `{tag.Name}` tag.* {Extras.OkHand}", save: DocumentType.Server);
+            if (Context.Guild.Users.Any(x => x.Id == tag.UserId) && (Context.User.Id != Context.Guild.OwnerId || !Context.User.GuildPermissions.Administrator
+                || !Context.User.GuildPermissions.ManageGuild || !Context.User.GuildPermissions.ManageChannels || !Context.User.GuildPermissions.ManageRoles))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " I cannot carry this. *Tag owner is still in this guild.*");
+                return;
+            }
+
+            tag.UserId = Context.User.Id;
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Delete"), Summary("Deletes a tag."), Remarks("Tag Delete <tagName>"), Priority(1)]
-        public Task DeleteAsync([Remainder] string tagName)
+        [Command("Delete")]
+        [Name("Tag Delete")]
+        [Description("Deletes a tag that you own")]
+        [Usage("tag delete hello-world")]
+        [Priority(1)]
+        public async Task TagDeleteAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            [Remainder] string tagName)
         {
-            if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return ReplyAsync($"{Extras.Cross} It was possible to be happy here once. *There is no tag with this name.*");
+            var guild = await Database.Guilds.AsNoTracking().Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
-            if (Context.User.Id != tag.Owner)
-                return ReplyAsync($"{Extras.Cross} This item whispers of destiny. *You aren't the owner of `{tagName}`*");
+            if (!TryParseTag(tagName, guild, out var tag))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " It was possible to be happy here once. *There is no tag with this name.*");
+                return;
+            }
 
-            Context.Server.Tags.Remove(tag);
-            return ReplyAsync($"I need more pockets. *Tag `{tagName}` has been deleted.* {Extras.OkHand}", save: DocumentType.Server);
+            if (Context.User.Id != tag.UserId && (Context.User.Id != Context.Guild.OwnerId || !Context.User.GuildPermissions.Administrator
+                || !Context.User.GuildPermissions.ManageGuild || !Context.User.GuildPermissions.ManageChannels || !Context.User.GuildPermissions.ManageRoles))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " This item whispers of destiny. *You aren't the owner of `" + tag.Name + "`*");
+                return;
+            }
+
+            Database.Tags.Remove(tag);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("Info"), Summary("Displays information about a given tag."), Remarks("Tag Info <tagName>"), Priority(1)]
-        public Task InfoAsync([Remainder] string tagName)
+        [Command("Info")]
+        [Name("Tag Info")]
+        [Description("Displays information about a given tag.")]
+        [Usage("tag info hello-world")]
+        [Priority(1)]
+        public async Task InfoAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            [Remainder] string tagName)
         {
-            if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return SuggestTagsAsync(tagName.ToLower());
+            var guild = await Database.Guilds.AsNoTracking().Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
-            string user = Context.Guild.ValidateUser(tag.Owner);
-            return ReplyAsync(embed: Extras.Embed(Extras.Info)
-                .WithAuthor("Tag Information", Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl())
+            if (!TryParseTag(tagName, guild, out var tag))
+            {
+                await SuggestTags(tagName, guild);
+                return;
+            }
+
+            await ReplyAsync(embed: EmbedHelper.Embed(EmbedHelper.Info)
+                .WithAuthor("Tag Information", Context.Guild.GetUser(tag.UserId).GetAvatar())
+                .WithThumbnailUrl(Context.Guild.GetUser(tag.UserId).GetAvatar())
                 .AddField("Name", tag.Name, true)
-                .AddField("Owner", user, true)
+                .AddField("Owner", Context.Guild.GetUser(tag.UserId).GetDisplayName(), true)
                 .AddField("Uses", tag.Uses, true)
                 .AddField("Created On", tag.CreationDate, true)
-                .AddField("Content", tag.Content, false)
-                .WithThumbnailUrl("https://png.icons8.com/nolan/80/000000/tags.png")
+                .AddField("Content", tag.Content, true)
                 .Build());
         }
 
-        [Command("List"), Summary("Shows all tags in a list."), Remarks("Tag List"), Priority(1)]
-        public Task ListAsync()
-            => PagedReplyAsync(MethodHelper.Pages(Context.Server.Tags.Select(t => t.Name)), "Tag Collection");
-
-        [Command("Search"), Summary("Shows all tags that match the search."), Remarks("Tag Search <tagName>"), Priority(1)]
-        public Task SearchAsync([Remainder] string tagName)
+        [Command("List")]
+        [Name("Tag List")]
+        [Description("Shows all tags in the guild")]
+        [Usage("Tag List")]
+        [Priority(1)]
+        public async Task ListAsync()
         {
-            var levenTags = Context.Server.Tags.Where(x => LevenshteinDistance(tagName.ToLower(), x.Name) < 5);
-            var containTags = Context.Server.Tags.Where(x => x.Name.Contains(tagName.ToLower())).Take(5);
-            var searched = levenTags.Union(containTags).Select(t => t.Name);
-            return PagedReplyAsync(MethodHelper.Pages(searched), "Tag Search Results");
+            var tags = await Database.Tags.AsNoTracking().Include(x => x.Guild).Where(x => x.Guild.GuildId == Context.Guild.Id).ToListAsync();
+            var pages = new List<string>();
+
+            foreach (var item in tags.SplitList())
+                pages.Add(string.Join("\n", item.Select(x => "*" + x.Name + "*\n" + x.Content + "\n")));
+
+            await PagedReplyAsync(new PaginatedMessage
+            {
+                Pages = pages,
+                Color = new Color(0, 255, 255),
+                Title = "List of Tags and their Content",
+                Author = new EmbedAuthorBuilder
+                {
+                    Name = "Tag Collection",
+                    IconUrl = Context.Client.CurrentUser.GetAvatar()
+                }
+            });
         }
 
-        [Command, Priority(0), Remarks("Gets a tag with the given name.")]
-        public Task TagAsync([Remainder] string tagName)
+        [Command("Search")]
+        [Name("Tag Search")]
+        [Description("Shows all tags that match the search")]
+        [Usage("tag search hello-world")]
+        [Priority(1)]
+        public async Task SearchAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            [Remainder] string tagName)
         {
-            if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return SuggestTagsAsync(tagName.ToLower());
+            var tags = await Database.Tags.AsNoTracking().Include(x => x.Guild).Where(x => x.Guild.GuildId == Context.Guild.Id).ToListAsync();
+            var levenTags = tags.Where(x => tagName.LevenshteinDistance(x.Name) < 5);
+            var containTags = tags.Where(x => x.Name.Contains(tagName)).Take(5);
+            var distinct = new HashSet<Tag>(levenTags.Concat(containTags));
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
+            if (distinct.Count > 0)
+            {
+                var searched = distinct.Select(x => "*" + x.Name + "*\n" + x.Content + "\n").ToList().SplitList();
+                var pages = new List<string>();
+
+                foreach (var item in searched)
+                    pages.Add(string.Join("\n", item));
+
+                await PagedReplyAsync(new PaginatedMessage
+                {
+                    Pages = pages,
+                    Color = new Color(0, 255, 255),
+                    Title = "List of Tags and their Content",
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = "Tag Search Results",
+                        IconUrl = Context.Client.CurrentUser.GetAvatar()
+                    }
+                });
+            }
+            else
+            {
+                await ReplyAsync(EmoteHelper.Cross + " No tags found with name like `" + tagName + "`");
+            }
+        }
+
+        [Command]
+        [Name("Tag")]
+        [Description("Gets a tag with the given name")]
+        [Usage("tag hello-world")]
+        [Priority(0)]
+        public async Task TagAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            [Remainder] string tagName)
+        {
+            var guild = await Database.Guilds.Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
+
+            if (!TryParseTag(tagName, guild, out var tag))
+            {
+                await SuggestTags(tagName, guild);
+                return;
+            }
+
             tag.Uses++;
-            return ReplyAsync(tag.Content, save: DocumentType.Server);
+            await Database.SaveChangesAsync();
+            await ReplyAsync(tag.Content);
         }
 
-        [Command("Update"), Alias("Modify", "Change"), Summary("Updates an existing tag. To specify more than one word, wrap your name with quotes \"like this\"."), Remarks("Tag Update <tagName> <tagContent>"), Priority(1)]
-        public Task UpdateAsync(string tagName, [Remainder] string tagContent)
+        [Command("Update")]
+        [Name("Tag Update")]
+        [Description("Updates an existing tag")]
+        [Usage("tag update hello-world new content")]
+        [Priority(1)]
+        public async Task TagUpdateAsync(
+            [Name("Tag Name")]
+            [Description("Name of the tag. To specify more than one word, wrap your name with quotes \"like this\"")]
+            string tagName,
+            [Name("Tag Content")]
+            [Description("Content that will be displayed when the tag is used")]
+            [Remainder] string tagContent)
         {
-            if (!Context.Server.Tags.Any(t => t.Name == tagName.ToLower()))
-                return ReplyAsync($"{Extras.Cross} Return to the dirt! *There is no tag with this name.*");
+            var guild = await Database.Guilds.Include(x => x.Tags).FirstAsync(x => x.GuildId == Context.Guild.Id);
 
-            TagObject tag = Context.Server.Tags.FirstOrDefault(x => x.Name == tagName.ToLower());
-            if (Context.User.Id != tag.Owner)
-                return ReplyAsync($"{Extras.Cross} I have a hunch I'll be needing this. *You aren't the owner of `{tagName}`*");
+            if (!TryParseTag(tagName, guild, out var tag))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " Return to the dirt! *There is no tag with this name.*");
+                return;
+            }
+
+            if (Context.User.Id != tag.UserId && (Context.User.Id != Context.Guild.OwnerId || !Context.User.GuildPermissions.Administrator
+                || !Context.User.GuildPermissions.ManageGuild || !Context.User.GuildPermissions.ManageChannels || !Context.User.GuildPermissions.ManageRoles))
+            {
+                await ReplyAsync(EmoteHelper.Cross + " I have a hunch I'll be needing this. *You aren't the owner of `" + tag.Name + "`*");
+                return;
+            }
 
             tag.Content = tagContent;
-            return ReplyAsync($"Thank you, my ancestors. I will repay your gift. *Tag `{tagName}`'s contant has been updated.* {Extras.OkHand}", save: DocumentType.Server);
+            await Database.SaveChangesAsync();
+            await ReplyWithEmoteAsync(EmoteHelper.OkHand);
         }
 
-        [Command("User"), Summary("Shows all tags owned by you or a given user."), Remarks("Tag User [@user]"), Priority(1)]
-        public Task UserAsync(IGuildUser user = null)
+        [Command("User")]
+        [Name("Tag User")]
+        [Description("Shows all tags owned by you or a given user")]
+        [Usage("tag user @user")]
+        [Priority(1)]
+        public async Task UserAsync(
+            [Name("User")]
+            [Description("The user whose tags you want to view, if no user is set it shows yours, can either be @user, user id, or user/nick name (wrapped in quotes if it contains a space)")]
+            SocketGuildUser user = null)
         {
-            user = user ?? Context.User as IGuildUser;
-            var userTag = Context.Server.Tags.Where(x => x.Owner == user.Id).Select(x => x.Name);
-            return !Context.Server.Tags.Any() || !userTag.Any()
-                ? ReplyAsync($"{Extras.Cross} Can't quite get my head around this one. *`{user}` doesn't have any tags.*")
-                : PagedReplyAsync(MethodHelper.Pages(userTag), $"{user.Nickname ?? user.Username}'s Tag Collection");
-        }
+            user = user ?? Context.User;
+            var tags = await Database.Tags.AsNoTracking().Include(x => x.Guild).Where(x => x.Guild.GuildId == Context.Guild.Id && x.UserId == user.Id).Select(x => "*" + x.Name + "*\n" + x.Content + "\n").ToListAsync();
 
-        // Honestly have no idea what this is, found it on SO from a "close string match" search
-        private int LevenshteinDistance(string a, string b)
-        {
-            if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
-                return 0;
+            if (tags.Count is 0)
+            {
+                await ReplyAsync(EmoteHelper.Cross + " Can't quite get my head around this one. *`" + user + "` doesn't have any tags.*");
+                return;
+            }
+            else
+            {
+                var pages = new List<string>();
 
-            int lengthA = a.Length;
-            int lengthB = b.Length;
-            int[,] distances = new int[lengthA + 1, lengthB + 1];
-            for (int i = 0; i <= lengthA; distances[i, 0] = i++) ;
-            for (int j = 0; j <= lengthB; distances[0, j] = j++) ;
+                foreach (var item in tags.SplitList())
+                    pages.Add(string.Join("\n", item));
 
-            for (int i = 1; i <= lengthA; i++)
-                for (int j = 1; j <= lengthB; j++)
+                await PagedReplyAsync(new PaginatedMessage
                 {
-                    int cost = b[j - 1] == a[i - 1] ? 0 : 1;
-                    distances[i, j] = Math.Min(Math.Min(distances[i - 1, j] + 1, distances[i, j - 1] + 1), distances[i - 1, j - 1] + cost);
-                }
-            return distances[lengthA, lengthB];
+                    Pages = pages,
+                    Color = new Color(0, 255, 255),
+                    Title = user.GetDisplayName() + "'s Tag Collection",
+                    Author = new EmbedAuthorBuilder
+                    {
+                        Name = "User Tags",
+                        IconUrl = user.GetAvatar()
+                    }
+                });
+            }
         }
 
-        private Task SuggestTagsAsync(string tagName)
+        private bool TryParseTag(string tagName, Guild guild, out Tag tag)
         {
-            var levenTags = Context.Server.Tags.Where(x => LevenshteinDistance(tagName.ToLower(), x.Name) < 5);
-            var containTags = Context.Server.Tags.Where(x => x.Name.Contains(tagName.ToLower())).Take(5);
-            var suggested = levenTags.Union(containTags).Select(x => x.Name);
-            return ReplyAsync($"{Extras.Cross} Must I do everything myself? *Couldn't find tag `{tagName}`* {(suggested.Any() ? $"\nTry these:\n{string.Join("\n", suggested)}" : null)} ");
+            tag = guild.Tags.FirstOrDefault(x => string.Equals(x.Name, tagName, StringComparison.CurrentCultureIgnoreCase));
+            return !(tag is null);
+        }
+
+        private Task SuggestTags(string tagName, Guild guild)
+        {
+            var levenTags = guild.Tags.Where(x => tagName.LevenshteinDistance(x.Name) < 5);
+            var containTags = guild.Tags.Where(x => x.Name.Contains(tagName)).Take(5);
+            var distinct = new HashSet<Tag>(levenTags.Concat(containTags));
+
+            if(distinct.Count > 0)
+            {
+                var suggested = distinct.Select(x => x.Name);
+                return ReplyAsync(EmoteHelper.Cross + " Must I do everything myself? *Couldn't find tag `" + tagName + "`*\nTry these:\n" + string.Join("\n", suggested));
+            }
+
+            return ReplyAsync(EmoteHelper.Cross + " Must I do everything myself? *Couldn't find tag `" + tagName + "` and no matching tags*");
         }
     }
 }
