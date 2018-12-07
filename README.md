@@ -33,15 +33,17 @@ Here is just an overview of some of the features:
 And many more!
 
 ### Runtime
-* .Net Core 3.0 Preview 1 (3.0.100-preview-009812)
-	* Currently set to 2.2 for Continuous Integration
-* Entity Framework Core (3.0.0-preview.18572.1)
+
 * Visual Studio 2019 Preview
+* .Net Core 2.2 or newer
+* Entity Framework Core 2.2 or newer
 
 ### Credits
 
-* [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR), [Discord.Net](https://github.com/RogueException/Discord.Net), and [`Still Docs](https://docs.stillu.cc) for all the resources.
 * [Qmmands](https://github.com/Quahu/Qmmands/) by Quahu
+* [Discord.Net](https://github.com/RogueException/Discord.Net)
+* [`Still Docs](https://docs.stillu.cc) for all the resources.
+* [Discord API Guild #dotnet_discord-net](https://discord.gg/jkrBmQR)
 
 ### Copyright
 

@@ -16,16 +16,16 @@
     <PackageReference Include="Iconic.Zlib.Netstandard" Version="1.0.0" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.0.0-preview.18572.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.0.0-preview.18572.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0-preview.18572.1">
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.0-preview3-35497" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.0-preview3-35497">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0-preview.18572.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0-preview.18572.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0-preview.18572.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.0.0-preview.18572.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0-preview3-35497" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NLog" Version="4.5.11" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.3.0" />
@@ -36,6 +36,9 @@
   <ItemGroup>
     <Compile Update="Migrations\20181206234533_Initial.Designer.cs">
       <DependentUpon>20181206234533_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Migrations\20181207023621_Initial.Designer.cs">
+      <DependentUpon>20181207023621_Initial.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

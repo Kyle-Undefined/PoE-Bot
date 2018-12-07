@@ -9,14 +9,14 @@ using PoE.Bot.Contexts;
 namespace PoE.Bot.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20181206234533_Initial")]
+    [Migration("20181207023621_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.0.0-preview.18572.1");
+                .HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
 
             modelBuilder.Entity("PoE.Bot.Models.BlacklistedUser", b =>
                 {

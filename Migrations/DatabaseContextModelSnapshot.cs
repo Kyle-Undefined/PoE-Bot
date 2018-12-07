@@ -14,7 +14,7 @@ namespace PoE.Bot.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.0.0-preview.18572.1");
+                .HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
 
             modelBuilder.Entity("PoE.Bot.Models.BlacklistedUser", b =>
                 {
