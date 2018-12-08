@@ -31,7 +31,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="NLog" Version="4.5.11" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.3.0" />
-    <PackageReference Include="Qmmands" Version="1.0.3-nightly-00085" />
+    <PackageReference Include="Qmmands" Version="1.0.3-nightly-00086" />
     <PackageReference Include="TwitchLib.Api" Version="3.0.0" />
   </ItemGroup>
 
