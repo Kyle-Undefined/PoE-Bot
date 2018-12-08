@@ -1,4 +1,7 @@
-﻿namespace PoE.Bot.Parsers
+﻿// Copied from RougeException/Discord.Net.Commands
+// Source - https://github.com/RogueException/Discord.Net/blob/dev/src/Discord.Net.Commands/Readers/ChannelTypeReader.cs
+
+namespace PoE.Bot.Parsers
 {
     using Discord;
     using Discord.WebSocket;
