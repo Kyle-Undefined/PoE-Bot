@@ -1,6 +1,7 @@
 ﻿namespace PoE.Bot.Modules
 {
     using Discord;
+    using Discord.WebSocket;
     using PoE.Bot.Attributes;
     using PoE.Bot.Extensions;
     using PoE.Bot.Helpers;
@@ -144,6 +145,15 @@
             [Name("Thing to Rate")]
             [Description("The thing you want to rate")]
             [Remainder] string thingToRate) => ReplyAsync(":thinking: Must I do everything myself? *I would rate '" + thingToRate + "' a solid " + Random.Next(11) + "/10*");
+
+        [Command("Scare")]
+        [Name("Scare")]
+        [Description("Scares a user")]
+        [Usage("scare @user")]
+        public Task Scare(
+            [Name("User")]
+            [Description("The user whose profile you want to get, can either be @user, user id, or user/nick name (wrapped in quotes if it contains a space)")]
+            SocketGuildUser user) => ReplyAsync(user.Mention + " Boo!\n\nhttps://i.imgur.com/mHb3SH1.png");
 
         [Command("Toucan")]
         [Name("Toucan")]
