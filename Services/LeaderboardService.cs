@@ -245,15 +245,17 @@
         private readonly DiscordSocketClient _client;
         private readonly DatabaseContext _database;
         private readonly HttpClient _httpClient;
-        private readonly LeaderboardData _leaderboardData;
+        private readonly LogService _log;
 
-        public LeaderboardService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient)
+        public LeaderboardService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient, LogService log)
         {
             _client = client;
             _database = database;
             _httpClient = httpClient;
-            _leaderboardData = new LeaderboardData();
+            _log = log;
         }
+
+        private LeaderboardData LeaderboardData { get; set; }
 
         public async Task ProcessLeaderboards()
         {
@@ -269,15 +271,15 @@
             var sb = new StringBuilder();
             var embed = EmbedHelper.Embed(EmbedHelper.Leaderboard)
                     .WithTitle("Discordians Only " + leaderboard.Replace("_", " ") + " Leaderboard")
-                    .WithDescription("Retrieved " + _leaderboardData.Discordians.Count.ToString("##,##0") + " users with Discord in their name.")
+                    .WithDescription("Retrieved " + LeaderboardData.Discordians.Count.ToString("##,##0") + " users with Discord in their name.")
                     .WithCurrentTimestamp()
                     .AddField("Top 10 Characters of each Class Ascendancy", "Rank is overall and not by Ascendancy.");
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer || x.Class is AscendancyClass.Champion
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer || x.Class is AscendancyClass.Champion
                 || x.Class is AscendancyClass.Gladiator))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer
                     || x.Class is AscendancyClass.Champion || x.Class is AscendancyClass.Gladiator).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -286,11 +288,11 @@
                 embed.AddField("Duelists, Slayers, Champions, Gladiators", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut || x.Class is AscendancyClass.Chieftain
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut || x.Class is AscendancyClass.Chieftain
                 || x.Class is AscendancyClass.Berserker))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut
                     || x.Class is AscendancyClass.Chieftain || x.Class is AscendancyClass.Berserker).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -298,11 +300,11 @@
                 embed.AddField("Marauders, Juggernauts, Chieftains, Berserkers", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Pathfinder || x.Class is AscendancyClass.Deadeye
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Pathfinder || x.Class is AscendancyClass.Deadeye
                 || x.Class is AscendancyClass.Raider))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Pathfinder
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Pathfinder
                     || x.Class is AscendancyClass.Deadeye || x.Class is AscendancyClass.Raider).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -310,21 +312,21 @@
                 embed.AddField("Rangers, Pathfinders, Raiders, Deadeyes", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant))
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant).Take(10))
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant).Take(10))
                 {
                     sb = FormatData(sb, item);
                 }
                 embed.AddField("Scions, Ascendants", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur || x.Class is AscendancyClass.Assassin
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur || x.Class is AscendancyClass.Assassin
                 || x.Class is AscendancyClass.Trickster))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur
                     || x.Class is AscendancyClass.Assassin || x.Class is AscendancyClass.Trickster).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -332,11 +334,11 @@
                 embed.AddField("Shadows, Saboteurs, Assassins, Tricksters", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Guardian || x.Class is AscendancyClass.Inquisitor
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Guardian || x.Class is AscendancyClass.Inquisitor
                 || x.Class is AscendancyClass.Hierophant))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Guardian
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Guardian
                     || x.Class is AscendancyClass.Inquisitor || x.Class is AscendancyClass.Hierophant).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -344,11 +346,11 @@
                 embed.AddField("Templars, Guardians, Inquisitors, Hierophants", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer || x.Class is AscendancyClass.Occultist
+            if (LeaderboardData.Discordians.Any(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer || x.Class is AscendancyClass.Occultist
                 || x.Class is AscendancyClass.Elementalist))
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer
+                foreach (var item in LeaderboardData.Discordians.Where(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer
                     || x.Class is AscendancyClass.Occultist || x.Class is AscendancyClass.Elementalist).Take(10))
                 {
                     sb = FormatData(sb, item);
@@ -367,91 +369,91 @@
                     .WithDescription("Rank is overall and not by Ascendancy.")
                     .WithCurrentTimestamp();
 
-            if (_leaderboardData.Ascendants.Count > 0)
+            if (LeaderboardData.Ascendants.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Ascendants.Take(10))
+                foreach (var item in LeaderboardData.Ascendants.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Ascendants", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Assassins.Count > 0)
+            if (LeaderboardData.Assassins.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Assassins.Take(10))
+                foreach (var item in LeaderboardData.Assassins.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Assassins", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Berserkers.Count > 0)
+            if (LeaderboardData.Berserkers.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Berserkers.Take(10))
+                foreach (var item in LeaderboardData.Berserkers.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Berserkers", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Champions.Count > 0)
+            if (LeaderboardData.Champions.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Champions.Take(10))
+                foreach (var item in LeaderboardData.Champions.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Champions", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Chieftains.Count > 0)
+            if (LeaderboardData.Chieftains.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Chieftains.Take(10))
+                foreach (var item in LeaderboardData.Chieftains.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Chieftains", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Deadeyes.Count > 0)
+            if (LeaderboardData.Deadeyes.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Deadeyes.Take(10))
+                foreach (var item in LeaderboardData.Deadeyes.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Deadeyes", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Elementalists.Count > 0)
+            if (LeaderboardData.Elementalists.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Elementalists.Take(10))
+                foreach (var item in LeaderboardData.Elementalists.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Elementalists", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Gladiators.Count > 0)
+            if (LeaderboardData.Gladiators.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Gladiators.Take(10))
+                foreach (var item in LeaderboardData.Gladiators.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Gladiators", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Guardians.Count > 0)
+            if (LeaderboardData.Guardians.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Guardians.Take(10))
+                foreach (var item in LeaderboardData.Guardians.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Guardians", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Hierophants.Count > 0)
+            if (LeaderboardData.Hierophants.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Hierophants.Take(10))
+                foreach (var item in LeaderboardData.Hierophants.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Hierophants", "```" + sb + "```");
@@ -462,21 +464,31 @@
 
         private async Task BuildLeaderboardAsync(Leaderboard leaderboard, SocketGuild guild)
         {
-            await GetLeaderboardDataAsync(leaderboard.Console, leaderboard.Variant);
-
-            var channel = guild.GetChannel(leaderboard.ChannelId) as SocketTextChannel;
-            foreach (var msg in await channel.GetMessagesAsync().FlattenAsync())
+            try
             {
-                await msg.DeleteAsync();
-                await Task.Delay(1000);
+                LeaderboardData = new LeaderboardData();
+
+                await GetLeaderboardDataAsync(leaderboard.Console, leaderboard.Variant);
+
+                var channel = guild.GetChannel(leaderboard.ChannelId) as SocketTextChannel;
+                foreach (var msg in await channel.GetMessagesAsync().FlattenAsync())
+                {
+                    await msg.DeleteAsync();
+                    await Task.Delay(1000);
+                }
+
+                await channel.SendMessageAsync(embed: BuildTopClassEmbed(leaderboard.Variant));
+                await channel.SendMessageAsync(embed: BuildFirstTopAscendancyEmbed());
+                await channel.SendMessageAsync(embed: BuildSecondTopAscendancyEmbed());
+                await channel.SendMessageAsync(embed: BuildDiscordOnlyEmbed(leaderboard.Variant));
+
+                await Task.Delay(15000);
             }
-
-            await channel.SendMessageAsync(embed: BuildTopClassEmbed(leaderboard.Variant));
-            await channel.SendMessageAsync(embed: BuildFirstTopAscendancyEmbed());
-            await channel.SendMessageAsync(embed: BuildSecondTopAscendancyEmbed());
-            await channel.SendMessageAsync(embed: BuildDiscordOnlyEmbed(leaderboard.Variant));
-
-            await Task.Delay(15000);
+            catch (Exception ex)
+            {
+                await _log.LogMessage(new LogMessage(LogSeverity.Error, "Leaderboard", string.Empty, ex));
+                return;
+            }
         }
 
         private Embed BuildSecondTopAscendancyEmbed()
@@ -487,82 +499,82 @@
                     .WithDescription("Rank is overall and not by Ascendancy.")
                     .WithCurrentTimestamp();
 
-            if (_leaderboardData.Inquisitors.Count > 0)
+            if (LeaderboardData.Inquisitors.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Inquisitors.Take(10))
+                foreach (var item in LeaderboardData.Inquisitors.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Inquisitors", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Juggernauts.Count > 0)
+            if (LeaderboardData.Juggernauts.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Juggernauts.Take(10))
+                foreach (var item in LeaderboardData.Juggernauts.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Juggernauts", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Necromancers.Count > 0)
+            if (LeaderboardData.Necromancers.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Necromancers.Take(10))
+                foreach (var item in LeaderboardData.Necromancers.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Necromancers", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Occultists.Count > 0)
+            if (LeaderboardData.Occultists.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Occultists.Take(10))
+                foreach (var item in LeaderboardData.Occultists.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Occultists", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Pathfinders.Count > 0)
+            if (LeaderboardData.Pathfinders.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Pathfinders.Take(10))
+                foreach (var item in LeaderboardData.Pathfinders.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Pathfinders", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Raiders.Count > 0)
+            if (LeaderboardData.Raiders.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Raiders.Take(10))
+                foreach (var item in LeaderboardData.Raiders.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Raiders", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Saboteurs.Count > 0)
+            if (LeaderboardData.Saboteurs.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Saboteurs.Take(10))
+                foreach (var item in LeaderboardData.Saboteurs.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Saboteurs", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Slayers.Count > 0)
+            if (LeaderboardData.Slayers.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Slayers.Take(10))
+                foreach (var item in LeaderboardData.Slayers.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Slayers", "```" + sb + "```");
             }
 
-            if (_leaderboardData.Tricksters.Count > 0)
+            if (LeaderboardData.Tricksters.Count > 0)
             {
                 sb = new StringBuilder();
-                foreach (var item in _leaderboardData.Tricksters.Take(10))
+                foreach (var item in LeaderboardData.Tricksters.Take(10))
                     sb = FormatData(sb, item);
 
                 embed.AddField("Tricksters", "```" + sb + "```");
@@ -576,22 +588,22 @@
             var sb = new StringBuilder();
             var embed = EmbedHelper.Embed(EmbedHelper.Leaderboard)
                     .WithTitle(WebUtility.UrlDecode(leaderboard).Replace("_", " ") + " Leaderboard")
-                    .WithDescription("Retrieved " + _leaderboardData.AllRecords.Count.ToString("##,##0") + " records.")
+                    .WithDescription("Retrieved " + LeaderboardData.AllRecords.Count.ToString("##,##0") + " records.")
                     .WithCurrentTimestamp()
                     .AddField("Top 10 Characters of each Class", "Rank is overall and not by Class.");
 
-            var duelists = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer || x.Class is AscendancyClass.Gladiator
+            var duelists = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Duelist || x.Class is AscendancyClass.Slayer || x.Class is AscendancyClass.Gladiator
                 || x.Class is AscendancyClass.Champion).ToList();
-            var marauders = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut || x.Class is AscendancyClass.Chieftain
+            var marauders = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Marauder || x.Class is AscendancyClass.Juggernaut || x.Class is AscendancyClass.Chieftain
                 || x.Class is AscendancyClass.Berserker).ToList();
-            var rangers = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Raider || x.Class is AscendancyClass.Deadeye
+            var rangers = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Ranger || x.Class is AscendancyClass.Raider || x.Class is AscendancyClass.Deadeye
                 || x.Class is AscendancyClass.Pathfinder).ToList();
-            var scions = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant).ToList();
-            var shadows = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur || x.Class is AscendancyClass.Assassin
+            var scions = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Scion || x.Class is AscendancyClass.Ascendant).ToList();
+            var shadows = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Shadow || x.Class is AscendancyClass.Saboteur || x.Class is AscendancyClass.Assassin
                 || x.Class is AscendancyClass.Trickster).ToList();
-            var templars = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Inquisitor || x.Class is AscendancyClass.Hierophant
+            var templars = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Templar || x.Class is AscendancyClass.Inquisitor || x.Class is AscendancyClass.Hierophant
                 || x.Class is AscendancyClass.Guardian).ToList();
-            var witches = _leaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer || x.Class is AscendancyClass.Occultist
+            var witches = LeaderboardData.AllRecords.Where(x => x.Class is AscendancyClass.Witch || x.Class is AscendancyClass.Necromancer || x.Class is AscendancyClass.Occultist
                 || x.Class is AscendancyClass.Elementalist).ToList();
 
             if (duelists.Count > 0)
@@ -675,7 +687,7 @@
                         csv.ReadHeader();
 
                         while (await csv.ReadAsync())
-                            _leaderboardData.Add(csv.GetRecord<LeaderboardDataItem>());
+                            LeaderboardData.Add(csv.GetRecord<LeaderboardDataItem>());
                     }
                 }
             }
@@ -690,7 +702,7 @@
                 .AppendFormat("{0,3}", item.Level)
                 .Append(" | ")
                 .AppendFormat("{0,14}", item.Class.ToString())
-                .AppendLine(item.Dead ? " | X" : null);
+                .AppendLine();
         }
     }
 }
