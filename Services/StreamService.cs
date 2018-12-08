@@ -1,5 +1,6 @@
 ﻿namespace PoE.Bot.Services
 {
+    using Discord;
     using Discord.WebSocket;
     using Microsoft.EntityFrameworkCore;
     using Newtonsoft.Json.Linq;
@@ -127,12 +128,14 @@
         private readonly DiscordSocketClient _client;
         private readonly DatabaseContext _database;
         private readonly HttpClient _httpClient;
+        private readonly LogService _log;
 
-        public StreamService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient)
+        public StreamService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient, LogService log)
         {
             _client = client;
             _database = database;
             _httpClient = httpClient;
+            _log = log;
         }
 
         public async Task ProcessStreams()
@@ -146,66 +149,33 @@
 
         private async Task BuildStreamAsync(Stream stream, SocketGuild socketGuild, Guild guild)
         {
-            bool streamWasLive = stream.IsLive;
-
-            switch (stream.StreamType)
+            try
             {
-                case StreamType.Mixer:
-                    if (!guild.EnableMixerFeed)
-                        return;
+                bool streamWasLive = stream.IsLive;
 
-                    var mixer = new MixerAPI(_httpClient);
-                    string chanJson = await mixer.GetChannel(stream.MixerChannelId);
-                    bool chanIsLive = mixer.IsChannelLive(chanJson);
+                switch (stream.StreamType)
+                {
+                    case StreamType.Mixer:
+                        if (!guild.EnableMixerFeed)
+                            return;
 
-                    if (!chanIsLive)
-                        stream.IsLive = false;
+                        var mixer = new MixerAPI(_httpClient);
+                        string chanJson = await mixer.GetChannel(stream.MixerChannelId);
+                        bool chanIsLive = mixer.IsChannelLive(chanJson);
 
-                    if (chanIsLive && !stream.IsLive)
-                    {
-                        var embed = EmbedHelper.Embed(EmbedHelper.Mixer)
-                            .WithTitle(mixer.GetChannelTitle(chanJson))
-                            .WithDescription("\n**" + stream.Username + "** is playing **" + mixer.GetChannelGame(chanJson) + "** for " + mixer.GetViewerCount(chanJson).ToString()
-                                + " viewers!\n\n**https://mixer.com/" + stream.Username + "**")
-                            .WithAuthor(stream.Username, mixer.GetUserAvatar(stream.MixerUserId), $"https://mixer.com/{stream.Username}")
-                            .WithThumbnailUrl(mixer.GetChannelGameCover(chanJson))
-                            .WithImageUrl(mixer.GetChannelThumbnail(chanJson))
-                            .Build();
+                        if (!chanIsLive)
+                            stream.IsLive = false;
 
-                        var channel = socketGuild.GetChannel(stream.ChannelId) as SocketTextChannel;
-                        await channel.SendMessageAsync(embed: embed);
-
-                        stream.IsLive = true;
-                        await _database.SaveChangesAsync();
-                    }
-                    break;
-
-                case StreamType.Twitch:
-                    if (!guild.EnableTwitchFeed)
-                        return;
-
-                    var twitch = new TwitchAPI();
-                    twitch.Settings.ClientId = (await _database.BotConfigs.AsNoTracking().FirstAsync()).TwitchClientId;
-                    var user = (await twitch.Helix.Users.GetUsersAsync(new List<string>(new string[] { stream.TwitchUserId.ToString() }))).Users[0];
-                    var _stream = (await twitch.V5.Streams.GetStreamByUserAsync(stream.TwitchUserId.ToString(), "live")).Stream;
-
-                    if (_stream is null)
-                    {
-                        stream.IsLive = false;
-                    }
-                    else
-                    {
-                        if (!stream.IsLive)
+                        if (chanIsLive && !stream.IsLive)
                         {
-                            var game = (await twitch.Helix.Games.GetGamesAsync(null, new List<string>(new string[] { _stream.Game }))).Games[0];
-                            var embed = EmbedHelper.Embed(EmbedHelper.Twitch)
-                                        .WithTitle(_stream.Channel.Status)
-                                        .WithDescription("\n**" + user.DisplayName + "** is playing **" + game.Name + "** for " + _stream.Viewers + " viewers!\n\n**http://www.twitch.tv/"
-                                            + user.DisplayName + "**")
-                                        .WithAuthor(user.DisplayName, user.ProfileImageUrl, "http://www.twitch.tv/" + user.DisplayName)
-                                        .WithThumbnailUrl(game.BoxArtUrl.Replace("{width}x{height}", "285x380"))
-                                        .WithImageUrl(_stream.Preview.Large)
-                                        .Build();
+                            var embed = EmbedHelper.Embed(EmbedHelper.Mixer)
+                                .WithTitle(mixer.GetChannelTitle(chanJson))
+                                .WithDescription("\n**" + stream.Username + "** is playing **" + mixer.GetChannelGame(chanJson) + "** for " + mixer.GetViewerCount(chanJson).ToString()
+                                    + " viewers!\n\n**https://mixer.com/" + stream.Username + "**")
+                                .WithAuthor(stream.Username, mixer.GetUserAvatar(stream.MixerUserId), $"https://mixer.com/{stream.Username}")
+                                .WithThumbnailUrl(mixer.GetChannelGameCover(chanJson))
+                                .WithImageUrl(mixer.GetChannelThumbnail(chanJson))
+                                .Build();
 
                             var channel = socketGuild.GetChannel(stream.ChannelId) as SocketTextChannel;
                             await channel.SendMessageAsync(embed: embed);
@@ -213,12 +183,53 @@
                             stream.IsLive = true;
                             await _database.SaveChangesAsync();
                         }
-                    }
-                    break;
-            }
+                        break;
 
-            if (streamWasLive && !stream.IsLive)
-                await _database.SaveChangesAsync();
+                    case StreamType.Twitch:
+                        if (!guild.EnableTwitchFeed)
+                            return;
+
+                        var twitch = new TwitchAPI();
+                        twitch.Settings.ClientId = (await _database.BotConfigs.AsNoTracking().FirstAsync()).TwitchClientId;
+                        var user = (await twitch.Helix.Users.GetUsersAsync(new List<string>(new string[] { stream.TwitchUserId.ToString() }))).Users[0];
+                        var _stream = (await twitch.V5.Streams.GetStreamByUserAsync(stream.TwitchUserId.ToString(), "live")).Stream;
+
+                        if (_stream is null)
+                        {
+                            stream.IsLive = false;
+                        }
+                        else
+                        {
+                            if (!stream.IsLive)
+                            {
+                                var game = (await twitch.Helix.Games.GetGamesAsync(null, new List<string>(new string[] { _stream.Game }))).Games[0];
+                                var embed = EmbedHelper.Embed(EmbedHelper.Twitch)
+                                            .WithTitle(_stream.Channel.Status)
+                                            .WithDescription("\n**" + user.DisplayName + "** is playing **" + game.Name + "** for " + _stream.Viewers + " viewers!\n\n**http://www.twitch.tv/"
+                                                + user.DisplayName + "**")
+                                            .WithAuthor(user.DisplayName, user.ProfileImageUrl, "http://www.twitch.tv/" + user.DisplayName)
+                                            .WithThumbnailUrl(game.BoxArtUrl.Replace("{width}x{height}", "285x380"))
+                                            .WithImageUrl(_stream.Preview.Large)
+                                            .Build();
+
+                                var channel = socketGuild.GetChannel(stream.ChannelId) as SocketTextChannel;
+                                await channel.SendMessageAsync(embed: embed);
+
+                                stream.IsLive = true;
+                                await _database.SaveChangesAsync();
+                            }
+                        }
+                        break;
+                }
+
+                if (streamWasLive && !stream.IsLive)
+                    await _database.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _log.LogMessage(new LogMessage(LogSeverity.Error, "Stream", string.Empty, ex));
+                return;
+            }
         }
     }
 }

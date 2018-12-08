@@ -57,12 +57,14 @@
         private readonly DiscordSocketClient _client;
         private readonly DatabaseContext _database;
         private readonly HttpClient _httpClient;
+        private readonly LogService _log;
 
-        public RssService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient)
+        public RssService(DiscordSocketClient client, DatabaseContext database, HttpClient httpClient, LogService log)
         {
             _client = client;
             _database = database;
             _httpClient = httpClient;
+            _log = log;
         }
 
         public async Task ProcessRssFeeds()
@@ -76,106 +78,114 @@
 
         private async Task BuildRssFeedAsync(RssFeed feed, SocketGuild socketGuild)
         {
-            var recentUrls = feed.Guild.RssRecentUrls;
-            var checkRss = await GetRssAsync(feed.FeedUrl);
-            if (checkRss is null)
-                return;
-
-            foreach (var item in checkRss.Data.Items.Take(10).Reverse())
+            try
             {
-                if (recentUrls.Select(x => x.RecentUrl).Contains(item.Link))
-                    continue;
+                var recentUrls = feed.Guild.RssRecentUrls;
+                var checkRss = await GetRssAsync(feed.FeedUrl);
+                if (checkRss is null)
+                    return;
 
-                var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
-                var embed = EmbedHelper.Embed(EmbedHelper.RSS);
-                var sb = new StringBuilder();
-
-                string description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(item.Description)));
-                description = description.Length > 800 ? $"{description.Substring(0, 800)} [...]" : description;
-                var feedUri = new Uri(feed.FeedUrl);
-
-                switch (feedUri)
+                foreach (var item in checkRss.Data.Items.Take(10).Reverse())
                 {
-                    case Uri uri when feedUri.Host is "www.gggtracker.com":
-                        sb.AppendLine("-----------------------------------------------------------")
-                            .Append(":newspaper: ***").Append(CleanTitle(item.Title)).AppendLine("***\n")
-                            .AppendLine(item.Link)
-                            .Append("```").Append(description).AppendLine("```");
-                        break;
+                    if (recentUrls.Select(x => x.RecentUrl).Contains(item.Link))
+                        continue;
 
-                    case Uri uri when feedUri.Host is "www.poelab.com":
-                        sb.AppendLine("-----------------------------------------------------------")
-                            .Append("***").Append(CleanTitle(item.Title)).AppendLine("***")
-                            .AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*")
-                            .AppendLine(item.Link);
+                    var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
+                    var embed = EmbedHelper.Embed(EmbedHelper.RSS);
+                    var sb = new StringBuilder();
 
-                        string labDescription = "Lab notes not added.";
+                    string description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(item.Description)));
+                    description = description.Length > 800 ? $"{description.Substring(0, 800)} [...]" : description;
+                    var feedUri = new Uri(feed.FeedUrl);
 
-                        if (item.Comments > 0 && item.Title.Contains("Uber"))
-                        {
-                            var commentRSS = await GetRssAsync(item.CommentRss);
-                            var comment = commentRSS.Data.Items.Find(x => x.Title is "By: SuitSizeSmall");
-                            if (!(comment is null))
-                                labDescription = comment.Description;
-                        }
-
-                        sb.Append("```").Append(labDescription).AppendLine("```");
-                        break;
-
-                    case Uri uri when feedUri.Host is "www.pathofexile.com":
-                        embed.WithTitle(CleanTitle(item.Title))
-                            .WithDescription(description)
-                            .WithUrl(item.Link)
-                            .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
-
-                        string newsImage = await GetAnnouncementImageAsync(item.Link);
-                        if (!string.IsNullOrWhiteSpace(newsImage))
-                            embed.WithImageUrl(newsImage);
-                        break;
-
-                    default:
-                        sb.Append("***").Append(CleanTitle(item.Title)).AppendLine("***\n")
-                            .AppendLine(item.Link)
-                            .Append("```").Append(description).AppendLine("```");
-                        break;
-                }
-
-                IRole roleToMention = null;
-                if (feed.Guild.RssRoles.Count > 0)
-                {
-                    foreach (var roleId in feed.Guild.RssRoles)
+                    switch (feedUri)
                     {
-                        var role = socketGuild.GetRole(roleId.RoleId);
-                        if (role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0 && !string.IsNullOrEmpty(feed.Tag))
+                        case Uri uri when feedUri.Host is "www.gggtracker.com":
+                            sb.AppendLine("-----------------------------------------------------------")
+                                .Append(":newspaper: ***").Append(CleanTitle(item.Title)).AppendLine("***\n")
+                                .AppendLine(item.Link)
+                                .Append("```").Append(description).AppendLine("```");
+                            break;
+
+                        case Uri uri when feedUri.Host is "www.poelab.com":
+                            sb.AppendLine("-----------------------------------------------------------")
+                                .Append("***").Append(CleanTitle(item.Title)).AppendLine("***")
+                                .AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*")
+                                .AppendLine(item.Link);
+
+                            string labDescription = "Lab notes not added.";
+
+                            if (item.Comments > 0 && item.Title.Contains("Uber"))
+                            {
+                                var commentRSS = await GetRssAsync(item.CommentRss);
+                                var comment = commentRSS.Data.Items.Find(x => x.Title is "By: SuitSizeSmall");
+                                if (!(comment is null))
+                                    labDescription = comment.Description;
+                            }
+
+                            sb.Append("```").Append(labDescription).AppendLine("```");
+                            break;
+
+                        case Uri uri when feedUri.Host is "www.pathofexile.com":
+                            embed.WithTitle(CleanTitle(item.Title))
+                                .WithDescription(description)
+                                .WithUrl(item.Link)
+                                .WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
+
+                            string newsImage = await GetAnnouncementImageAsync(item.Link);
+                            if (!string.IsNullOrWhiteSpace(newsImage))
+                                embed.WithImageUrl(newsImage);
+                            break;
+
+                        default:
+                            sb.Append("***").Append(CleanTitle(item.Title)).AppendLine("***\n")
+                                .AppendLine(item.Link)
+                                .Append("```").Append(description).AppendLine("```");
+                            break;
+                    }
+
+                    IRole roleToMention = null;
+                    if (feed.Guild.RssRoles.Count > 0)
+                    {
+                        foreach (var roleId in feed.Guild.RssRoles)
                         {
-                            if (embed.Title.IndexOf(feed.Tag, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                            var role = socketGuild.GetRole(roleId.RoleId);
+                            if (role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0 && !string.IsNullOrEmpty(feed.Tag))
+                            {
+                                if (embed.Title.IndexOf(feed.Tag, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                                {
+                                    roleToMention = role;
+                                    break;
+                                }
+                            }
+                            else if (!(role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0))
                             {
                                 roleToMention = role;
                                 break;
                             }
                         }
-                        else if (!(role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0))
-                        {
-                            roleToMention = role;
-                            break;
-                        }
                     }
+
+                    if (!string.IsNullOrEmpty(embed.Title))
+                        await channel.SendMessageAsync(roleToMention?.Mention, embed: embed.Build());
+                    else if (!string.IsNullOrEmpty(sb.ToString()))
+                        await channel.SendMessageAsync(sb.ToString());
+
+                    await _database.RssRecentUrls.AddAsync(new RssRecentUrl
+                    {
+                        RecentUrl = item.Link,
+                        RssFeedId = feed.Id,
+                        GuildId = feed.Guild.Id
+                    });
                 }
 
-                if (!string.IsNullOrEmpty(embed.Title))
-                    await channel.SendMessageAsync(roleToMention?.Mention, embed: embed.Build());
-                else if (!string.IsNullOrEmpty(sb.ToString()))
-                    await channel.SendMessageAsync(sb.ToString());
-
-                await _database.RssRecentUrls.AddAsync(new RssRecentUrl
-                {
-                    RecentUrl = item.Link,
-                    RssFeedId = feed.Id,
-                    GuildId = feed.Guild.Id
-                });
+                await _database.SaveChangesAsync();
             }
-
-            await _database.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                await _log.LogMessage(new LogMessage(LogSeverity.Error, "Rss", string.Empty, ex));
+                return;
+            }
         }
 
         private string CleanTitle(string title) => title.Replace("*", string.Empty);
