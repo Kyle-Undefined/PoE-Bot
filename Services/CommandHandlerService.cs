@@ -73,8 +73,9 @@
 
                 (_client.GetChannel((await _database.BotConfigs.AsNoTracking().FirstAsync()).SupportChannel) as SocketTextChannel)?.SendMessageAsync("**Guild**: " + context.Guild.Name + " ("
                     + context.Guild.Id + ")\n" + "**Channel**: " + context.Channel.Name + "(" + context.Channel.Id + ")\n**Command**: " + context.Message + " \n**Reason**: " + result.Reason + "\n"
-                    + "**Exception**: " + result.Exception);
-                var messageException = await context.Channel.SendMessageAsync(EmoteHelper.Cross + " I'm no beast of burden. *There was an error running the command and has been logged*");
+                    + "**Exception**: ```" + result.Exception.Message + "\n" + result.Exception.TargetSite + "```");
+
+                await context.Channel.SendMessageAsync(EmoteHelper.Cross + " I'm no beast of burden. *There was an error running the command and has been logged*");
             }
         }
 

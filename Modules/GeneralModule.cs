@@ -139,9 +139,9 @@
                     + "Twitch Streams: " + guilds.Sum(x => x.Streams.Count(y => y.StreamType == StreamType.Twitch)) + "\n"
                     + "Leaderboards: " + guilds.Sum(x => x.Leaderboards.Count) + "\n"
                     + "Rss Feeds: " + guilds.Sum(x => x.RssFeeds.Count) + "\n"
-                    + "Users" + guilds.Sum(x => x.Users.Count) + "\n"
-                    + "Cases" + guilds.Sum(x => x.Cases.Count) + "\n"
-                    + "Profanities" + guilds.Sum(x => x.Profanities.Count) + "\n"
+                    + "Users: " + guilds.Sum(x => x.Users.Count) + "\n"
+                    + "Cases: " + guilds.Sum(x => x.Cases.Count) + "\n"
+                    + "Profanities: " + guilds.Sum(x => x.Profanities.Count) + "\n"
                     , true);
             embed.AddEmptyField();
             embed.AddField("Uptime", (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss"), true)

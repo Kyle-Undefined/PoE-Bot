@@ -2,11 +2,12 @@
 {
     using Discord;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.DependencyInjection;
     using PoE.Bot.Attributes;
     using System;
     using System.Threading.Tasks;
 
-    [Service(Microsoft.Extensions.DependencyInjection.ServiceLifetime.Transient)]
+    [Service(ServiceLifetime.Transient)]
     public class LogService
     {
         private readonly ILogger<LogService> _logger;
