@@ -202,21 +202,26 @@
                         {
                             if (!stream.IsLive)
                             {
-                                var game = (await twitch.Helix.Games.GetGamesAsync(null, new List<string>(new string[] { _stream.Game }))).Games[0];
-                                var embed = EmbedHelper.Embed(EmbedHelper.Twitch)
-                                            .WithTitle(_stream.Channel.Status)
-                                            .WithDescription("\n**" + user.DisplayName + "** is playing **" + game.Name + "** for " + _stream.Viewers + " viewers!\n\n**http://www.twitch.tv/"
-                                                + user.DisplayName + "**")
-                                            .WithAuthor(user.DisplayName, user.ProfileImageUrl, "http://www.twitch.tv/" + user.DisplayName)
-                                            .WithThumbnailUrl(game.BoxArtUrl.Replace("{width}x{height}", "285x380"))
-                                            .WithImageUrl(_stream.Preview.Large)
-                                            .Build();
+                                var games = (await twitch.Helix.Games.GetGamesAsync(null, new List<string>(new string[] { _stream.Game })));
 
-                                var channel = socketGuild.GetChannel(stream.ChannelId) as SocketTextChannel;
-                                await channel.SendMessageAsync(embed: embed);
+                                if (games.Games.Length > 0)
+                                {
+                                    var game = games.Games[0];
+                                    var embed = EmbedHelper.Embed(EmbedHelper.Twitch)
+                                                .WithTitle(_stream.Channel.Status)
+                                                .WithDescription("\n**" + user.DisplayName + "** is playing **" + game.Name + "** for " + _stream.Viewers + " viewers!\n\n**http://www.twitch.tv/"
+                                                    + user.DisplayName + "**")
+                                                .WithAuthor(user.DisplayName, user.ProfileImageUrl, "http://www.twitch.tv/" + user.DisplayName)
+                                                .WithThumbnailUrl(game.BoxArtUrl.Replace("{width}x{height}", "285x380"))
+                                                .WithImageUrl(_stream.Preview.Large)
+                                                .Build();
 
-                                stream.IsLive = true;
-                                await _database.SaveChangesAsync();
+                                    var channel = socketGuild.GetChannel(stream.ChannelId) as SocketTextChannel;
+                                    await channel.SendMessageAsync(embed: embed);
+
+                                    stream.IsLive = true;
+                                    await _database.SaveChangesAsync();
+                                }
                             }
                         }
                         break;
