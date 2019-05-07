@@ -80,7 +80,19 @@
 			await isComplete;
 		}
 
-		private async Task BuildRssFeedAsync(RssFeed feed, SocketGuild socketGuild)
+		private async Task<RssDataObject> GetRssAsync(string feedUrl)
+		{
+			var response = await _httpClient.GetAsync(feedUrl).ConfigureAwait(false);
+			if (!response.IsSuccessStatusCode)
+				return null;
+
+			var serializer = new XmlSerializer(typeof(RssDataObject));
+			var xml = await response.Content.ReadAsStringAsync();
+			var xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+			return serializer.Deserialize(xmlStream) as RssDataObject;
+		}
+
+		private async Task BuildRssFeedAsync(RssFeed feed, RssDataObject rssData, SocketGuild socketGuild)
 		{
 			try
 			{
@@ -192,8 +204,6 @@
 			}
 		}
 
-		private string CleanTitle(string title) => title.Replace("*", string.Empty);
-
 		private async Task<string> GetAnnouncementImageAsync(string url)
 		{
 			var imageURL = string.Empty;
@@ -235,6 +245,7 @@
 			var xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
 			return serializer.Deserialize(xmlStream) as RssDataObject;
 		}
+		private string CleanTitle(string title) => title.Replace("*", string.Empty);
 
 		private string RoughStrip(string source)
 		{
