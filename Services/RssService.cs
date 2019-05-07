@@ -69,11 +69,15 @@
 
 		public async Task ProcessRssFeeds()
 		{
+			List<Task> feeds = new List<Task>();
 			foreach (var guild in await _database.Guilds.Include(x => x.RssFeeds).Include(x => x.RssRecentUrls).Include(x => x.RssRoles).Where(x => x.EnableRssFeed && x.RssFeeds.Count > 0).ToListAsync())
 			{
 				foreach (var feed in guild.RssFeeds)
-					await BuildRssFeedAsync(feed, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
+					feeds.Add(new Task(async () => {
+					}));
 			}
+			Task isComplete = Task.WhenAll(feeds);
+			await isComplete;
 		}
 
 		private async Task BuildRssFeedAsync(RssFeed feed, SocketGuild socketGuild)
