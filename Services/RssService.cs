@@ -74,6 +74,8 @@
 			{
 				foreach (var feed in guild.RssFeeds)
 					feeds.Add(new Task(async () => {
+						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
+						await BuildRssFeedAsync(feed, rssData, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
 					}));
 			}
 			Task isComplete = Task.WhenAll(feeds);
@@ -97,11 +99,8 @@
 			try
 			{
 				var recentUrls = feed.Guild.RssRecentUrls;
-				var checkRss = await GetRssAsync(feed.FeedUrl);
-				if (checkRss is null)
-					return;
 
-				foreach (var item in checkRss.Data.Items.Take(10).Reverse())
+				foreach (var item in rssData.Data.Items.Take(10).Reverse())
 				{
 					if (recentUrls.Select(x => x.RecentUrl).Contains(item.Link))
 						continue;
