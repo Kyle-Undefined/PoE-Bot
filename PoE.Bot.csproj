@@ -9,9 +9,6 @@
   <ItemGroup>
     <Compile Remove="Migrations\20181122154752_Role-changes.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="DatabaseO.db" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="12.0.1" />
