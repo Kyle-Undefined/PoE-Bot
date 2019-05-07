@@ -64,7 +64,7 @@
                 }
             }, x => x.ToRunEvery(1).Minutes());
 
-            JobManager.AddJob(async () => await _leaderboard.ProcessLeaderboards(), x => x.ToRunEvery(60).Minutes());
+            JobManager.AddJob(async () => await _leaderboard.ProcessLeaderboards(), x => x.ToRunEvery(30).Minutes());
 
             JobManager.AddJob(async () => await _stream.ProcessStreams(), x => x.ToRunEvery(5).Minutes());
 
