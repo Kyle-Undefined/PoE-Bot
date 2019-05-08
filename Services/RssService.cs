@@ -101,11 +101,15 @@
 		{
 			var recentUrls = feed.Guild.RssRecentUrls;
 			List<RssItem> posts = new List<RssItem>();
-			foreach (var item in rssData.Data.Items.Take(10).Reverse())
+
+			await Task.Run(() =>
 			{
-				if (!(recentUrls.Select(x => x.RecentUrl).Contains(item.Link)))
-					posts.Add(item);
-			}
+				foreach (var item in rssData.Data.Items.Take(10).Reverse())
+				{
+					if (!(recentUrls.Select(x => x.RecentUrl).Contains(item.Link)))
+						posts.Add(item);
+				}
+			});
 			return posts;
 		}
 
