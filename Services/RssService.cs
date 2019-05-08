@@ -81,8 +81,10 @@
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
 						List<RssItem> rssPosts = await ExcludeRecentPosts(feed, rssData);
 
+						SocketGuild socketGuild = _client.GetGuild(Convert.ToUInt64(guild.GuildId));
 						List<Object> rssMessages = await BuildRssFeedAsync(feed, rssPosts, socketGuild);
 
+						var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
 						await SendToChannel(rssMessages, channel, feed, socketGuild);
 					// This all happens behind scenes, so doesn't inhibit the performance
 						await SaveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
@@ -122,11 +124,10 @@
 			return posts;
 		}
 
-		private async Task BuildRssFeedAsync(RssFeed feed, List<RssItem> posts, SocketGuild socketGuild)
+		private async Task<List<Object>> BuildRssFeedAsync(RssFeed feed, List<RssItem> posts, SocketGuild socketGuild)
 		{
 			try
 			{
-				var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
 
 				posts.ForEach(async item =>
 				{
