@@ -76,6 +76,7 @@
 					feeds.Add(new Task(async () => {
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
 						await BuildRssFeedAsync(feed, rssData, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
+						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
 					}));
 			}
 			Task isComplete = Task.WhenAll(feeds);
@@ -95,6 +96,18 @@
 		}
 
 		private async Task BuildRssFeedAsync(RssFeed feed, RssDataObject rssData, SocketGuild socketGuild)
+		private async Task<List<RssItem>> excludeRecentPosts(RssFeed feed, RssDataObject rssData)
+		{
+			var recentUrls = feed.Guild.RssRecentUrls;
+			List<RssItem> posts = new List<RssItem>();
+			foreach (var item in rssData.Data.Items.Take(10).Reverse())
+			{
+				if (!(recentUrls.Select(x => x.RecentUrl).Contains(item.Link)))
+					posts.Add(item);
+			}
+			return posts;
+		}
+
 		{
 			try
 			{
