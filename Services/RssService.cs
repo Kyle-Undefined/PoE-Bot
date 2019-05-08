@@ -9,6 +9,7 @@
 	using PoE.Bot.Helpers;
 	using PoE.Bot.Models;
 	using System;
+	using System.Collections;
 	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
@@ -79,7 +80,10 @@
 					feeds.Add(new Task(async () => {
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
 						List<RssItem> rssPosts = await ExcludeRecentPosts(feed, rssData);
-						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
+
+						List<Object> rssMessages = await BuildRssFeedAsync(feed, rssPosts, socketGuild);
+
+						await SendToChannel(rssMessages, channel, feed, socketGuild);
 					// This all happens behind scenes, so doesn't inhibit the performance
 						await SaveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
 					}));
@@ -161,11 +165,7 @@
 							sb.Append("```").Append(labDescription).AppendLine("```");
 							break;
 
-						case Uri uri when feedUri.Host is "www.pathofexile.com":
-							embed.WithTitle(CleanTitle(item.Title))
-								.WithDescription(description)
-								.WithUrl(item.Link)
-								.WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
+						sb.Append("```").Append(labDescription).AppendLine("```");
 
 							string newsImage = await GetAnnouncementImageAsync(item.Link);
 							if (!string.IsNullOrWhiteSpace(newsImage))
@@ -247,7 +247,7 @@
 			return imageURL;
 		}
 
-		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
+		private async Task SendToChannel(List<Object> messages, SocketTextChannel channel, RssFeed feed, SocketGuild socketGuild)
 		{
 			await Task.Run(() => 
 			{
@@ -259,8 +259,19 @@
 						RssFeedId = idFeed,
 						GuildId = idGuild
 					});
+		}
+
+		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
+		{
+			foreach (var item in posts)
+			{
+				await _database.RssRecentUrls.AddAsync(new RssRecentUrl
+				{
+					RecentUrl = item.Link,
+					RssFeedId = idFeed,
+					GuildId = idGuild
 				});
-			});
+			};
 		}
 
 		private string CleanTitle(string title) => title.Replace("*", string.Empty);
