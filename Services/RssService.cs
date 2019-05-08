@@ -81,8 +81,8 @@
 						await _database.SaveChangesAsync();
 					}));
 			}
-			Task isComplete = Task.WhenAll(feeds);
-			await isComplete;
+
+			await Task.WhenAll(feeds);
 		}
 
 		private async Task<RssDataObject> GetRssAsync(string feedUrl)
