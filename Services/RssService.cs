@@ -217,22 +217,6 @@
 			}
 		}
 
-		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
-		{
-			await Task.Run(() => 
-			{
-				posts.ForEach(async item =>
-				{
-					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
-					{
-						RecentUrl = item.Link,
-						RssFeedId = idFeed,
-						GuildId = idGuild
-					});
-				});
-			});
-		}
-
 		private async Task<string> GetAnnouncementImageAsync(string url)
 		{
 			var imageURL = string.Empty;
@@ -261,6 +245,22 @@
 			}
 
 			return imageURL;
+		}
+
+		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
+		{
+			await Task.Run(() => 
+			{
+				posts.ForEach(async item =>
+				{
+					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
+					{
+						RecentUrl = item.Link,
+						RssFeedId = idFeed,
+						GuildId = idGuild
+					});
+				});
+			});
 		}
 
 		private string CleanTitle(string title) => title.Replace("*", string.Empty);
