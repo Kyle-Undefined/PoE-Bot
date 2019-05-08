@@ -112,10 +112,10 @@
 			try
 			{
 				var recentUrls = feed.Guild.RssRecentUrls;
+				var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
 
 				posts.ForEach(async item =>
 				{
-					var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
 					var embed = EmbedHelper.Embed(EmbedHelper.RSS);
 					var sb = new StringBuilder();
 
