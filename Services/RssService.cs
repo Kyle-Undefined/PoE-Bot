@@ -180,32 +180,7 @@
 							break;
 					}
 
-					IRole roleToMention = null;
-					if (feed.Guild.RssRoles.Count > 0)
-					{
-						foreach (var roleId in feed.Guild.RssRoles)
-						{
-							var role = socketGuild.GetRole(roleId.RoleId);
-							if (role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0 && !string.IsNullOrEmpty(feed.Tag))
-							{
-								if (embed.Title.IndexOf(feed.Tag, StringComparison.CurrentCultureIgnoreCase) >= 0)
-								{
-									roleToMention = role;
-									break;
-								}
-							}
-							else if (!(role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0))
-							{
-								roleToMention = role;
-								break;
-							}
-						}
-					}
 
-					if (!string.IsNullOrEmpty(embed.Title))
-						await channel.SendMessageAsync(roleToMention?.Mention, embed: embed.Build());
-					else if (!string.IsNullOrEmpty(sb.ToString()))
-						await channel.SendMessageAsync(sb.ToString());
 
 
 				});
@@ -250,16 +225,35 @@
 
 		private async Task SendToChannel(List<Object> messages, SocketTextChannel channel, RssFeed feed, SocketGuild socketGuild)
 		{
-			await Task.Run(() => 
+			foreach(var msg in messages)
 			{
-				posts.ForEach(async item =>
+				IRole roleToMention = null;
+				if (feed.Guild.RssRoles.Count > 0)
 				{
-					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
+					foreach (var roleId in feed.Guild.RssRoles)
 					{
-						RecentUrl = item.Link,
-						RssFeedId = idFeed,
-						GuildId = idGuild
-					});
+						var role = socketGuild.GetRole(roleId.RoleId);
+						if (role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0 && !string.IsNullOrEmpty(feed.Tag))
+						{
+							if ((msg.GetType() == typeof(EmbedBuilder)) && ((EmbedBuilder)msg).Title.IndexOf(feed.Tag, StringComparison.CurrentCultureIgnoreCase) >= 0)
+							{
+								roleToMention = role;
+								break;
+							}
+						}
+						else if (!(role.Name.IndexOf("everyone", StringComparison.CurrentCultureIgnoreCase) >= 0))
+						{
+							roleToMention = role;
+							break;
+						}
+					}
+				}
+
+				if ((msg.GetType() == typeof(EmbedBuilder)) && !(string.IsNullOrEmpty(((EmbedBuilder)msg).Title)))
+					await channel.SendMessageAsync(roleToMention?.Mention, embed: ((EmbedBuilder)msg).Build());
+				else if ((msg.GetType() == typeof(StringBuilder)) && !(string.IsNullOrEmpty(((StringBuilder)msg).ToString())))
+					await channel.SendMessageAsync(((StringBuilder)msg).ToString());
+			};
 		}
 
 		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
