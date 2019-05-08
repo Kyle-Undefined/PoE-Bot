@@ -95,7 +95,6 @@
 			return serializer.Deserialize(xmlStream) as RssDataObject;
 		}
 
-		private async Task BuildRssFeedAsync(RssFeed feed, RssDataObject rssData, SocketGuild socketGuild)
 		private async Task<List<RssItem>> excludeRecentPosts(RssFeed feed, RssDataObject rssData)
 		{
 			var recentUrls = feed.Guild.RssRecentUrls;
@@ -114,11 +113,8 @@
 			{
 				var recentUrls = feed.Guild.RssRecentUrls;
 
-				foreach (var item in rssData.Data.Items.Take(10).Reverse())
+				posts.ForEach(async item =>
 				{
-					if (recentUrls.Select(x => x.RecentUrl).Contains(item.Link))
-						continue;
-
 					var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
 					var embed = EmbedHelper.Embed(EmbedHelper.RSS);
 					var sb = new StringBuilder();
@@ -206,7 +202,8 @@
 						RssFeedId = feed.Id,
 						GuildId = feed.Guild.Id
 					});
-				}
+
+				});
 
 				await _database.SaveChangesAsync();
 			}
