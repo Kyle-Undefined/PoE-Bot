@@ -80,8 +80,8 @@
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
 						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
 						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
-						await saveRecentUrls(feed, rssPosts);
 					// This all happens behind scenes, so doesn't inhibit the performance
+						await saveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
 					}));
 			}
 
@@ -217,7 +217,7 @@
 			}
 		}
 
-		private async Task saveRecentUrls(RssFeed feed, List<RssItem> posts)
+		private async Task saveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
 		{
 			await Task.Run(() => 
 			{
@@ -226,8 +226,8 @@
 					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
 					{
 						RecentUrl = item.Link,
-						RssFeedId = feed.Id,
-						GuildId = feed.Guild.Id
+						RssFeedId = idFeed,
+						GuildId = idGuild
 					});
 				});
 			});
