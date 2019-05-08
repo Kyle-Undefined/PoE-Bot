@@ -78,11 +78,11 @@
 						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
 						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
 						await saveRecentUrls(feed, rssPosts);
-						await _database.SaveChangesAsync();
 					}));
 			}
 
 			await Task.WhenAll(feeds);
+			await _database.SaveChangesAsync();
 		}
 
 		private async Task<RssDataObject> GetRssAsync(string feedUrl)
