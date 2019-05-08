@@ -126,71 +126,72 @@
 
 		private async Task<List<Object>> BuildRssFeedAsync(RssFeed feed, List<RssItem> posts, SocketGuild socketGuild)
 		{
-			try
+			List<Object> messages = new List<Object>();
+			foreach(var item in posts)
 			{
+				var embed = EmbedHelper.Embed(EmbedHelper.RSS);
+				var sb = new StringBuilder();
 
-				posts.ForEach(async item =>
+				string description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(item.Description)));
+				description = description.Length > 800 ? $"{description.Substring(0, 800)} [...]" : description;
+				var feedUri = new Uri(feed.FeedUrl);
+
+				switch (feedUri)
 				{
-					var embed = EmbedHelper.Embed(EmbedHelper.RSS);
-					var sb = new StringBuilder();
+					case Uri uri when feedUri.Host is "www.gggtracker.com":
+						sb.AppendLine("-----------------------------------------------------------")
+							.Append(":newspaper: ***").Append(CleanTitle(item.Title)).AppendLine("***\n")
+							.AppendLine(item.Link)
+							.Append("```").Append(description).AppendLine("```");
+						messages.Add(sb);
+						break;
 
-					string description = StripTagsCharArray(RoughStrip(HtmlEntity.DeEntitize(item.Description)));
-					description = description.Length > 800 ? $"{description.Substring(0, 800)} [...]" : description;
-					var feedUri = new Uri(feed.FeedUrl);
+					case Uri uri when feedUri.Host is "www.poelab.com":
+						sb.AppendLine("-----------------------------------------------------------")
+							.Append("***").Append(CleanTitle(item.Title)).AppendLine("***")
+							.AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*")
+							.AppendLine(item.Link);
 
-					switch (feedUri)
-					{
-						case Uri uri when feedUri.Host is "www.gggtracker.com":
-							sb.AppendLine("-----------------------------------------------------------")
-								.Append(":newspaper: ***").Append(CleanTitle(item.Title)).AppendLine("***\n")
-								.AppendLine(item.Link)
-								.Append("```").Append(description).AppendLine("```");
-							break;
+						string labDescription = "Lab notes not added.";
 
-						case Uri uri when feedUri.Host is "www.poelab.com":
-							sb.AppendLine("-----------------------------------------------------------")
-								.Append("***").Append(CleanTitle(item.Title)).AppendLine("***")
-								.AppendLine("*Please turn off any Ad Blockers you have to help the team keep doing Izaros work.*")
-								.AppendLine(item.Link);
-
-							string labDescription = "Lab notes not added.";
-
-							if (item.Comments > 0 && item.Title.Contains("Uber"))
-							{
-								var commentRSS = await GetRssAsync(item.CommentRss);
-								var comment = commentRSS.Data.Items.Find(x => x.Title is "By: SuitSizeSmall");
-								if (!(comment is null))
-									labDescription = comment.Description;
-							}
-
-							sb.Append("```").Append(labDescription).AppendLine("```");
-							break;
+						if (item.Comments > 0 && item.Title.Contains("Uber"))
+						{
+							var commentRSS = await GetRssAsync(item.CommentRss);
+							var comment = commentRSS.Data.Items.Find(x => x.Title is "By: SuitSizeSmall");
+							if (!(comment is null))
+								labDescription = comment.Description;
+						}
 
 						sb.Append("```").Append(labDescription).AppendLine("```");
 
-							string newsImage = await GetAnnouncementImageAsync(item.Link);
-							if (!string.IsNullOrWhiteSpace(newsImage))
-								embed.WithImageUrl(newsImage);
-							break;
+						messages.Add(sb);
+						break;
 
-						default:
-							sb.Append("***").Append(CleanTitle(item.Title)).AppendLine("***\n")
-								.AppendLine(item.Link)
-								.Append("```").Append(description).AppendLine("```");
-							break;
-					}
+					case Uri uri when feedUri.Host is "www.pathofexile.com":
+						embed.WithTitle(CleanTitle(item.Title))
+							.WithDescription(description)
+							.WithUrl(item.Link)
+							.WithTimestamp(new DateTimeOffset(Convert.ToDateTime(item.PubDate).ToUniversalTime()));
 
+						string newsImage = await GetAnnouncementImageAsync(item.Link);
+						if (!string.IsNullOrWhiteSpace(newsImage))
+							embed.WithImageUrl(newsImage);
 
+						messages.Add(embed);
+						break;
 
+					default:
+						sb.Append("***").Append(CleanTitle(item.Title)).AppendLine("***\n")
+							.AppendLine(item.Link)
+							.Append("```").Append(description).AppendLine("```");
 
-				});
-
+						messages.Add(sb);
+						break;
+				}
 			}
-			catch (Exception ex)
-			{
-				await _log.LogMessage(new LogMessage(LogSeverity.Error, "Rss", string.Empty, ex));
-				return;
-			}
+
+			//await _log.LogMessage(new LogMessage(LogSeverity.Error, "Rss", string.Empty, ex));
+			return messages;
 		}
 
 		private async Task<string> GetAnnouncementImageAsync(string url)
