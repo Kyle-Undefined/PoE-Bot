@@ -197,12 +197,6 @@
 					else if (!string.IsNullOrEmpty(sb.ToString()))
 						await channel.SendMessageAsync(sb.ToString());
 
-					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
-					{
-						RecentUrl = item.Link,
-						RssFeedId = feed.Id,
-						GuildId = feed.Guild.Id
-					});
 
 				});
 
@@ -217,6 +211,18 @@
 
 		private async Task saveRecentUrls(RssFeed feed, List<RssItem> posts)
 		{
+			await Task.Run(() => 
+			{
+				posts.ForEach(async item =>
+				{
+					await _database.RssRecentUrls.AddAsync(new RssRecentUrl
+					{
+						RecentUrl = item.Link,
+						RssFeedId = feed.Id,
+						GuildId = feed.Guild.Id
+					});
+				});
+			});
 		}
 
 		private async Task<string> GetAnnouncementImageAsync(string url)
