@@ -77,6 +77,7 @@
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
 						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
 						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
+						await saveRecentUrls(feed, rssPosts);
 					}));
 			}
 			Task isComplete = Task.WhenAll(feeds);
@@ -212,6 +213,10 @@
 				await _log.LogMessage(new LogMessage(LogSeverity.Error, "Rss", string.Empty, ex));
 				return;
 			}
+		}
+
+		private async Task saveRecentUrls(RssFeed feed, List<RssItem> posts)
+		{
 		}
 
 		private async Task<string> GetAnnouncementImageAsync(string url)
