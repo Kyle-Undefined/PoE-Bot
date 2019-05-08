@@ -78,10 +78,10 @@
 				foreach (var feed in guild.RssFeeds)
 					feeds.Add(new Task(async () => {
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
-						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
+						List<RssItem> rssPosts = await ExcludeRecentPosts(feed, rssData);
 						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
 					// This all happens behind scenes, so doesn't inhibit the performance
-						await saveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
+						await SaveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
 					}));
 			}
 
@@ -102,7 +102,7 @@
 			return serializer.Deserialize(xmlStream) as RssDataObject;
 		}
 
-		private async Task<List<RssItem>> excludeRecentPosts(RssFeed feed, RssDataObject rssData)
+		private async Task<List<RssItem>> ExcludeRecentPosts(RssFeed feed, RssDataObject rssData)
 		{
 			var recentUrls = feed.Guild.RssRecentUrls;
 			List<RssItem> posts = new List<RssItem>();
@@ -217,7 +217,7 @@
 			}
 		}
 
-		private async Task saveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
+		private async Task SaveRecentUrls(ulong idFeed, ulong idGuild, List<RssItem> posts)
 		{
 			await Task.Run(() => 
 			{
