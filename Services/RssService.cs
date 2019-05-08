@@ -69,8 +69,11 @@
 
 		public async Task ProcessRssFeeds()
 		{
+		// Asynchronous ForEach
 			List<Task> feeds = new List<Task>();
-			foreach (var guild in await _database.Guilds.Include(x => x.RssFeeds).Include(x => x.RssRecentUrls).Include(x => x.RssRoles).Where(x => x.EnableRssFeed && x.RssFeeds.Count > 0).ToListAsync())
+		// More Optimized since evaluation is only done once.
+			List<Guild> guilds = await _database.Guilds.Include(x => x.RssFeeds).Include(x => x.RssRecentUrls).Include(x => x.RssRoles).Where(x => x.EnableRssFeed && x.RssFeeds.Count > 0).ToListAsync();
+			foreach (var guild in guilds)
 			{
 				foreach (var feed in guild.RssFeeds)
 					feeds.Add(new Task(async () => {
@@ -78,9 +81,11 @@
 						List<RssItem> rssPosts = await excludeRecentPosts(feed, rssData);
 						await BuildRssFeedAsync(feed, rssPosts, _client.GetGuild(Convert.ToUInt64(guild.GuildId)));
 						await saveRecentUrls(feed, rssPosts);
+					// This all happens behind scenes, so doesn't inhibit the performance
 					}));
 			}
 
+		// Run each feed in parallel and wait until all are completed
 			await Task.WhenAll(feeds);
 			await _database.SaveChangesAsync();
 		}
