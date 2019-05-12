@@ -17,19 +17,19 @@ namespace PoE.Bot.Parsers
     [ConcreteType(typeof(SocketRole))]
     public class DiscordRoleTypeParser<T> : TypeParser<T> where T : class, IRole
     {
-        public override Task<TypeParserResult<T>> ParseAsync(string value, ICommandContext ctx, IServiceProvider __)
+        public override Task<TypeParserResult<T>> ParseAsync(Parameter parameter, string value, ICommandContext context, IServiceProvider provider)
         {
-            var context = ctx as GuildContext;
+            var _context = context as GuildContext;
             var results = new Dictionary<ulong, GenericParseResult<T>>();
-            var roles = context.Guild.Roles;
+            var roles = _context.Guild.Roles;
 
             //By Mention (1.0)
             if (MentionUtils.TryParseRole(value, out ulong id))
-                AddResult(results, context.Guild.GetRole(id) as T, 1.00f);
+                AddResult(results, _context.Guild.GetRole(id) as T, 1.00f);
 
             //By Id (0.9)
             if (ulong.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out id))
-                AddResult(results, context.Guild.GetRole(id) as T, 0.90f);
+                AddResult(results, _context.Guild.GetRole(id) as T, 0.90f);
 
             //By Name (0.7-0.8)
             foreach (var role in roles.Where(x => string.Equals(value, x.Name, StringComparison.OrdinalIgnoreCase)))

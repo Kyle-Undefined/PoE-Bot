@@ -33,7 +33,7 @@
         {
             await _client.LoginAsync(TokenType.Bot, (await _database.BotConfigs.AsNoTracking().FirstAsync()).BotToken);
             await _client.StartAsync();
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            _commands.AddModules(Assembly.GetEntryAssembly());
 
             _events.Initialize();
             _reaction.Initialize();

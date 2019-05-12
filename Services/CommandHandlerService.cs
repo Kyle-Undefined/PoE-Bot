@@ -100,7 +100,7 @@
                     return;
 
                 case ChecksFailedResult checks:
-                    await context.Channel.SendMessageAsync(string.Join("\n", checks.FailedChecks.Select(x => x.Error)));
+                    await context.Channel.SendMessageAsync(string.Join("\n", checks.FailedChecks.Select(x => x.Result.Reason)));
                     break;
 
                 case CommandNotFoundResult notfound:

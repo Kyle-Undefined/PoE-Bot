@@ -10,7 +10,7 @@
     [ConcreteType(typeof(IEmote))]
     public class DiscordEmoteTypeParser : TypeParser<IEmote>
     {
-        public override Task<TypeParserResult<IEmote>> ParseAsync(string value, ICommandContext _, IServiceProvider __)
+        public override Task<TypeParserResult<IEmote>> ParseAsync(Parameter parameter, string value, ICommandContext context, IServiceProvider provider)
         {
             if (Emote.TryParse(value, out Emote emote))
             {

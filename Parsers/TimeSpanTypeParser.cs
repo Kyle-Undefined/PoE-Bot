@@ -30,7 +30,7 @@ namespace PoE.Bot.Parsers
             "%s's'",                //      1s
         };
 
-        public override Task<TypeParserResult<TimeSpan>> ParseAsync(string value, ICommandContext _, IServiceProvider __)
+        public override Task<TypeParserResult<TimeSpan>> ParseAsync(Parameter parameter, string value, ICommandContext context, IServiceProvider provider)
         {
             if(TimeSpan.TryParseExact(value.ToLowerInvariant(), Formats, CultureInfo.InvariantCulture, out var timeSpan))
                 return Task.FromResult(new TypeParserResult<TimeSpan>(timeSpan));
