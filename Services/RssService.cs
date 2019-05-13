@@ -104,6 +104,7 @@
 							await _log.LogMessage(new LogMessage(LogSeverity.Error, "RSS", ex.Message, ex));
 						}
 					}));
+				}
 			}
 
 		// Run each feed in parallel and wait until all are completed
