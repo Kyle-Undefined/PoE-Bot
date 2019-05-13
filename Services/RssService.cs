@@ -81,17 +81,28 @@
 			{
 				await _log.LogMessage(new LogMessage(LogSeverity.Debug, "RSS", "Guild: Updating " + guild.RssFeeds.Count + " feeds"));
 				foreach (var feed in guild.RssFeeds)
-					feeds.Add(new Task(async () => {
-						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
-						List<RssItem> rssPosts = await ExcludeRecentPosts(feed, rssData);
+				{
+					await _log.LogMessage(new LogMessage(LogSeverity.Debug, "RSS", "Feed: Readying " + feed.FeedUrl));
+					feeds.Add(Task.Run(async () =>
+					{
+						await _log.LogMessage(new LogMessage(LogSeverity.Debug, "RSS", "Feed: Updating " + feed.FeedUrl));
+						try
+						{
+							RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
+							List<RssItem> rssPosts = await ExcludeRecentPosts(feed, rssData);
 
-						SocketGuild socketGuild = _client.GetGuild(Convert.ToUInt64(guild.GuildId));
-						List<Object> rssMessages = await BuildRssFeedAsync(feed, rssPosts, socketGuild);
+							SocketGuild socketGuild = _client.GetGuild(Convert.ToUInt64(guild.GuildId));
+							List<Object> rssMessages = await BuildRssFeedAsync(feed, rssPosts, socketGuild);
 
-						var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
-						await SendToChannel(rssMessages, channel, feed, socketGuild);
-					// This all happens behind scenes, so doesn't inhibit the performance
-						await SaveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
+							var channel = socketGuild.GetChannel(feed.ChannelId) as SocketTextChannel;
+							await SendToChannel(rssMessages, channel, feed, socketGuild);
+							// This all happens behind scenes, so doesn't inhibit the performance
+							await SaveRecentUrls(feed.Id, feed.Guild.Id, rssPosts);
+						}
+						catch (Exception ex)
+						{
+							await _log.LogMessage(new LogMessage(LogSeverity.Error, "RSS", ex.Message, ex));
+						}
 					}));
 			}
 
