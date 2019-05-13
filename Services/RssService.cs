@@ -70,12 +70,16 @@
 
 		public async Task ProcessRssFeeds()
 		{
+
 		// Asynchronous ForEach
 			List<Task> feeds = new List<Task>();
 		// More Optimized since evaluation is only done once.
 			List<Guild> guilds = await _database.Guilds.Include(x => x.RssFeeds).Include(x => x.RssRecentUrls).Include(x => x.RssRoles).Where(x => x.EnableRssFeed && x.RssFeeds.Count > 0).ToListAsync();
+
+			await _log.LogMessage(new LogMessage(LogSeverity.Debug, "RSS", "Processing RSS Service: " + guilds.Count + " guilds"));
 			foreach (var guild in guilds)
 			{
+				await _log.LogMessage(new LogMessage(LogSeverity.Debug, "RSS", "Guild: Updating " + guild.RssFeeds.Count + " feeds"));
 				foreach (var feed in guild.RssFeeds)
 					feeds.Add(new Task(async () => {
 						RssDataObject rssData = await GetRssAsync(feed.FeedUrl);
@@ -98,14 +102,23 @@
 
 		private async Task<RssDataObject> GetRssAsync(string feedUrl)
 		{
-			var response = await _httpClient.GetAsync(feedUrl).ConfigureAwait(false);
-			if (!response.IsSuccessStatusCode)
-				return null;
+			await _log.LogMessage(new LogMessage(LogSeverity.Info, "RSS", "Fetching " + feedUrl));
+			try
+			{
+				HttpResponseMessage response = await _httpClient.GetAsync(feedUrl).ConfigureAwait(false);
+				if (!response.IsSuccessStatusCode)
+					throw new HttpRequestException("Request to \'" + feedUrl + "\' returned with " + response.StatusCode);
 
-			var serializer = new XmlSerializer(typeof(RssDataObject));
-			var xml = await response.Content.ReadAsStringAsync();
-			var xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
-			return serializer.Deserialize(xmlStream) as RssDataObject;
+				var serializer = new XmlSerializer(typeof(RssDataObject));
+				var xml = await response.Content.ReadAsStringAsync();
+				var xmlStream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+				return serializer.Deserialize(xmlStream) as RssDataObject;
+			}
+			catch (HttpRequestException ex)
+			{
+				await _log.LogMessage(new LogMessage(LogSeverity.Error, "RSS", ex.Message, ex));
+				return null;
+			}
 		}
 
 		private async Task<List<RssItem>> ExcludeRecentPosts(RssFeed feed, RssDataObject rssData)
