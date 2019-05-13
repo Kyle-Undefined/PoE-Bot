@@ -17,19 +17,19 @@ namespace PoE.Bot.Parsers
     [ConcreteType(typeof(SocketGuildChannel), typeof(SocketTextChannel))]
     public class DiscordChannelTypeParser<T> : TypeParser<T> where T : class, IGuildChannel
     {
-        public override Task<TypeParserResult<T>> ParseAsync(string value, ICommandContext ctx, IServiceProvider __)
+        public override Task<TypeParserResult<T>> ParseAsync(Parameter parameter, string value, ICommandContext context, IServiceProvider provider)
         {
-            var context = ctx as GuildContext;
+            var _context = context as GuildContext;
             var results = new Dictionary<ulong, GenericParseResult<T>>();
-            var channels = context.Guild.Channels;
+            var channels = _context.Guild.Channels;
 
             //By Mention (1.0)
             if (MentionUtils.TryParseChannel(value, out ulong id))
-                AddResult(results, context.Guild.GetChannel(id) as T, 1.00f);
+                AddResult(results, _context.Guild.GetChannel(id) as T, 1.00f);
 
             //By Id (0.9)
             if (ulong.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out id))
-                AddResult(results, context.Guild.GetChannel(id) as T, 0.90f);
+                AddResult(results, _context.Guild.GetChannel(id) as T, 0.90f);
 
             //By Name (0.7-0.8)
             foreach (var channel in channels.Where(x => string.Equals(value, x.Name, StringComparison.OrdinalIgnoreCase)))

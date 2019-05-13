@@ -683,7 +683,6 @@
 			{
 				if (response.IsSuccessStatusCode)
 				{
-					//board = new LeaderboardData();
 					using (var stream = await response.Content.ReadAsStreamAsync())
 					using (var reader = new StreamReader(stream))
 					using (var csv = new CsvReader(reader))

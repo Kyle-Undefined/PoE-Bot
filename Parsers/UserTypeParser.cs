@@ -18,32 +18,32 @@ namespace PoE.Bot.Parsers
     [ConcreteType(typeof(SocketGuildUser), typeof(SocketUser))]
     public class DiscordUserTypeParser<T> : TypeParser<T> where T : class, IUser
     {
-        public override async Task<TypeParserResult<T>> ParseAsync(string value, ICommandContext ctx, IServiceProvider _)
+        public override async Task<TypeParserResult<T>> ParseAsync(Parameter parameter, string value, ICommandContext context, IServiceProvider provider)
         {
-            var context = ctx as GuildContext;
+            var _context = context as GuildContext;
             var results = new Dictionary<ulong, GenericParseResult<T>>();
-            var channelUsers = (context.Channel as ISocketMessageChannel)?.GetUsersAsync(CacheMode.CacheOnly).Flatten();
+            var channelUsers = (_context.Channel as ISocketMessageChannel)?.GetUsersAsync(CacheMode.CacheOnly).Flatten();
             IReadOnlyCollection<IGuildUser> guildUsers = ImmutableArray.Create<IGuildUser>();
 
-            if (context.Guild != null)
-                guildUsers = await ((IGuild)context.Guild).GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false);
+            if (_context.Guild != null)
+                guildUsers = await ((IGuild)_context.Guild).GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false);
 
             //By Mention (1.0)
             if (MentionUtils.TryParseUser(value, out var id))
             {
-                if (context.Guild != null)
-                    AddResult(results, await (context.Guild as IGuild).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 1.00f);
+                if (_context.Guild != null)
+                    AddResult(results, await (_context.Guild as IGuild).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 1.00f);
                 else
-                    AddResult(results, await (context.Channel as ISocketMessageChannel).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 1.00f);
+                    AddResult(results, await (_context.Channel as ISocketMessageChannel).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 1.00f);
             }
 
             //By Id (0.9)
             if (ulong.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out id))
             {
-                if (context.Guild != null)
-                    AddResult(results, await (context.Guild as IGuild).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 0.90f);
+                if (_context.Guild != null)
+                    AddResult(results, await (_context.Guild as IGuild).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 0.90f);
                 else
-                    AddResult(results, await (context.Channel as ISocketMessageChannel).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 0.90f);
+                    AddResult(results, await (_context.Channel as ISocketMessageChannel).GetUserAsync(id, CacheMode.CacheOnly).ConfigureAwait(false) as T, 0.90f);
             }
 
             var index = value.LastIndexOf('#');
