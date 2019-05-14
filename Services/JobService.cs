@@ -75,7 +75,7 @@
 			JobManager.AddJob(async () => await _stream.ProcessStreams(), x => x.ToRunEvery(1440).Minutes());
 
 			_log.LogMessage(new LogMessage(LogSeverity.Info, "Jobs", "RSS Feeds"));
-			JobManager.AddJob(async () => await _rss.ProcessRssFeeds(), x => x.ToRunEvery(2).Minutes());
+			JobManager.AddJob(async () => await _rss.ProcessRssFeeds(), x => x.ToRunEvery(15).Minutes());
 
 			_log.LogMessage(new LogMessage(LogSeverity.Info, "Jobs", "4 jobs running..."));
 		}
