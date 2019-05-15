@@ -6,7 +6,7 @@
 *.user
 *.useross
 
-*.sln
+#*.sln
 *.sln.docstates
 
 # User-specific files (MonoDevelop/Xamarin Studio)
