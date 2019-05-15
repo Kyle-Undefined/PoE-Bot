@@ -7,500 +7,500 @@ using PoE.Bot.Contexts;
 
 namespace PoE.Bot.Migrations
 {
-    [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
-    {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
+	[DbContext(typeof(DatabaseContext))]
+	partial class DatabaseContextModelSnapshot : ModelSnapshot
+	{
+		protected override void BuildModel(ModelBuilder modelBuilder)
+		{
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
+			modelBuilder
+				.HasAnnotation("ProductVersion", "2.2.0-preview3-35497");
 
-            modelBuilder.Entity("PoE.Bot.Models.BlacklistedUser", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.BlacklistedUser", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("BlacklistedWhen");
+					b.Property<DateTime>("BlacklistedWhen");
 
-                    b.Property<string>("Reason");
+					b.Property<string>("Reason");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.ToTable("BlacklistedUsers");
-                });
+					b.ToTable("BlacklistedUsers");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.BotConfig", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.BotConfig", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<string>("BotToken");
+					b.Property<string>("BotToken");
 
-                    b.Property<string>("Prefix");
+					b.Property<string>("Prefix");
 
-                    b.Property<ulong>("ProjectChannel");
+					b.Property<ulong>("ProjectChannel");
 
-                    b.Property<ulong>("SupportChannel");
+					b.Property<ulong>("SupportChannel");
 
-                    b.Property<string>("TwitchClientId");
+					b.Property<string>("TwitchClientId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.ToTable("BotConfigs");
-                });
+					b.ToTable("BotConfigs");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Case", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Case", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CaseDate");
+					b.Property<DateTime>("CaseDate");
 
-                    b.Property<int>("CaseType");
+					b.Property<int>("CaseType");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<ulong>("MessageId");
+					b.Property<ulong>("MessageId");
 
-                    b.Property<ulong>("ModeratorId");
+					b.Property<ulong>("ModeratorId");
 
-                    b.Property<int>("Number");
+					b.Property<int>("Number");
 
-                    b.Property<string>("Reason");
+					b.Property<string>("Reason");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Cases");
-                });
+					b.ToTable("Cases");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.CurrencyItem", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.CurrencyItem", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<string>("Alias");
+					b.Property<string>("Alias");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<DateTime>("LastUpdated");
+					b.Property<DateTime>("LastUpdated");
 
-                    b.Property<int>("League");
+					b.Property<int>("League");
 
-                    b.Property<string>("Name");
+					b.Property<string>("Name");
 
-                    b.Property<double>("Price");
+					b.Property<double>("Price");
 
-                    b.Property<double>("Quantity");
+					b.Property<double>("Quantity");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("CurrencyItems");
-                });
+					b.ToTable("CurrencyItems");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Guild", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Guild", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("AnnouncementRole");
+					b.Property<ulong>("AnnouncementRole");
 
-                    b.Property<ulong>("BotChangeChannel");
+					b.Property<ulong>("BotChangeChannel");
 
-                    b.Property<ulong>("CaseLogChannel");
+					b.Property<ulong>("CaseLogChannel");
 
-                    b.Property<bool>("EnableAntiProfanity");
+					b.Property<bool>("EnableAntiProfanity");
 
-                    b.Property<bool>("EnableDeletionLog");
+					b.Property<bool>("EnableDeletionLog");
 
-                    b.Property<bool>("EnableLeaderboardFeed");
+					b.Property<bool>("EnableLeaderboardFeed");
 
-                    b.Property<bool>("EnableMixerFeed");
+					b.Property<bool>("EnableMixerFeed");
 
-                    b.Property<bool>("EnableRssFeed");
+					b.Property<bool>("EnableRssFeed");
 
-                    b.Property<bool>("EnableTwitchFeed");
+					b.Property<bool>("EnableTwitchFeed");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<ulong>("LotteryRole");
+					b.Property<ulong>("LotteryRole");
 
-                    b.Property<int>("MaxWarnings");
+					b.Property<int>("MaxWarnings");
 
-                    b.Property<ulong>("MessageLogChannel");
+					b.Property<ulong>("MessageLogChannel");
 
-                    b.Property<ulong>("MuteRole");
+					b.Property<ulong>("MuteRole");
 
-                    b.Property<ulong>("PlaystationRole");
+					b.Property<ulong>("PlaystationRole");
 
-                    b.Property<ulong>("ReportLogChannel");
+					b.Property<ulong>("ReportLogChannel");
 
-                    b.Property<ulong>("RulesChannel");
+					b.Property<ulong>("RulesChannel");
 
-                    b.Property<ulong>("XboxRole");
+					b.Property<ulong>("XboxRole");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.ToTable("Guilds");
-                });
+					b.ToTable("Guilds");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Leaderboard", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Leaderboard", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("ChannelId");
+					b.Property<ulong>("ChannelId");
 
-                    b.Property<string>("Console");
+					b.Property<string>("Console");
 
-                    b.Property<bool>("Enabled");
+					b.Property<bool>("Enabled");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("Variant");
+					b.Property<string>("Variant");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Leaderboards");
-                });
+					b.ToTable("Leaderboards");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Profanity", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Profanity", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("Word");
+					b.Property<string>("Word");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Profanities");
-                });
+					b.ToTable("Profanities");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssFeed", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.RssFeed", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("ChannelId");
+					b.Property<ulong>("ChannelId");
 
-                    b.Property<string>("FeedUrl");
+					b.Property<string>("FeedUrl");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("Tag");
+					b.Property<string>("Tag");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("RssFeeds");
-                });
+					b.ToTable("RssFeeds");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssRecentUrl", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.RssRecentUrl", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("RecentUrl");
+					b.Property<string>("RecentUrl");
 
-                    b.Property<ulong>("RssFeedId");
+					b.Property<ulong>("RssFeedId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.HasIndex("RssFeedId");
+					b.HasIndex("RssFeedId");
 
-                    b.ToTable("RssRecentUrls");
-                });
+					b.ToTable("RssRecentUrls");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssRole", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.RssRole", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<ulong>("RoleId");
+					b.Property<ulong>("RoleId");
 
-                    b.Property<ulong>("RssFeedId");
+					b.Property<ulong>("RssFeedId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.HasIndex("RssFeedId");
+					b.HasIndex("RssFeedId");
 
-                    b.ToTable("RssRoles");
-                });
+					b.ToTable("RssRoles");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Rule", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Rule", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<string>("Description");
+					b.Property<string>("Description");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<ulong>("MessageId");
+					b.Property<ulong>("MessageId");
 
-                    b.Property<int>("TotalFields");
+					b.Property<int>("TotalFields");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId")
-                        .IsUnique();
+					b.HasIndex("GuildId")
+						.IsUnique();
 
-                    b.ToTable("Rules");
-                });
+					b.ToTable("Rules");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RuleField", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.RuleField", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<string>("Content");
+					b.Property<string>("Content");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<int>("Order");
+					b.Property<int>("Order");
 
-                    b.Property<string>("Title");
+					b.Property<string>("Title");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("RuleFields");
-                });
+					b.ToTable("RuleFields");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Shop", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Shop", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("Item");
+					b.Property<string>("Item");
 
-                    b.Property<int>("League");
+					b.Property<int>("League");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Shops");
-                });
+					b.ToTable("Shops");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Stream", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Stream", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("ChannelId");
+					b.Property<ulong>("ChannelId");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<bool>("IsLive");
+					b.Property<bool>("IsLive");
 
-                    b.Property<uint>("MixerChannelId");
+					b.Property<uint>("MixerChannelId");
 
-                    b.Property<uint>("MixerUserId");
+					b.Property<uint>("MixerUserId");
 
-                    b.Property<int>("StreamType");
+					b.Property<int>("StreamType");
 
-                    b.Property<ulong>("TwitchUserId");
+					b.Property<ulong>("TwitchUserId");
 
-                    b.Property<string>("Username");
+					b.Property<string>("Username");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Streams");
-                });
+					b.ToTable("Streams");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Tag", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.Tag", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<string>("Content");
+					b.Property<string>("Content");
 
-                    b.Property<DateTime>("CreationDate");
+					b.Property<DateTime>("CreationDate");
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<string>("Name");
+					b.Property<string>("Name");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.Property<int>("Uses");
+					b.Property<int>("Uses");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Tags");
-                });
+					b.ToTable("Tags");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.User", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd();
+			modelBuilder.Entity("PoE.Bot.Models.User", b =>
+				{
+					b.Property<ulong>("Id")
+						.ValueGeneratedOnAdd();
 
-                    b.Property<ulong>("GuildId");
+					b.Property<ulong>("GuildId");
 
-                    b.Property<bool>("Muted");
+					b.Property<bool>("Muted");
 
-                    b.Property<DateTime>("MutedUntil");
+					b.Property<DateTime>("MutedUntil");
 
-                    b.Property<ulong>("UserId");
+					b.Property<ulong>("UserId");
 
-                    b.Property<int>("Warnings");
+					b.Property<int>("Warnings");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("GuildId");
+					b.HasIndex("GuildId");
 
-                    b.ToTable("Users");
-                });
+					b.ToTable("Users");
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Case", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Cases")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Case", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Cases")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.CurrencyItem", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("CurrencyItems")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.CurrencyItem", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("CurrencyItems")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Leaderboard", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Leaderboards")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Leaderboard", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Leaderboards")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Profanity", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Profanities")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Profanity", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Profanities")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssFeed", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("RssFeeds")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.RssFeed", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("RssFeeds")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssRecentUrl", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("RssRecentUrls")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
+			modelBuilder.Entity("PoE.Bot.Models.RssRecentUrl", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("RssRecentUrls")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("PoE.Bot.Models.RssFeed", "RssFeed")
-                        .WithMany()
-                        .HasForeignKey("RssFeedId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+					b.HasOne("PoE.Bot.Models.RssFeed", "RssFeed")
+						.WithMany()
+						.HasForeignKey("RssFeedId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RssRole", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("RssRoles")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
+			modelBuilder.Entity("PoE.Bot.Models.RssRole", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("RssRoles")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("PoE.Bot.Models.RssFeed", "RssFeed")
-                        .WithMany()
-                        .HasForeignKey("RssFeedId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+					b.HasOne("PoE.Bot.Models.RssFeed", "RssFeed")
+						.WithMany()
+						.HasForeignKey("RssFeedId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Rule", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithOne("Rules")
-                        .HasForeignKey("PoE.Bot.Models.Rule", "GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Rule", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithOne("Rules")
+						.HasForeignKey("PoE.Bot.Models.Rule", "GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.RuleField", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("RuleFields")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.RuleField", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("RuleFields")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Shop", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Shops")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Shop", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Shops")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Stream", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Streams")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Stream", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Streams")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.Tag", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Tags")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.Tag", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Tags")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 
-            modelBuilder.Entity("PoE.Bot.Models.User", b =>
-                {
-                    b.HasOne("PoE.Bot.Models.Guild", "Guild")
-                        .WithMany("Users")
-                        .HasForeignKey("GuildId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
+			modelBuilder.Entity("PoE.Bot.Models.User", b =>
+				{
+					b.HasOne("PoE.Bot.Models.Guild", "Guild")
+						.WithMany("Users")
+						.HasForeignKey("GuildId")
+						.OnDelete(DeleteBehavior.Cascade);
+				});
 #pragma warning restore 612, 618
-        }
-    }
+		}
+	}
 }
