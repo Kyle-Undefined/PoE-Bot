@@ -1,14 +1,14 @@
 using System;
 using Xunit;
 
-namespace Test.PoE.Bot
+namespace PoEBot.Test
 {
-	public class UnitTest1
+	public class RssServicePilot
 	{
 		[Fact]
 		public void Test1()
 		{
-
+			
 		}
 	}
 }
