@@ -6,6 +6,7 @@
 # portion of the available code editors, including Visual Studio, GitHub, and Eclipse.
 #
 # To learn more about Visual Studio's .editorconfig features see https://aka.ms/editorconfigdocs
+root = true
 
 ############################### 
 # Core EditorConfig Options   # 
@@ -13,6 +14,7 @@
 # All files 
 [*] 
 indent_style = tab
+
 # Code files 
 [*.{cs,csx,vb,vbx}] 
 indent_size = 4 
