@@ -7,11 +7,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoE.Bot", "src\PoE.Bot.cspr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E9C2908-1B78-421B-BEED-46E7C4FD4F18}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		CONTRIBUTING.md = CONTRIBUTING.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
+		STYLE_GUIDE.md = STYLE_GUIDE.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.PoE.Bot", "test\Test.PoE.Bot.csproj", "{8643B1A3-D5B3-464C-8C75-8FED00728EA5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{D3651269-B26D-4C45-AD6A-DD6605AE9731}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,9 +30,16 @@ Global
 		{25767B46-9594-4E5D-B8EE-A6B1B92CBC41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25767B46-9594-4E5D-B8EE-A6B1B92CBC41}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25767B46-9594-4E5D-B8EE-A6B1B92CBC41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8643B1A3-D5B3-464C-8C75-8FED00728EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8643B1A3-D5B3-464C-8C75-8FED00728EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8643B1A3-D5B3-464C-8C75-8FED00728EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8643B1A3-D5B3-464C-8C75-8FED00728EA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D3651269-B26D-4C45-AD6A-DD6605AE9731} = {7E9C2908-1B78-421B-BEED-46E7C4FD4F18}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {73354B5E-2369-4D02-99DD-EEE0FE2CC549}
